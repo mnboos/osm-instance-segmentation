@@ -4,8 +4,7 @@ import os
 import urllib.request
 import datetime
 
-download_folder = r"C:\Temp\images\training\raw"
-output_folder = r"C:\Temp\images\training\split"
+TILE_SIZE = 128
 
 
 class FileTypes:
@@ -27,10 +26,8 @@ test_data = [
         "images": ["22978945_15.tif", "23429155_15.tif", "23579050_15.tif", "23728930_15.tif"]
     }]
 
-download=True
-if not download:
-    print("Data download disabled...")
-else:
+
+def download(download_folder, tiled_output_folder):
     print("Starting download...")
     for test_data_obj in test_data:
         all_downloaded=False
@@ -45,46 +42,43 @@ else:
                         url = test_data_obj["url"].format(type=FileTypes.MASK, filename=file_name)
                     target_path = os.path.join(download_folder, file_name)
                     if not os.path.isfile(target_path):
-                        all_downloaded=False
+                        all_downloaded = False
                         what = "mask"
                         if is_image:
                             what = "image"
                         print("Downloading {what} {nr} {source}".format(what=what, nr=index, source=url))
                         try:
                             urllib.request.urlretrieve(url, target_path)
-                            all_downloaded=True
                         except:
                             print("!i!i!i!i========>>>>> Download failed")
     print("Download complete...")
 
-if not os.path.isdir(output_folder):
-    shutil.os.makedirs(output_folder)
+    if not os.path.isdir(tiled_output_folder):
+        shutil.os.makedirs(tiled_output_folder)
 
-files = os.listdir(download_folder)
-images = list(filter(lambda f: f.endswith(".tif"), files))
+    files = os.listdir(download_folder)
+    images = list(filter(lambda f: f.endswith(".tif"), files))
 
-IMAGE_SIZE = 128
+    print("Tiling images...")
+    progress = "0.00%"
+    for index,i in enumerate(images):
+        progress_new = "{0:.0f}%".format(index/len(images)*100)
+        if progress != progress_new:
+            print("{} - ({})".format(progress_new, datetime.datetime.utcnow()))
+            progress = progress_new
+        mask = Image.open(os.path.join(download_folder, i))
+        img = Image.open(os.path.join(download_folder, i + 'f'))
+        for ix in range(0,12):
+            for iy in range(0,12):
+                output_file = i.split('.')[0] + "_{x}_{y}.tif".format(x=ix, y=iy)
+                target_img = os.path.join(tiled_output_folder, output_file + 'f')
+                target_mask = os.path.join(tiled_output_folder, output_file)
+                if not os.path.isfile(target_img) or not os.path.isfile(target_mask):
+                    box = (ix*TILE_SIZE, iy*TILE_SIZE, ix*TILE_SIZE+TILE_SIZE, iy*TILE_SIZE+TILE_SIZE)
+                    mask_cropped = mask.crop(box)
+                    img_cropped = img.crop(box)
+                    if mask_cropped.getbbox() and ImageChops.invert(img_cropped).getbbox():
+                        img_cropped.save(target_img)
+                        mask_cropped.save(target_mask)
 
-print("Tiling images...")
-progress = "0.00%"
-for index,i in enumerate(images):
-    progress_new = "{0:.0f}%".format(index/len(images)*100)
-    if progress != progress_new:
-        print("{} - ({})".format(progress_new, datetime.datetime.utcnow()))
-        progress = progress_new
-    mask = Image.open(os.path.join(download_folder, i))
-    img = Image.open(os.path.join(download_folder, i + 'f'))
-    for ix in range(0,12):
-        for iy in range(0,12):
-            output_file = i.split('.')[0] + "_{x}_{y}.tif".format(x=ix, y=iy)
-            target_img = os.path.join(output_folder, output_file+'f')
-            target_mask = os.path.join(output_folder, output_file)
-            if not os.path.isfile(target_img) or not os.path.isfile(target_mask):
-                box = (ix*IMAGE_SIZE, iy*IMAGE_SIZE, ix*IMAGE_SIZE+IMAGE_SIZE, iy*IMAGE_SIZE+IMAGE_SIZE)
-                mask_cropped = mask.crop(box)
-                img_cropped = img.crop(box)
-                if mask_cropped.getbbox() and ImageChops.invert(img_cropped).getbbox():
-                    img_cropped.save(target_img)
-                    mask_cropped.save(target_mask)
-
-print("Finished: ", datetime.datetime.utcnow())
+    print("Finished: ", datetime.datetime.utcnow())

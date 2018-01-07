@@ -1,1 +1,8 @@
 overpy
+numpy
+tensorflow-gpu
+keras
+scipy
+scikit-image
+pillow
+h5py
