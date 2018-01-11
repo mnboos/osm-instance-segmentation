@@ -1,0 +1,9 @@
+version: '3'
+services:
+  osm-seg:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    working_dir: /proj
+    volumes:
+      - ~/dev/osm-instance-segmentation:/proj
