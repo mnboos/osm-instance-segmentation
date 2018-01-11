@@ -10,8 +10,12 @@ DATA_DIR = os.path.join(ROOT_DIR, "images")
 TRAINING_DATA_DIR = "/training-data"
 
 if not os.path.isdir(TRAINING_DATA_DIR):
-    raise RuntimeError("A directory '{}' is required containing the images to train the network"\
-                       .format(TRAINING_DATA_DIR))
+    windir = r"C:\Temp\images\training\split_small"
+    if os.path.isdir(windir):
+        TRAINING_DATA_DIR = windir
+    else:
+        raise RuntimeError("A directory '{}' is required containing the images to train the network"\
+                           .format(TRAINING_DATA_DIR))
 
 if not os.path.isfile(COCO_MODEL_PATH):
     utils.download_trained_weights(COCO_MODEL_PATH)
@@ -41,19 +45,6 @@ dataset_val = OsmMappingDataset(root_dir=TRAINING_DATA_DIR,
                                 img_height=config.IMAGE_SHAPE[1])
 dataset_val.load(validationImages)
 dataset_val.prepare()
-
-
-# # Training dataset
-# from mask_rcnn.shapes import ShapesConfig, ShapesDataset
-# dataset_train = ShapesDataset()
-# dataset_train.load_shapes(500, config.IMAGE_SHAPE[0], config.IMAGE_SHAPE[1])
-# dataset_train.prepare()
-#
-# # Validation dataset
-# dataset_val = ShapesDataset()
-# dataset_val.load_shapes(50, config.IMAGE_SHAPE[0], config.IMAGE_SHAPE[1])
-# dataset_val.prepare()
-
 
 # Create model in training mode
 model = modellib.MaskRCNN(mode="training", config=config, model_dir=MODEL_DIR)
