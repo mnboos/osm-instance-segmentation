@@ -4,6 +4,7 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
-    working_dir: /proj
+    working_dir: /osm-instance-segmentation
     volumes:
-      - ~/dev/osm-instance-segmentation:/proj
+      - ~/dev/osm-instance-segmentation:/osm-instance-segmentation
+      - ~/dev/training-data/split:/training-data

@@ -1,36 +1,42 @@
 import os
 from core.mask_rcnn_config import MyMaskRcnnConfig, OsmMappingDataset
-from mask_rcnn.shapes import ShapesConfig, ShapesDataset
 from mask_rcnn import model as modellib, utils
+from core import training_data
 
 ROOT_DIR = os.getcwd()
 COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn", "mask_rcnn_coco.h5")
 MODEL_DIR = os.path.join(ROOT_DIR, "model")
+DATA_DIR = os.path.join(ROOT_DIR, "images")
+TRAINING_DATA_DIR = "/training-data"
+
+if not os.path.isdir(TRAINING_DATA_DIR):
+    raise RuntimeError("A directory '{}' is required containing the images to train the network"\
+                       .format(TRAINING_DATA_DIR))
 
 if not os.path.isfile(COCO_MODEL_PATH):
     utils.download_trained_weights(COCO_MODEL_PATH)
+
+# training_data.download(os.path.join(DATA_DIR, "raw"), TRAINING_DATA_DIR)
 
 config = MyMaskRcnnConfig()
 # config = ShapesConfig()
 config.display()
 
-# IMAGES_PATH = r"C:\Temp\images\training\split_small"
-IMAGES_PATH = r"C:\Temp\images\training\split"
-images = list(filter(lambda f: f.endswith(".tiff"), os.listdir(IMAGES_PATH)))
+images = list(filter(lambda f: f.endswith(".tiff"), os.listdir(TRAINING_DATA_DIR)))
 
 cutoffIndex = int(len(images)*.8)
 trainingImages = images[0:cutoffIndex]
 validationImages = images[cutoffIndex:-1]
 
 # Training dataset
-dataset_train = OsmMappingDataset(root_dir=IMAGES_PATH,
+dataset_train = OsmMappingDataset(root_dir=TRAINING_DATA_DIR,
                                   img_width=config.IMAGE_SHAPE[0],
                                   img_height=config.IMAGE_SHAPE[1])
 dataset_train.load(trainingImages)
 dataset_train.prepare()
 
 # Validation dataset
-dataset_val = OsmMappingDataset(root_dir=IMAGES_PATH,
+dataset_val = OsmMappingDataset(root_dir=TRAINING_DATA_DIR,
                                 img_width=config.IMAGE_SHAPE[0],
                                 img_height=config.IMAGE_SHAPE[1])
 dataset_val.load(validationImages)
@@ -38,6 +44,7 @@ dataset_val.prepare()
 
 
 # # Training dataset
+# from mask_rcnn.shapes import ShapesConfig, ShapesDataset
 # dataset_train = ShapesDataset()
 # dataset_train.load_shapes(500, config.IMAGE_SHAPE[0], config.IMAGE_SHAPE[1])
 # dataset_train.prepare()

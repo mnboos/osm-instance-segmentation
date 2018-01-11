@@ -6,3 +6,4 @@ scipy
 scikit-image
 pillow
 h5py
+opencv-python
