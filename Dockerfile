@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:latest-py3
+FROM tensorflow/tensorflow:latest-gpu-py3
 MAINTAINER Martin Boos <mboos@hsr.ch>
 
 #RUN apt-get update -y &&\
