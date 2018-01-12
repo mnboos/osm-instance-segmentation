@@ -1,4 +1,5 @@
 import os
+import random
 from core.mask_rcnn_config import MyMaskRcnnConfig, OsmMappingDataset
 from mask_rcnn import model as modellib, utils
 from core import training_data
@@ -10,7 +11,7 @@ DATA_DIR = os.path.join(ROOT_DIR, "images")
 TRAINING_DATA_DIR = "/training-data"
 
 if not os.path.isdir(TRAINING_DATA_DIR):
-    windir = r"C:\Temp\images\training\split_small"
+    windir = r"C:\Temp\images\training\split"
     if os.path.isdir(windir):
         TRAINING_DATA_DIR = windir
     else:
@@ -23,10 +24,10 @@ if not os.path.isfile(COCO_MODEL_PATH):
 # training_data.download(os.path.join(DATA_DIR, "raw"), TRAINING_DATA_DIR)
 
 config = MyMaskRcnnConfig()
-# config = ShapesConfig()
 config.display()
 
 images = list(filter(lambda f: f.endswith(".tiff"), os.listdir(TRAINING_DATA_DIR)))
+random.shuffle(images)
 
 cutoffIndex = int(len(images)*.8)
 trainingImages = images[0:cutoffIndex]
@@ -50,7 +51,7 @@ dataset_val.prepare()
 model = modellib.MaskRCNN(mode="training", config=config, model_dir=MODEL_DIR)
 
 # Which weights to start with?
-init_with = "last"  # "coco"  # imagenet, coco, or last
+init_with = "coco"  # imagenet, coco, or last
 
 if init_with == "imagenet":
     model.load_weights(model.get_imagenet_weights(), by_name=True)
@@ -75,6 +76,7 @@ if init_with != "last":
                 learning_rate=config.LEARNING_RATE,
                 epochs=10,
                 layers='heads')
+    model.keras_model.save_weights(os.path.join(MODEL_DIR, "stage1.h5"), overwrite=True)
 
     # Training - Stage 2
     # Finetune layers from ResNet stage 4 and up
@@ -84,6 +86,7 @@ if init_with != "last":
                 learning_rate=config.LEARNING_RATE / 10,
                 epochs=100,
                 layers='3+')
+    model.keras_model.save_weights(os.path.join(MODEL_DIR, "stage2.h5"), overwrite=True)
 
 # Finetune layers from ResNet stage 3 and up
 print("Training all")
@@ -92,3 +95,4 @@ model.train(train_dataset=dataset_train,
             learning_rate=config.LEARNING_RATE / 100,
             epochs=1000,
             layers='all')
+model.keras_model.save_weights(os.path.join(MODEL_DIR, "stage3.h5"), overwrite=True)
