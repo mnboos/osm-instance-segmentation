@@ -19,12 +19,12 @@ class MyMaskRcnnConfig(Config):
     USE_MINI_MASK = False
     # MINI_MASK_SHAPE = (56, 56)
 
-    MAX_GT_INSTANCES = 5
+    MAX_GT_INSTANCES = 20
 
     IMAGE_MIN_DIM = 128
     IMAGE_MAX_DIM = 128
 
-    IMAGES_PER_GPU = 1
+    IMAGES_PER_GPU = 8
 
     # Use smaller anchors because our image and objects are small
     RPN_ANCHOR_SCALES = (8, 16, 32, 64, 128)  # anchor side in pixels
@@ -58,7 +58,7 @@ class OsmMappingDataset(utils.Dataset):
 
     def load_image(self, image_id):
         info = self.image_info[image_id]
-        print("Load image: ", info["id"])
+        #print("Load image: ", info["id"])
         image_path = os.path.join(self.root_dir, info["id"])
         img = Image.open(image_path)
         data = np.asarray(img, dtype="uint8")
@@ -66,7 +66,7 @@ class OsmMappingDataset(utils.Dataset):
 
     def load_mask(self, image_id):
         info = self.image_info[image_id]
-        print("Load mask: ", info["id"])
+        #print("Load mask: ", info["id"])
         mask_path = os.path.join(self.root_dir, info["id"][:-1])  # images have fileextension ".tiff", masks have ".tif"
 
         class_ids = np.zeros(1, np.int32)
