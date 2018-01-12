@@ -18,7 +18,7 @@ import matplotlib.lines as lines
 from matplotlib.patches import Polygon
 import IPython.display
 
-import utils
+from mask_rcnn import utils
 
 
 ############################################################
