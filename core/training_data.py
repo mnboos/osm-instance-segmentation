@@ -3,8 +3,7 @@ import shutil
 import os
 import urllib.request
 import datetime
-
-TILE_SIZE = 128
+import math
 
 
 class FileTypes:
@@ -25,7 +24,6 @@ test_data = [
         "url": "http://www.cs.toronto.edu/~vmnih/data/mass_buildings/valid/{type}//{filename}",
         "images": ["22978945_15.tif", "23429155_15.tif", "23579050_15.tif", "23728930_15.tif"]
     }]
-
 
 def download(download_folder, tiled_output_folder):
     print("Starting download...")
@@ -53,32 +51,41 @@ def download(download_folder, tiled_output_folder):
                             print("!i!i!i!i========>>>>> Download failed")
     print("Download complete...")
 
-    if not os.path.isdir(tiled_output_folder):
-        shutil.os.makedirs(tiled_output_folder)
+    create_tiles(download_folder, tiled_output_folder, tile_size=128)
 
-    files = os.listdir(download_folder)
+    print("Finished: ", datetime.datetime.utcnow())
+
+
+def create_tiles(source_folder, target_folder, tile_size):
+    if not os.path.isdir(target_folder):
+        shutil.os.makedirs(target_folder)
+    files = os.listdir(source_folder)
     images = list(filter(lambda f: f.endswith(".tif"), files))
-
     print("Tiling images...")
     progress = "0.00%"
-    for index,i in enumerate(images):
-        progress_new = "{0:.0f}%".format(index/len(images)*100)
+    for index, i in enumerate(images):
+        progress_new = "{0:.0f}%".format(index / len(images) * 100)
         if progress != progress_new:
             print("{} - ({})".format(progress_new, datetime.datetime.utcnow()))
             progress = progress_new
-        mask = Image.open(os.path.join(download_folder, i))
-        img = Image.open(os.path.join(download_folder, i + 'f'))
-        for ix in range(0,12):
-            for iy in range(0,12):
+        mask = Image.open(os.path.join(source_folder, i))
+        img = Image.open(os.path.join(source_folder, i + 'f'))
+        nr_horiz = int(math.ceil(img.width / tile_size))
+        nr_vert = int(math.ceil(img.height / tile_size))
+        for ix in range(0, nr_horiz):
+            for iy in range(0, nr_vert):
                 output_file = i.split('.')[0] + "_{x}_{y}.tif".format(x=ix, y=iy)
-                target_img = os.path.join(tiled_output_folder, output_file + 'f')
-                target_mask = os.path.join(tiled_output_folder, output_file)
+                target_img = os.path.join(target_folder, output_file + 'f')
+                target_mask = os.path.join(target_folder, output_file)
                 if not os.path.isfile(target_img) or not os.path.isfile(target_mask):
-                    box = (ix*TILE_SIZE, iy*TILE_SIZE, ix*TILE_SIZE+TILE_SIZE, iy*TILE_SIZE+TILE_SIZE)
+                    box = (ix * tile_size, iy * tile_size, ix * tile_size + tile_size, iy * tile_size + tile_size)
                     mask_cropped = mask.crop(box)
                     img_cropped = img.crop(box)
                     if mask_cropped.getbbox() and ImageChops.invert(img_cropped).getbbox():
                         img_cropped.save(target_img)
                         mask_cropped.save(target_mask)
 
-    print("Finished: ", datetime.datetime.utcnow())
+
+create_tiles(source_folder=r"C:\Temp\images\training\raw",
+             target_folder=r"C:\Temp\images\training\256",
+             tile_size=256)
