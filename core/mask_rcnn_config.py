@@ -34,6 +34,7 @@ class MyMaskRcnnConfig(Config):
     IMAGE_MIN_DIM = IMAGE_WIDTH
     IMAGE_MAX_DIM = IMAGE_WIDTH
 
+    USE_MINI_MASK = True
     MINI_MASK_SHAPE = (128, 128)
     # MASK_SHAPE = (IMAGE_MIN_DIM, IMAGE_MIN_DIM)
 
