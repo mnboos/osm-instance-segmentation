@@ -8,3 +8,4 @@ services:
     volumes:
       - ~/dev/osm-instance-segmentation:/osm-instance-segmentation
       - ~/dev/training-data/split:/training-data
+      - ~/dev/raw-images/split:/source-images
