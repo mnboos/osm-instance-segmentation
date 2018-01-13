@@ -14,30 +14,30 @@ class MyMaskRcnnConfig(Config):
 
     NUM_CLASSES = 2  # building & not building
 
-    # If enabled, resizes instance masks to a smaller size to reduce
-    # memory load. Recommended when using high-resolution images.
-    USE_MINI_MASK = False
-    # MINI_MASK_SHAPE = (56, 56)
+    # Batch size is (GPUs * images/GPU).
+    GPU_COUNT = 1
+    IMAGES_PER_GPU = 2
+    LEARNING_RATE = 0.001
 
-    MAX_GT_INSTANCES = 20
+    # 2 minutes
+    STEPS_PER_EPOCH = 100 // IMAGES_PER_GPU
 
-    IMAGE_MIN_DIM = 128
-    IMAGE_MAX_DIM = 128
+    # 1 hour epoch
+    # STEPS_PER_EPOCH = 12000 // IMAGES_PER_GPU
 
-    IMAGES_PER_GPU = 8
+    # Each tile is 256 pixels across, training data is 3x3 tiles
+    IMAGE_MIN_DIM = 750
+    IMAGE_MAX_DIM = 750
 
-    # Use smaller anchors because our image and objects are small
-    RPN_ANCHOR_SCALES = (4, 8, 16, 32, 64)  # anchor side in pixels
+    MINI_MASK_SHAPE = (128, 128)
+    # MASK_SHAPE = (IMAGE_MIN_DIM, IMAGE_MIN_DIM)
 
     # Reduce training ROIs per image because the images are small and have
     # few objects. Aim to allow ROI sampling to pick 33% positive ROIs.
-    TRAIN_ROIS_PER_IMAGE = 32
+    # TRAIN_ROIS_PER_IMAGE = 64
+    # DETECTION_MAX_INSTANCES = 64
 
-    # Use a small epoch since the data is simple
-    STEPS_PER_EPOCH = 100
-
-    # use small validation steps since the epoch is small
-    VALIDATION_STEPS = 5
+    VALIDATION_STEPS = 100
 
 
 class OsmMappingDataset(utils.Dataset):
