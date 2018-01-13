@@ -67,7 +67,7 @@ def create_tiles(source_folder, target_folder, tile_size):
     :param tile_size:
     :return:
     """
-    target_folder = os.path.join(target_folder, str(tile_size))
+    # target_folder = os.path.join(target_folder, str(tile_size))
     if not os.path.isdir(target_folder):
         shutil.os.makedirs(target_folder)
     files = os.listdir(source_folder)
