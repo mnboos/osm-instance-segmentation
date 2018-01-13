@@ -1,9 +1,10 @@
-from PIL import Image, ImageChops
+from PIL import Image
 import shutil
 import os
 import urllib.request
 import datetime
 import math
+# import Augmentor
 
 
 class FileTypes:
@@ -25,7 +26,8 @@ test_data = [
         "images": ["22978945_15.tif", "23429155_15.tif", "23579050_15.tif", "23728930_15.tif"]
     }]
 
-def download(download_folder, tiled_output_folder):
+
+def download(download_folder, tiled_output_folder, tile_size=750):
     print("Starting download...")
     for test_data_obj in test_data:
         all_downloaded=False
@@ -49,14 +51,23 @@ def download(download_folder, tiled_output_folder):
                             urllib.request.urlretrieve(url, target_path)
                         except:
                             print("!i!i!i!i========>>>>> Download failed")
-    print("Download complete...")
+    print("Download complete. Tiles will now be created")
 
-    create_tiles(download_folder, tiled_output_folder, tile_size=128)
+    create_tiles(download_folder, tiled_output_folder, tile_size=tile_size)
 
     print("Finished: ", datetime.datetime.utcnow())
 
 
 def create_tiles(source_folder, target_folder, tile_size):
+    """
+     * Generates the files from the images in the source folder. A target folder will be created with the name of
+       the tile_size.
+    :param source_folder:
+    :param target_folder:
+    :param tile_size:
+    :return:
+    """
+    target_folder = os.path.join(target_folder, str(tile_size))
     if not os.path.isdir(target_folder):
         shutil.os.makedirs(target_folder)
     files = os.listdir(source_folder)
@@ -81,11 +92,39 @@ def create_tiles(source_folder, target_folder, tile_size):
                     box = (ix * tile_size, iy * tile_size, ix * tile_size + tile_size, iy * tile_size + tile_size)
                     mask_cropped = mask.crop(box)
                     img_cropped = img.crop(box)
-                    if mask_cropped.getbbox() and ImageChops.invert(img_cropped).getbbox():
-                        img_cropped.save(target_img)
-                        mask_cropped.save(target_mask)
+                    # make to grayscale and get colors
+                    clrs = list(reversed(img_cropped.convert('L').getcolors()))
+                    if clrs[0][1] == 255 and clrs[0][0] >= (tile_size**2)*.25:
+                        # skip images where at least 25% of the image is white
+                        continue
+
+                    img_cropped.save(target_img)
+                    mask_cropped.save(target_mask)
+
+                    # only
+                    # if mask_cropped.getbbox() and ImageChops.invert(img_cropped).getbbox():
+                    #     img_cropped.save(target_img)
+                    #     mask_cropped.save(target_mask)
 
 
-create_tiles(source_folder=r"C:\Temp\images\training\raw",
-             target_folder=r"C:\Temp\images\training\256",
-             tile_size=256)
+# def augment(directory):
+#     files = os.listdir(directory)
+#     p = Augmentor.Pipeline(source_directory=directory)
+#     p.add_operation()
+#     for f in files:
+#         path = os.path.join(directory, f)
+
+
+source_folder = r"C:\Temp\images\training\raw"
+if not os.path.isdir(source_folder):
+    source_folder = "/source-images"
+
+target_folder = r"C:\Temp\images\training"
+if not os.path.isdir(target_folder):
+    target_folder = "/training-data"
+
+create_tiles(source_folder=source_folder,
+             target_folder=target_folder,
+             tile_size=750)
+# augment(r"C:\Temp\images\training")
+
