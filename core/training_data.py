@@ -120,7 +120,7 @@ source_folder = r"C:\Temp\images\training\raw"
 if not os.path.isdir(source_folder):
     source_folder = "/source-images"
 
-target_folder = r"C:\Temp\images\training"
+target_folder = r"C:\Temp\images\training\output"
 if not os.path.isdir(target_folder):
     target_folder = "/training-data"
 
