@@ -8,6 +8,10 @@ osm_class_ids = {
     'building': 1
 }
 
+TILE_SIZE_PX = 256
+IMAGE_WIDTH_TILES = 3
+
+IMAGE_WIDTH = TILE_SIZE_PX * IMAGE_WIDTH_TILES
 
 class MyMaskRcnnConfig(Config):
     NAME = "osm"
@@ -26,8 +30,8 @@ class MyMaskRcnnConfig(Config):
     # STEPS_PER_EPOCH = 12000 // IMAGES_PER_GPU
 
     # Each tile is 256 pixels across, training data is 3x3 tiles
-    IMAGE_MIN_DIM = 750
-    IMAGE_MAX_DIM = 750
+    IMAGE_MIN_DIM = IMAGE_WIDTH
+    IMAGE_MAX_DIM = IMAGE_WIDTH
 
     MINI_MASK_SHAPE = (128, 128)
     # MASK_SHAPE = (IMAGE_MIN_DIM, IMAGE_MIN_DIM)

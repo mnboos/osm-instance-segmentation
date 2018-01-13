@@ -5,6 +5,7 @@ import urllib.request
 import datetime
 import math
 # import Augmentor
+from core.mask_rcnn_config import IMAGE_WIDTH
 
 
 class FileTypes:
@@ -125,6 +126,6 @@ if not os.path.isdir(target_folder):
 
 create_tiles(source_folder=source_folder,
              target_folder=target_folder,
-             tile_size=750)
+             tile_size=IMAGE_WIDTH)
 # augment(r"C:\Temp\images\training")
 
