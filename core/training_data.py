@@ -6,6 +6,9 @@ import datetime
 import math
 # import Augmentor
 from core.mask_rcnn_config import IMAGE_WIDTH
+import numpy as np
+import cv2
+from scipy import ndimage
 
 
 class FileTypes:
@@ -109,9 +112,8 @@ def create_tiles(source_folder, target_folder, tile_size):
                     img_cropped = img.crop(box)
                     # make to grayscale and get colors
                     img_is_uni = is_uni(img=img_cropped, color=255, fill_factor=.25, img_width=tile_size, img_height=tile_size, convert="L")
-                    mask_is_uni = is_uni(img=mask_cropped, color=(0,0,0), fill_factor=.8, img_width=tile_size, img_height=tile_size)
-                    if img_is_uni or mask_is_uni:
-                        # skip images where at least 25% of the image is white
+                    mask_is_uni = is_uni(img=mask_cropped, color=(0,0,0), fill_factor=.85, img_width=tile_size, img_height=tile_size)
+                    if img_is_uni or mask_is_uni:  # skip images where at least 25% of the image is white
                         continue
 
                     img_cropped.save(target_img)
@@ -130,6 +132,19 @@ def create_tiles(source_folder, target_folder, tile_size):
 #     for f in files:
 #         path = os.path.join(directory, f)
 
+def get_instances(mask_path):
+    img = Image.open(mask_path)
+    imgray = img.convert('L')
+    data = np.asarray(imgray)
+
+    labeled, num_features = ndimage.label(data)
+    instances = []
+    for i in range(1, num_features+1):
+        x = np.zeros_like(imgray)
+        x[labeled == i] = 1
+        instances.append(x)
+    return instances
+
 
 source_folder = r"C:\Temp\images\training\raw"
 if not os.path.isdir(source_folder):
@@ -139,8 +154,11 @@ target_folder = r"C:\Temp\images\training\output"
 if not os.path.isdir(target_folder):
     target_folder = "/training-data"
 
-create_tiles(source_folder=source_folder,
-             target_folder=target_folder,
-             tile_size=IMAGE_WIDTH)
+get_instances(os.path.join(r"C:\Temp\images", "test2.tif"))
+
+
+# create_tiles(source_folder=source_folder,
+#              target_folder=target_folder,
+#              tile_size=768)
 # augment(r"C:\Temp\images\training")
 

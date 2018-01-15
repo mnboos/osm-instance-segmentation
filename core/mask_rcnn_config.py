@@ -9,10 +9,8 @@ osm_class_ids = {
     'building': 1
 }
 
-TILE_SIZE_PX = 256
-IMAGE_WIDTH_TILES = 3
+IMAGE_WIDTH = 128
 
-IMAGE_WIDTH = TILE_SIZE_PX * IMAGE_WIDTH_TILES
 
 class MyMaskRcnnConfig(Config):
     NAME = "osm"
