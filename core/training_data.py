@@ -5,7 +5,7 @@ import urllib.request
 import datetime
 import math
 # import Augmentor
-from core.mask_rcnn_config import IMAGE_WIDTH
+# from core.mask_rcnn_config import IMAGE_WIDTH
 import numpy as np
 import cv2
 from scipy import ndimage
@@ -76,7 +76,7 @@ def is_uni(img, color, fill_factor, img_width, img_height, convert=None):
     return is_uni
 
 
-def create_tiles(source_folder, target_folder, tile_size):
+def create_tiles(source_folder, target_folder, tile_size, limit=None):
     """
      * Generates the files from the images in the source folder. A target folder will be created with the name of
        the tile_size.
@@ -92,6 +92,7 @@ def create_tiles(source_folder, target_folder, tile_size):
     images = list(filter(lambda f: f.endswith(".tif"), files))
     print("Tiling images...")
     progress = "0.00%"
+    count = 0
     for index, i in enumerate(images):
         progress_new = "{0:.0f}%".format(index / len(images) * 100)
         if progress != progress_new:
@@ -102,6 +103,8 @@ def create_tiles(source_folder, target_folder, tile_size):
         nr_horiz = int(math.ceil(img.width / tile_size))
         nr_vert = int(math.ceil(img.height / tile_size))
         for ix in range(0, nr_horiz):
+            if limit and count >= limit:
+                break
             for iy in range(0, nr_vert):
                 output_file = i.split('.')[0] + "_{x}_{y}.tif".format(x=ix, y=iy)
                 target_img = os.path.join(target_folder, output_file + 'f')
@@ -116,6 +119,9 @@ def create_tiles(source_folder, target_folder, tile_size):
                     if img_is_uni or mask_is_uni:  # skip images where at least 25% of the image is white
                         continue
 
+                    if limit and count >= limit:
+                        break
+                    count += 1
                     img_cropped.save(target_img)
                     mask_cropped.save(target_mask)
 
@@ -154,11 +160,13 @@ target_folder = r"C:\Temp\images\training\output"
 if not os.path.isdir(target_folder):
     target_folder = "/training-data"
 
-get_instances(os.path.join(r"C:\Temp\images", "test2.tif"))
+# instances = get_instances(os.path.join(r"C:\Temp\images", "test2.tif"))
+# print(instances)
 
 
 # create_tiles(source_folder=source_folder,
 #              target_folder=target_folder,
-#              tile_size=768)
+#              tile_size=128,
+#              limit=5)
 # augment(r"C:\Temp\images\training")
 

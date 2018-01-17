@@ -1,5 +1,6 @@
 from mask_rcnn.config import Config
 from mask_rcnn import utils
+from core.training_data import get_instances
 import os
 import numpy as np
 from PIL import Image
@@ -73,11 +74,13 @@ class OsmMappingDataset(utils.Dataset):
         #print("Load mask: ", info["id"])
         mask_path = os.path.join(self.root_dir, info["id"][:-1])  # images have fileextension ".tiff", masks have ".tif"
 
+        instances = get_instances(mask_path)
+
         class_ids = np.zeros(1, np.int32)
         class_ids[0] = osm_class_ids["building"]
 
-        mask = np.zeros([768, 768, 1], dtype=np.uint8)
-        img = skimage.io.imread(mask_path)
-        mask[:, :, 0] = img[:, :, 0]
+        mask = np.zeros([IMAGE_WIDTH, IMAGE_WIDTH, len(instances)], dtype=np.uint8)
+        for i, inst in enumerate(instances):
+            mask[:, :, i] = inst
 
         return mask, class_ids
