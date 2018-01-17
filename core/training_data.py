@@ -7,7 +7,6 @@ import math
 # import Augmentor
 # from core.mask_rcnn_config import IMAGE_WIDTH
 import numpy as np
-import cv2
 from scipy import ndimage
 
 
