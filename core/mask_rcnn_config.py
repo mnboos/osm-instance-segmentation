@@ -4,7 +4,6 @@ from core.training_data import get_instances
 import os
 import numpy as np
 from PIL import Image
-import skimage
 
 osm_class_ids = {
     'building': 1
