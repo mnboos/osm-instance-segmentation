@@ -6,7 +6,6 @@ import urllib.request
 import datetime
 import math
 # import Augmentor
-# from core.mask_rcnn_config import IMAGE_WIDTH
 import numpy as np
 from scipy import ndimage
 
@@ -167,7 +166,7 @@ if not os.path.isdir(target_folder):
 if __name__ == "__main__":
     create_tiles(source_folder=source_folder,
                  target_folder=target_folder,
-                 tile_size=256,
+                 tile_size=512,
                  limit=5)
 # augment(r"C:\Temp\images\training")
 

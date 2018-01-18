@@ -9,7 +9,8 @@ osm_class_ids = {
     'building': 1
 }
 
-IMAGE_WIDTH = 256
+
+IMAGE_WIDTH = 512
 
 
 class MyMaskRcnnConfig(Config):
