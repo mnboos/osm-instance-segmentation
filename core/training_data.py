@@ -1,5 +1,6 @@
 from PIL import Image
 import shutil
+import sys
 import os
 import urllib.request
 import datetime
@@ -163,9 +164,10 @@ if not os.path.isdir(target_folder):
 # print(instances)
 
 
-# create_tiles(source_folder=source_folder,
-#              target_folder=target_folder,
-#              tile_size=128,
-#              limit=5)
+if __name__ == "__main__":
+    create_tiles(source_folder=source_folder,
+                 target_folder=target_folder,
+                 tile_size=256,
+                 limit=5)
 # augment(r"C:\Temp\images\training")
 
