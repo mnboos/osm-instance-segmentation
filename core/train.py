@@ -25,12 +25,15 @@ if not os.path.isfile(COCO_MODEL_PATH):
 config = MyMaskRcnnConfig()
 config.display()
 
+print("Using training images in: ", TRAINING_DATA_DIR)
+
 images = list(filter(lambda f: f.endswith(".tiff"), os.listdir(TRAINING_DATA_DIR)))
+print("{} images found...".format(len(images)))
 random.shuffle(images)
 
 cutoffIndex = int(len(images)*.8)
 trainingImages = images[0:cutoffIndex]
-validationImages = images[cutoffIndex:-1]
+validationImages = images[cutoffIndex:]
 
 # Training dataset
 dataset_train = OsmMappingDataset(root_dir=TRAINING_DATA_DIR,
