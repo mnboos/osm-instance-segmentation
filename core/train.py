@@ -29,7 +29,7 @@ print("Using training images in: ", TRAINING_DATA_DIR)
 
 images = list(filter(lambda f: f.endswith(".tiff"), os.listdir(TRAINING_DATA_DIR)))
 print("{} images found...".format(len(images)))
-random.shuffle(images)
+# random.shuffle(images)
 
 cutoffIndex = int(len(images)*.8)
 trainingImages = images[0:cutoffIndex]
