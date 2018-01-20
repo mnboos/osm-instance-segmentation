@@ -53,7 +53,7 @@ dataset_val.prepare()
 model = modellib.MaskRCNN(mode="training", config=config, model_dir=MODEL_DIR)
 
 # Which weights to start with?
-init_with = "imagenet"  # "coco"  # imagenet, coco, or last
+init_with = "coco"  # imagenet, coco, or last
 
 if init_with == "imagenet":
     model.load_weights(model.get_imagenet_weights(), by_name=True)
