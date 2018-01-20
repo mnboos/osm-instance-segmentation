@@ -10,7 +10,7 @@ osm_class_ids = {
 }
 
 
-IMAGE_WIDTH = 512
+IMAGE_WIDTH = 256
 
 
 class MyMaskRcnnConfig(Config):
@@ -20,7 +20,7 @@ class MyMaskRcnnConfig(Config):
 
     # Batch size is (GPUs * images/GPU).
     GPU_COUNT = 1
-    IMAGES_PER_GPU = 2
+    IMAGES_PER_GPU = 4
     LEARNING_RATE = 0.001
 
     # 2 minutes
@@ -33,8 +33,8 @@ class MyMaskRcnnConfig(Config):
     IMAGE_MIN_DIM = IMAGE_WIDTH
     IMAGE_MAX_DIM = IMAGE_WIDTH
 
-    USE_MINI_MASK = True
-    MINI_MASK_SHAPE = (128, 128)
+    USE_MINI_MASK = False
+    # MINI_MASK_SHAPE = (128, 128)
     # MASK_SHAPE = (IMAGE_MIN_DIM, IMAGE_MIN_DIM)
 
     # Reduce training ROIs per image because the images are small and have
