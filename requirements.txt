@@ -7,3 +7,4 @@ scikit-image
 pillow
 h5py
 opencv-python
+pyGeoTile

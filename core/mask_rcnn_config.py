@@ -73,6 +73,8 @@ class OsmMappingDataset(utils.Dataset):
         info = self.image_info[image_id]
         #print("Load mask: ", info["id"])
         mask_path = os.path.join(self.root_dir, info["id"][:-1])  # images have fileextension ".tiff", masks have ".tif"
+        if not os.path.isfile(mask_path):
+            return None, None
 
         instances = get_instances(mask_path)
         class_ids = np.zeros(len(instances), np.int32)
