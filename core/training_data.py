@@ -5,11 +5,9 @@ import os
 import urllib.request
 import datetime
 import math
-from pygeotile.tile import Tile
-from pygeotile.point import Point
 import numpy as np
 from scipy import ndimage
-from pygeotile import tile
+from core.settings import IMAGE_WIDTH
 
 
 class FileTypes:
@@ -134,24 +132,6 @@ def create_tiles(source_folder, target_folder, tile_size, limit=None):
 #     for f in files:
 #         path = os.path.join(directory, f)
 
-
-def tiles_from_bbox(bbox, zoom_level):
-    point_min = Point.from_latitude_longitude(latitude=bbox['tl'], longitude=bbox['tr'])
-    point_max = Point.from_latitude_longitude(latitude=bbox['bl'], longitude=bbox['br'])
-    tile_min = Tile.for_point(point_min, zoom_level)
-    tile_max = Tile.for_point(point_max, zoom_level)
-    tiles = []
-    for x in range(tile_min.tms_x, tile_max.tms_x + 1):
-        for y in range(tile_min.tms_y, tile_max.tms_y + 1):
-            tiles.append(Tile.from_tms(tms_x=x, tms_y=y, zoom=zoom_level))
-    return tiles
-
-
-def osm_downloader(bbox, zoom_level):
-    tiles = tiles_from_bbox(bbox=bbox, zoom_level=zoom_level)
-    print(tiles)
-
-
 def get_instances(mask_path):
     img = Image.open(mask_path)
     imgray = img.convert('L')
@@ -179,16 +159,9 @@ if not os.path.isdir(target_folder):
 
 
 if __name__ == "__main__":
-    bbox = {
-        'tl': 47.355106,
-        'tr': 8.518195,
-        'bl': 47.383125,
-        'br': 8.560596
-    }
-    osm_downloader(bbox=bbox, zoom_level=11)
-    # create_tiles(source_folder=source_folder,
-    #              target_folder=target_folder,
-    #              tile_size=256,
-    #              limit=None)
+    create_tiles(source_folder=source_folder,
+                 target_folder=target_folder,
+                 tile_size=IMAGE_WIDTH,
+                 limit=None)
 # augment(r"C:\Temp\images\training")
 
