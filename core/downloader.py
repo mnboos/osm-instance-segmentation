@@ -5,8 +5,10 @@ from pygeotile.point import Point
 import requests
 import secrets
 import shapely.geometry as geometry
+import shapely.affinity as affinity
 import numpy as np
 from core.settings import IMAGE_WIDTH
+import skimage
 
 api = overpy.Overpass()
 
@@ -51,7 +53,8 @@ def osm_downloader(bbox, zoom_level):
     subdomain = data['resourceSets'][0]['resources'][0]['imageUrlSubdomains'][0]
 
     for t in tiles:
-        tile_pixels = t.bounds[0].pixels(zoom_level)
+        minx, maxy = t.bounds[0].pixels(zoom_level)
+        maxx, miny = t.bounds[1].pixels(zoom_level)
         b = []
         # tile_start = t.bounds[0].meters
         # print(t.bounds[0].pixels(17))
@@ -70,10 +73,12 @@ def osm_downloader(bbox, zoom_level):
             for node in way.nodes:
                 p = Point(float(node.lat), float(node.lon))
                 px = p.pixels(zoom=zoom_level)
-                points.append((px[0]-tile_pixels[0], px[1]-t.bounds[1].pixels(zoom_level)[1]))
+                # points.append((px[0]-tile_pixels[0], px[1]-t.bounds[1].pixels(zoom_level)[1]))
+                points.append((px[0]-minx, px[1]-miny))
             poly = geometry.Polygon(points)
-            svg = poly.svg()
-            print(svg)
+            tile_rect = geometry.box(0, 0, IMAGE_WIDTH, IMAGE_WIDTH)
+            poly = poly.intersection(tile_rect)
+            print(poly.svg())
             polygons.append(poly)
 
         mask = np.zeros([IMAGE_WIDTH, IMAGE_WIDTH, 3], dtype=np.uint8)
