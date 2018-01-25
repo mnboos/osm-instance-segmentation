@@ -45,7 +45,7 @@ def tiles_from_bbox(bbox, zoom_level):
     return tiles
 
 
-def osm_downloader(bbox, zoom_level, output_directory):
+def osm_downloader(bbox_name, bbox, zoom_level, output_directory):
     if not os.path.isdir(output_directory):
         os.makedirs(output_directory)
 
@@ -63,9 +63,10 @@ def osm_downloader(bbox, zoom_level, output_directory):
         with open(tiles_path, 'r', encoding="utf-8") as f:
             lines = f.readlines()
             loaded_tiles = list(map(lambda l: l[:-1], lines))  # remove '\n'
-    print(loaded_tiles)
 
+    nr_tiles = len(tiles)
     for i, t in enumerate(tiles):
+        print("{} @ zoom {}: {:.1f}% (Tile {}/{})".format(bbox_name, zoom_level, 100/nr_tiles*i, i+1, nr_tiles))
         tms_x, tms_y = t.tms
         tile_name = "{z}_{x}_{y}".format(z=zoom_level, x=tms_x, y=tms_y)
         if tile_name in loaded_tiles:
@@ -78,8 +79,8 @@ def osm_downloader(bbox, zoom_level, output_directory):
         b.extend(t.bounds[1].latitude_longitude)
         url = tile_url_template.format(subdomain=subdomain, quadkey=t.quad_tree)
         query = query_template.format(bbox="{},{},{},{}".format(*b), tile=t.tms)
-        print(url)
-        print(query)
+        # print(url)
+        # print(query)
         res = api.query(query)
         mask = np.zeros((IMAGE_WIDTH, IMAGE_WIDTH), dtype=np.uint8)
         for way in res.ways:
@@ -201,4 +202,7 @@ if __name__ == "__main__":
         bbox = bboxes[bbox_name]
         zoom_levels = [18, 19]
         for z in zoom_levels:
-            osm_downloader(bbox=bbox, zoom_level=z, output_directory=os.path.join("output", bbox_name))
+            osm_downloader(bbox_name=bbox_name,
+                           bbox=bbox,
+                           zoom_level=z,
+                           output_directory=os.path.join(os.getcwd(), "output", bbox_name))
