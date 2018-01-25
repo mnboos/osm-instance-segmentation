@@ -1,3 +1,4 @@
+requests
 overpy
 numpy
 tensorflow-gpu
@@ -8,3 +9,5 @@ pillow
 h5py
 opencv-python
 pyGeoTile
+geojson
+shapely

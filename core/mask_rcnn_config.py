@@ -1,6 +1,7 @@
 from mask_rcnn.config import Config
 from mask_rcnn import utils
 from core.training_data import get_instances
+from core.settings import IMAGE_WIDTH
 import os
 import numpy as np
 from PIL import Image
@@ -8,9 +9,6 @@ from PIL import Image
 osm_class_ids = {
     'building': 1
 }
-
-
-IMAGE_WIDTH = 256
 
 
 class MyMaskRcnnConfig(Config):
