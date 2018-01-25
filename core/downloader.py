@@ -72,7 +72,7 @@ def osm_downloader(bbox, zoom_level):
 
         res = api.query(query)
         polygons = []
-        mask = np.zeros((IMAGE_WIDTH, IMAGE_WIDTH, 3), dtype=np.uint8)
+        mask = np.zeros((IMAGE_WIDTH, IMAGE_WIDTH), dtype=np.uint8)
         for way in res.ways:
             points = []
             for node in way.nodes:
@@ -85,12 +85,11 @@ def osm_downloader(bbox, zoom_level):
             poly = poly.intersection(tile_rect)
             print(poly.svg())
 
-
             xs, ys = poly.exterior.coords.xy
             rr, cc = draw.polygon(xs, ys, (IMAGE_WIDTH, IMAGE_WIDTH))
-            mask[cc, rr] = (255,0,0)
+            mask[cc, rr] = 255
             polygons.append(poly)
-        scipy.misc.imsave("test.jpg", mask)
+        scipy.misc.imsave("test.tiff", mask)
         print("saved")
         return
 
