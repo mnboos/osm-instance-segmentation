@@ -1,5 +1,5 @@
 import overpy
-from PIL import Image
+from PIL import Image, ImageDraw
 from pygeotile.tile import Tile
 from pygeotile.point import Point
 import requests
@@ -8,7 +8,8 @@ import shapely.geometry as geometry
 import shapely.affinity as affinity
 import numpy as np
 from core.settings import IMAGE_WIDTH
-import skimage
+from skimage import draw
+import scipy.misc
 
 api = overpy.Overpass()
 
@@ -52,7 +53,10 @@ def osm_downloader(bbox, zoom_level):
     tile_url_template = data['resourceSets'][0]['resources'][0]['imageUrl']
     subdomain = data['resourceSets'][0]['resources'][0]['imageUrlSubdomains'][0]
 
-    for t in tiles:
+    for i, t in enumerate(tiles):
+        if i < 2:
+            continue
+
         minx, maxy = t.bounds[0].pixels(zoom_level)
         maxx, miny = t.bounds[1].pixels(zoom_level)
         b = []
@@ -68,6 +72,7 @@ def osm_downloader(bbox, zoom_level):
 
         res = api.query(query)
         polygons = []
+        mask = np.zeros((IMAGE_WIDTH, IMAGE_WIDTH, 3), dtype=np.uint8)
         for way in res.ways:
             points = []
             for node in way.nodes:
@@ -79,12 +84,21 @@ def osm_downloader(bbox, zoom_level):
             tile_rect = geometry.box(0, 0, IMAGE_WIDTH, IMAGE_WIDTH)
             poly = poly.intersection(tile_rect)
             print(poly.svg())
+
+
+            xs, ys = poly.exterior.coords.xy
+            rr, cc = draw.polygon(xs, ys, (IMAGE_WIDTH, IMAGE_WIDTH))
+            mask[cc, rr] = (255,0,0)
             polygons.append(poly)
+        scipy.misc.imsave("test.jpg", mask)
+        print("saved")
+        return
 
         mask = np.zeros([IMAGE_WIDTH, IMAGE_WIDTH, 3], dtype=np.uint8)
         # for poly in polygons:
-            # for p in poly:
-            #     print(p)
+        #     polynp = np.array(poly)
+        #     print(polynp)
+            # print(poly.exterior.coords.xy)
 
         # if res.ways:
         #     break
