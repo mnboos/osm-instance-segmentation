@@ -287,6 +287,7 @@ if __name__ == "__main__":
         except KeyboardInterrupt:
             run = False
         except overpy.exception.OverpassTooManyRequests:
+            print("Waiting 2s for overpass...")
             time.sleep(2)
         except Exception as e:
             print("Error occured: " + str(e))
