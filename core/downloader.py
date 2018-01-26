@@ -75,6 +75,7 @@ def osm_downloader(bbox_name, bbox, zoom_level, output_directory):
             lines = f.readlines()
             loaded_tiles = list(map(lambda l: l[:-1], lines))  # remove '\n'
 
+    all_downloaded = True
     nr_tiles = len(tiles)
     for i, t in enumerate(tiles):
         print("{} @ zoom {}: {:.1f}% (Tile {}/{}) -> {}".format(bbox_name, zoom_level, 100/nr_tiles*i, i+1, nr_tiles, t.tms))
@@ -83,6 +84,7 @@ def osm_downloader(bbox_name, bbox, zoom_level, output_directory):
         if tile_name in loaded_tiles:
             continue
 
+        all_downloaded = False
         minx, maxy = t.bounds[0].pixels(zoom_level)
         maxx, miny = t.bounds[1].pixels(zoom_level)
         b = []
@@ -135,6 +137,7 @@ def osm_downloader(bbox_name, bbox, zoom_level, output_directory):
             print("Tile is empty...")
         with open(os.path.join(output_directory, "tiles.txt"), 'a') as f:
             f.write("{}\n".format(tile_name))
+    return all_downloaded
 
 
 def update_mask(mask, polygons):
@@ -258,22 +261,29 @@ def download():
     if not os.path.isdir(target_folder):
         target_folder = "/training-data"
 
+    all_downloaded = True
     for bbox_name in cities:
         print("Processing bbox '{}'".format(bbox_name))
         bbox = bboxes[bbox_name]
         zoom_levels = [18, 19]
         for z in zoom_levels:
-            osm_downloader(bbox_name=bbox_name,
+            complete = osm_downloader(bbox_name=bbox_name,
                            bbox=bbox,
                            zoom_level=z,
                            output_directory=os.path.join(target_folder, bbox_name))
+            if not complete:
+                all_downloaded = False
+    return all_downloaded
 
 
 if __name__ == "__main__":
     run = True
     while run:
         try:
-            download()
+            all_downloaded = download()
+            if all_downloaded:
+                print("{} - All downloads complete!".format(time.ctime()))
+            run = not all_downloaded
         except KeyboardInterrupt:
             run = False
         except overpy.exception.OverpassTooManyRequests:
