@@ -84,6 +84,7 @@ def osm_downloader(bbox_name, bbox, zoom_level, output_directory):
         if tile_name in loaded_tiles:
             continue
 
+        sys.stdout.flush()
         all_downloaded = False
         minx, maxy = t.bounds[0].pixels(zoom_level)
         maxx, miny = t.bounds[1].pixels(zoom_level)
