@@ -34,8 +34,14 @@ def download(tile):
 
 
 def tiles_from_bbox(bbox, zoom_level):
-    point_min = Point.from_latitude_longitude(latitude=bbox['tl'], longitude=bbox['tr'])
-    point_max = Point.from_latitude_longitude(latitude=bbox['bl'], longitude=bbox['br'])
+    if isinstance(bbox, dict):
+        point_min = Point.from_latitude_longitude(latitude=bbox['tl'], longitude=bbox['tr'])
+        point_max = Point.from_latitude_longitude(latitude=bbox['bl'], longitude=bbox['br'])
+    elif isinstance(bbox, list):
+        point_min = Point.from_latitude_longitude(latitude=bbox[1], longitude=bbox[0])
+        point_max = Point.from_latitude_longitude(latitude=bbox[3], longitude=bbox[2])
+    else:
+        raise RuntimeError("bbox must bei either a dict or a list")
     tile_min = Tile.for_point(point_min, zoom_level)
     tile_max = Tile.for_point(point_max, zoom_level)
     tiles = []
@@ -144,6 +150,7 @@ def update_mask(mask, polygons):
 if __name__ == "__main__":
 
     bboxes = {
+        'wettingen': [8.309857,47.456269,8.340327,47.473386],
         'goldach': {
             'tr': 9.462776,
             'tl': 47.465723,
