@@ -251,6 +251,10 @@ def download():
     else:
         cities = bboxes.keys()
 
+    target_folder = IMAGE_OUTPUT_FOLDER
+    if not os.path.isdir(target_folder):
+        target_folder = "/training-data"
+
     for bbox_name in cities:
         print("Processing bbox '{}'".format(bbox_name))
         bbox = bboxes[bbox_name]
@@ -259,7 +263,7 @@ def download():
             osm_downloader(bbox_name=bbox_name,
                            bbox=bbox,
                            zoom_level=z,
-                           output_directory=os.path.join(IMAGE_OUTPUT_FOLDER, bbox_name))
+                           output_directory=os.path.join(target_folder, bbox_name))
 
 
 if __name__ == "__main__":
