@@ -122,6 +122,7 @@ def osm_downloader(bbox_name, bbox, zoom_level, output_directory):
             mask_path = os.path.join(output_directory, file_name)
             img_path = os.path.join(output_directory, file_name+'f')
             scipy.misc.imsave(mask_path, mask)
+            print("Image saved to: {}".format(img_path))
             if not os.path.isfile(img_path):
                 response = requests.get(url, stream=True)
                 response.raw.decode_content = True
