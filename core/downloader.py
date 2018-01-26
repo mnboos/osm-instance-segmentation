@@ -75,7 +75,7 @@ def osm_downloader(bbox_name, bbox, zoom_level, output_directory):
 
     nr_tiles = len(tiles)
     for i, t in enumerate(tiles):
-        print("{} @ zoom {}: {:.1f}% (Tile {}/{})".format(bbox_name, zoom_level, 100/nr_tiles*i, i+1, nr_tiles))
+        print("{} @ zoom {}: {:.1f}% (Tile {}/{}) -> {}".format(bbox_name, zoom_level, 100/nr_tiles*i, i+1, nr_tiles, t.tms))
         tms_x, tms_y = t.tms
         tile_name = "{z}_{x}_{y}".format(z=zoom_level, x=tms_x, y=tms_y)
         if tile_name in loaded_tiles:
