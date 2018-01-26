@@ -53,7 +53,10 @@ def osm_downloader(bbox_name, bbox, zoom_level, output_directory):
     api = overpy.Overpass()
 
     if not os.path.isdir(output_directory):
+        print("Creating folder: {}".format(output_directory))
         os.makedirs(output_directory)
+    else:
+        print("Downloading to folder: {}".format(output_directory))
 
     tiles = tiles_from_bbox(bbox=bbox, zoom_level=zoom_level)
     response = requests.get("https://dev.virtualearth.net/REST/V1/Imagery/Metadata/Aerial?key={key}"
@@ -125,6 +128,8 @@ def osm_downloader(bbox_name, bbox, zoom_level, output_directory):
                 with open(img_path, 'wb') as file:
                     shutil.copyfileobj(response.raw, file)
                 del response
+        else:
+            print("Tile is empty...")
         with open(os.path.join(output_directory, "tiles.txt"), 'a') as f:
             f.write("{}\n".format(tile_name))
 
