@@ -18,7 +18,7 @@ class MyMaskRcnnConfig(Config):
 
     # Batch size is (GPUs * images/GPU).
     GPU_COUNT = 1
-    IMAGES_PER_GPU = 2
+    IMAGES_PER_GPU = 1
     LEARNING_RATE = 0.001
 
     # 2 minutes
