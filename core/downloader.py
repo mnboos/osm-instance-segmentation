@@ -268,9 +268,9 @@ def download():
         zoom_levels = [18, 19]
         for z in zoom_levels:
             complete = osm_downloader(bbox_name=bbox_name,
-                           bbox=bbox,
-                           zoom_level=z,
-                           output_directory=os.path.join(target_folder, bbox_name))
+                                      bbox=bbox,
+                                      zoom_level=z,
+                                      output_directory=os.path.join(target_folder, bbox_name))
             if not complete:
                 all_downloaded = False
     return all_downloaded
@@ -280,10 +280,10 @@ if __name__ == "__main__":
     run = True
     while run:
         try:
-            all_downloaded = download()
-            if all_downloaded:
+            downloads_complete = download()
+            if downloads_complete:
                 print("{} - All downloads complete!".format(time.ctime()))
-            run = not all_downloaded
+            run = not downloads_complete
         except KeyboardInterrupt:
             run = False
         except overpy.exception.OverpassTooManyRequests:
