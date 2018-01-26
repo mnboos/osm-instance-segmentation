@@ -2,6 +2,7 @@ import os
 import random
 from core.mask_rcnn_config import MyMaskRcnnConfig, OsmMappingDataset
 from mask_rcnn import model as modellib, utils
+import glob
 
 ROOT_DIR = os.getcwd()
 COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn", "mask_rcnn_coco.h5")
@@ -27,25 +28,23 @@ config.display()
 
 print("Using training images in: ", TRAINING_DATA_DIR)
 
-images = list(filter(lambda f: f.endswith(".tiff"), os.listdir(TRAINING_DATA_DIR)))
+# images = list(filter(lambda f: f.endswith(".tiff"), os.listdir(TRAINING_DATA_DIR)))
+images = glob.glob(os.path.join(TRAINING_DATA_DIR, "*/*.tiff"))
+images.extend(glob.glob(os.path.join(TRAINING_DATA_DIR, "*.tiff")))
 print("{} images found...".format(len(images)))
-# random.shuffle(images)
+random.shuffle(images)
 
 cutoffIndex = int(len(images)*.8)
 trainingImages = images[0:cutoffIndex]
 validationImages = images[cutoffIndex:]
 
 # Training dataset
-dataset_train = OsmMappingDataset(root_dir=TRAINING_DATA_DIR,
-                                  img_width=config.IMAGE_SHAPE[0],
-                                  img_height=config.IMAGE_SHAPE[1])
+dataset_train = OsmMappingDataset()
 dataset_train.load(trainingImages)
 dataset_train.prepare()
 
 # Validation dataset
-dataset_val = OsmMappingDataset(root_dir=TRAINING_DATA_DIR,
-                                img_width=config.IMAGE_SHAPE[0],
-                                img_height=config.IMAGE_SHAPE[1])
+dataset_val = OsmMappingDataset()
 dataset_val.load(validationImages)
 dataset_val.prepare()
 

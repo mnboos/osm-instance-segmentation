@@ -45,10 +45,7 @@ class MyMaskRcnnConfig(Config):
 
 class OsmMappingDataset(utils.Dataset):
 
-    def __init__(self, root_dir, img_width, img_height):
-        self.root_dir = root_dir
-        self.img_width = img_width
-        self.img_height = img_height
+    def __init__(self):
         utils.Dataset.__init__(self)
 
     def load(self, images):
@@ -56,21 +53,19 @@ class OsmMappingDataset(utils.Dataset):
         print("")
         print("Loading {} images...".format(len(images)))
         for i in images:
-            self.add_image(source="osm", image_id=i, path=os.path.join(self.root_dir, i))
+            self.add_image(source="osm", image_id=i, path=i)
         print("Loaded.")
 
     def load_image(self, image_id):
         info = self.image_info[image_id]
-        #print("Load image: ", info["id"])
-        image_path = os.path.join(self.root_dir, info["id"])
+        image_path = info["path"]
         img = Image.open(image_path)
         data = np.asarray(img, dtype="uint8")
         return data
 
     def load_mask(self, image_id):
         info = self.image_info[image_id]
-        #print("Load mask: ", info["id"])
-        mask_path = os.path.join(self.root_dir, info["id"][:-1])  # images have fileextension ".tiff", masks have ".tif"
+        mask_path = info["path"][:-1]  # images have fileextension ".tiff", masks have ".tif"
         if not os.path.isfile(mask_path):
             return None, None
 
