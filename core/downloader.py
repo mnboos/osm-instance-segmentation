@@ -270,7 +270,7 @@ def download():
         except KeyboardInterrupt:
             run = False
         except Exception as e:
-            print("Error occured. Continuing...", str(e))
+            print("Error occured: " + str(e))
 
 
 if __name__ == "__main__":
