@@ -1,3 +1,4 @@
+import time
 import sys
 import os
 import overpy
@@ -269,6 +270,8 @@ def download():
                                    output_directory=os.path.join(target_folder, bbox_name))
         except KeyboardInterrupt:
             run = False
+        except overpy.exception.OverpassTooManyRequests:
+            time.sleep(2)
         except Exception as e:
             print("Error occured: " + str(e))
 
