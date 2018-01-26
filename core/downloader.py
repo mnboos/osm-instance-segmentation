@@ -7,7 +7,7 @@ import requests
 import secrets
 import shapely.geometry as geometry
 import numpy as np
-from core.settings import IMAGE_WIDTH
+from core.settings import IMAGE_WIDTH, IMAGE_OUTPUT_FOLDER
 from skimage import draw
 import scipy.misc
 import shutil
@@ -89,12 +89,13 @@ def osm_downloader(bbox_name, bbox, zoom_level, output_directory):
                 p = Point(float(node.lat), float(node.lon))
                 px = p.pixels(zoom=zoom_level)
                 points.append((px[0]-minx, px[1]-miny))
-            poly = geometry.Polygon(points)
-            tile_rect = geometry.box(0, 0, IMAGE_WIDTH, IMAGE_WIDTH)
+
             try:
+                poly = geometry.Polygon(points)
+                tile_rect = geometry.box(0, 0, IMAGE_WIDTH, IMAGE_WIDTH)
                 poly = poly.intersection(tile_rect)
             except:
-                print("Intersection failed for polygon and rectangle: poly='{}', box='{}'".format(poly, tile_rect))
+                # print("Intersection failed for polygon and rectangle: poly='{}', box='{}'".format(poly, tile_rect))
                 continue
             polygons = []
             if isinstance(poly, geometry.MultiPolygon):
@@ -109,8 +110,8 @@ def osm_downloader(bbox_name, bbox, zoom_level, output_directory):
 
         if res.ways and mask.max():
             file_name = "{}.tif".format(tile_name)
-            mask_path = os.path.join(output_directory, file_name+'f')
-            img_path = os.path.join(output_directory, file_name)
+            mask_path = os.path.join(output_directory, file_name)
+            img_path = os.path.join(output_directory, file_name+'f')
             scipy.misc.imsave(mask_path, mask)
             if not os.path.isfile(img_path):
                 response = requests.get(url, stream=True)
@@ -143,14 +144,38 @@ def update_mask(mask, polygons):
 if __name__ == "__main__":
 
     bboxes = {
+        'goldach': {
+            'tr': 9.462776,
+            'tl': 47.465723,
+            'br': 9.489598,
+            'bl': 47.485157
+        },
+        'stgallen': {
+            'tr': 9.405892,
+            'tl': 47.433161,
+            'br': 9.424131,
+            'bl': 47.444191
+        },
+        'rapperswil': {
+            'tr': 8.818724,
+            'tl': 47.222126,
+            'br': 8.847435,
+            'bl': 47.234629
+        },
+        'hombrechtikon': {
+            'tr': 8.815956,
+            'tl': 47.237018,
+            'br': 8.826664,
+            'bl': 47.247157
+        },
         'zurich': {
-            'tl': 47.355106,
-            'tr': 8.518195,
-            'bl': 47.383125,
-            'br': 8.560596
+            'tr': 8.47716,
+            'tl': 47.36036,
+            'br': 8.573806,
+            'bl': 47.401508,
         },
         'boston_financial_district': {
-            'tr':-71.07081,
+            'tr': -71.07081,
             'tl': 42.351557,
             'br': -71.053601,
             'bl': 42.362942
@@ -173,6 +198,12 @@ if __name__ == "__main__":
             'br': -73.864722,
             'bl': 40.77413
         },
+        'berlin': {
+            'tr': 13.326222,
+            'tl': 52.418412,
+            'br': 13.548696,
+            'bl': 52.563071
+        },
         'munich': {
             'tr': 11.465968,
             'tl': 48.096287,
@@ -184,6 +215,12 @@ if __name__ == "__main__":
             'tl': 41.869589,
             'br': 12.531363,
             'bl': 41.923766
+        },
+        'san_francisco': {
+            'tr': -122.508763,
+            'tl': 37.714932,
+            'br': -122.383106,
+            'bl': 37.787682
         },
     }
 
@@ -205,4 +242,4 @@ if __name__ == "__main__":
             osm_downloader(bbox_name=bbox_name,
                            bbox=bbox,
                            zoom_level=z,
-                           output_directory=os.path.join(os.getcwd(), "output", bbox_name))
+                           output_directory=os.path.join(IMAGE_OUTPUT_FOLDER, bbox_name))
