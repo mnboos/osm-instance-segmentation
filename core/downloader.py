@@ -12,6 +12,7 @@ from core.settings import IMAGE_WIDTH, IMAGE_OUTPUT_FOLDER
 from skimage import draw
 import scipy.misc
 import shutil
+import random
 
 
 query_template = """
@@ -250,31 +251,31 @@ def download():
             raise RuntimeError("'{}' is not a valid city. Valid cities are: {}".format(city, valid_cities))
         cities = [city]
     else:
-        cities = bboxes.keys()
+        cities = random.shuffle(bboxes.keys())
 
     target_folder = IMAGE_OUTPUT_FOLDER
     if not os.path.isdir(target_folder):
         target_folder = "/training-data"
 
+    for bbox_name in cities:
+        print("Processing bbox '{}'".format(bbox_name))
+        bbox = bboxes[bbox_name]
+        zoom_levels = [18, 19]
+        for z in zoom_levels:
+            osm_downloader(bbox_name=bbox_name,
+                           bbox=bbox,
+                           zoom_level=z,
+                           output_directory=os.path.join(target_folder, bbox_name))
+
+
+if __name__ == "__main__":
     run = True
     while run:
         try:
-            for bbox_name in cities:
-                print("Processing bbox '{}'".format(bbox_name))
-                bbox = bboxes[bbox_name]
-                zoom_levels = [18, 19]
-                for z in zoom_levels:
-                    osm_downloader(bbox_name=bbox_name,
-                                   bbox=bbox,
-                                   zoom_level=z,
-                                   output_directory=os.path.join(target_folder, bbox_name))
+            download()
         except KeyboardInterrupt:
             run = False
         except overpy.exception.OverpassTooManyRequests:
             time.sleep(2)
         except Exception as e:
             print("Error occured: " + str(e))
-
-
-if __name__ == "__main__":
-    download()
