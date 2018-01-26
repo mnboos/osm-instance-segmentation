@@ -12,8 +12,6 @@ from skimage import draw
 import scipy.misc
 import shutil
 
-api = overpy.Overpass()
-
 
 query_template = """
 /* TMS {tile} */
@@ -29,11 +27,11 @@ out body;
 """
 
 
-def download(tile):
-    pass
-
-
 def tiles_from_bbox(bbox, zoom_level):
+    """
+     * Returns all tiles for the specified bounding box
+    """
+
     if isinstance(bbox, dict):
         point_min = Point.from_latitude_longitude(latitude=bbox['tl'], longitude=bbox['tr'])
         point_max = Point.from_latitude_longitude(latitude=bbox['bl'], longitude=bbox['br'])
@@ -52,6 +50,8 @@ def tiles_from_bbox(bbox, zoom_level):
 
 
 def osm_downloader(bbox_name, bbox, zoom_level, output_directory):
+    api = overpy.Overpass()
+
     if not os.path.isdir(output_directory):
         os.makedirs(output_directory)
 
@@ -147,15 +147,14 @@ def update_mask(mask, polygons):
         mask[cc, rr] = np.invert(mask[cc, rr])
 
 
-if __name__ == "__main__":
-
+def download():
     bboxes = {
-        'chicago': [-87.779857,41.87806,-87.659265,41.953457],
-        'chicago2': [-87.739813,41.837528,-87.70282,41.865722],
-        'firenze': [11.239844,43.765851,11.289969,43.790065],
-        'nuernberg': [11.046668,49.470696,11.129795,49.492332],
-        'wettingen': [8.309857,47.456269,8.340327,47.473386],
-        'duebendorf': [8.606587,47.392654,8.627401,47.404593],
+        'chicago': [-87.779857, 41.87806, -87.659265, 41.953457],
+        'chicago2': [-87.739813, 41.837528, -87.70282, 41.865722],
+        'firenze': [11.239844, 43.765851, 11.289969, 43.790065],
+        'nuernberg': [11.046668, 49.470696, 11.129795, 49.492332],
+        'wettingen': [8.309857, 47.456269, 8.340327, 47.473386],
+        'duebendorf': [8.606587, 47.392654, 8.627401, 47.404593],
         'goldach': {
             'tr': 9.462776,
             'tl': 47.465723,
@@ -255,3 +254,7 @@ if __name__ == "__main__":
                            bbox=bbox,
                            zoom_level=z,
                            output_directory=os.path.join(IMAGE_OUTPUT_FOLDER, bbox_name))
+
+
+if __name__ == "__main__":
+    download()
