@@ -255,7 +255,8 @@ def download():
     if not os.path.isdir(target_folder):
         target_folder = "/training-data"
 
-    while True:
+    run = True
+    while run:
         try:
             for bbox_name in cities:
                 print("Processing bbox '{}'".format(bbox_name))
@@ -266,6 +267,8 @@ def download():
                                    bbox=bbox,
                                    zoom_level=z,
                                    output_directory=os.path.join(target_folder, bbox_name))
+        except KeyboardInterrupt:
+            run = False
         except Exception as e:
             print("Error occured. Continuing...", str(e))
 
