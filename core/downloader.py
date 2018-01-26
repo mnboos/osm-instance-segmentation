@@ -266,8 +266,8 @@ def download():
                                    bbox=bbox,
                                    zoom_level=z,
                                    output_directory=os.path.join(target_folder, bbox_name))
-        except:
-            print("Error occured. Continuing...")
+        except Exception as e:
+            print("Error occured. Continuing...", str(e))
 
 
 if __name__ == "__main__":
