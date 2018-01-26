@@ -251,7 +251,8 @@ def download():
             raise RuntimeError("'{}' is not a valid city. Valid cities are: {}".format(city, valid_cities))
         cities = [city]
     else:
-        cities = random.shuffle(bboxes.keys())
+        cities = list(bboxes.keys())
+        random.shuffle(cities)
 
     target_folder = IMAGE_OUTPUT_FOLDER
     if not os.path.isdir(target_folder):
