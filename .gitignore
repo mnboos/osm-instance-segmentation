@@ -1,4 +1,6 @@
 secrets.py
+*.tiff
+*.tif
 *.h5
 
 *.pyc
