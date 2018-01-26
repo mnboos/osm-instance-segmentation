@@ -255,15 +255,19 @@ def download():
     if not os.path.isdir(target_folder):
         target_folder = "/training-data"
 
-    for bbox_name in cities:
-        print("Processing bbox '{}'".format(bbox_name))
-        bbox = bboxes[bbox_name]
-        zoom_levels = [18, 19]
-        for z in zoom_levels:
-            osm_downloader(bbox_name=bbox_name,
-                           bbox=bbox,
-                           zoom_level=z,
-                           output_directory=os.path.join(target_folder, bbox_name))
+    while True:
+        try:
+            for bbox_name in cities:
+                print("Processing bbox '{}'".format(bbox_name))
+                bbox = bboxes[bbox_name]
+                zoom_levels = [18, 19]
+                for z in zoom_levels:
+                    osm_downloader(bbox_name=bbox_name,
+                                   bbox=bbox,
+                                   zoom_level=z,
+                                   output_directory=os.path.join(target_folder, bbox_name))
+        except:
+            print("Error occured. Continuing...")
 
 
 if __name__ == "__main__":
