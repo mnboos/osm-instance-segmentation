@@ -2,6 +2,7 @@ secrets.py
 *.tiff
 *.tif
 *.h5
+model/*.h5
 
 *.pyc
 *.zip
