@@ -5,7 +5,7 @@ COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 
 RUN apt-get update -y &&\
-    apt-get install -y git wget software-properties-common vim
+    apt-get install -y git wget software-properties-common vim nano
 
 #RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash &&\
 #    apt-get install -y git-lfs
