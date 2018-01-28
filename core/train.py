@@ -22,14 +22,11 @@ if not os.path.isdir(TRAINING_DATA_DIR):
 
 def get_random_images(limit=None):
     print("Using training images in: ", TRAINING_DATA_DIR)
-
-    # images = list(filter(lambda f: f.endswith(".tiff"), os.listdir(TRAINING_DATA_DIR)))
-    images = glob.glob(os.path.join(TRAINING_DATA_DIR, "*/*.tiff"))
-    images.extend(glob.glob(os.path.join(TRAINING_DATA_DIR, "*.tiff")))
+    images = glob.glob(os.path.join(TRAINING_DATA_DIR, "**/*.tiff"), recursive=True)
     print("{} images found...".format(len(images)))
     random.shuffle(images)
     if limit and len(images) > limit:
-        print("Limiting dataset to {} images...".format(len(images)))
+        print("Taking randomly {} images from dataset...".format(limit))
         images = images[:limit]
 
     cutoff_index = int(len(images) * .8)
