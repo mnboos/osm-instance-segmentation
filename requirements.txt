@@ -11,3 +11,5 @@ opencv-python
 pyGeoTile
 geojson
 shapely
+django
+djangorestframework
