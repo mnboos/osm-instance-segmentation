@@ -24,7 +24,7 @@ class MarchingSquares:
         self._states = np.zeros(np_arr.shape, dtype=np.uint8)
         self._start = None
 
-    def march(self):
+    def find_contour(self):
         self._calc_cell_states()
         points = [self._start]
         if self._start:
