@@ -47,33 +47,13 @@ class MarchingSquares:
         :param state:
         :return:
         """
-        if state == 1:
+        if state in [1, 5, 9, 13]:
             return DOWN
-        elif state == 2:
+        elif state in [2, 3, 11]:
             return RIGHT
-        elif state == 3:
-            return RIGHT
-        elif state == 4:
+        elif state in [4, 6, 7, 10]:
             return UP
-        elif state == 5:
-            return DOWN
-        elif state == 6:
-            return UP
-        elif state == 7:
-            return UP
-        elif state == 8:
-            return LEFT
-        elif state == 9:
-            return DOWN
-        elif state == 10:
-            return UP
-        elif state == 11:
-            return RIGHT
-        elif state == 12:
-            return LEFT
-        elif state == 13:
-            return DOWN
-        elif state == 14:
+        elif state in [8, 12, 14]:
             return LEFT
         raise RuntimeError("Illelgal state: {}".format(state))
 
