@@ -1,5 +1,6 @@
 from PIL import Image
 from typing import Iterable, Tuple
+from skimage.measure import approximate_polygon
 import numpy as np
 
 # numpy directions
@@ -19,7 +20,8 @@ class MarchingSquares:
     BORDER_SIZE = 1
 
     def __init__(self, data: np.ndarray):
-        self.img = np.pad(data, pad_width=self.BORDER_SIZE, mode='constant')
+        c = data.copy()
+        self.img = np.pad(c, pad_width=self.BORDER_SIZE, mode='constant')
         self._states = np.zeros(self.img.shape, dtype=np.uint8)
         self._start = None
 
@@ -33,10 +35,16 @@ class MarchingSquares:
     def from_array(cls, data: np.ndarray):
         return cls(data)
 
-    def find_contour(self) -> Iterable[Tuple[int, int]]:
+    def find_contour(self, approximization_tolerance: int = 0.01) -> Iterable[Tuple[int, int]]:
+        """
+         * Returns the first contour found.
+        :param approximization_tolerance: tolerance for the douglas-peucker approximization run on the resulting points
+        :return:
+        """
         self._calc_cell_states()
-        points = [self._start]
+        points = []
         if self._start:
+            points.append(self._start)
             current_pos = None
             while current_pos != self._start:
                 if not current_pos:
@@ -47,7 +55,8 @@ class MarchingSquares:
 
                 current_pos = tuple(map(sum, zip(current_pos, direction)))
                 points.append(current_pos)
-        return points
+        c = approximate_polygon(np.array(points), tolerance=approximization_tolerance)
+        return c.tolist()
 
     @staticmethod
     def _get_next_direction(state: int) -> Tuple[int, int]:
