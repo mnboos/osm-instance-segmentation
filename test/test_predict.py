@@ -1,18 +1,17 @@
 import os
 from core.predict import Predictor
-from core.train import get_random_images
+from shapely.geometry import Polygon
+from pygeotile.tile import Tile
 
 
-def test_bla():
-    weights_path = os.path.join(os.getcwd(), "model", "stage3_256px_1800images.h5")
-    # weights_path = os.path.join(os.getcwd(), "model", "stage3_256px_overfitted.h5")
+def test_predict():
+    weights_path = os.path.join(os.getcwd(), "model", "mask_rcnn_osm_0030.h5")
     assert os.path.isfile(weights_path)
-    p = Predictor(weights_path)
-    # images_test, images_validation = get_random_images(limit=10)
-    # p.predict()
+
     img_path = os.path.join(os.getcwd(), "test", "data", "18_139423_171197.tiff")
-    res = p.predict_path(img_path)
-    print("# Rois: ", len(res[0]["rois"]))
-    print("# Masks: ", len(res[0]["masks"]))
-    print("# Scores: ", len(res[0]["scores"]))
+    p = Predictor(weights_path)
+    polygon_points = p.predict_path(img_path=img_path, tile=Tile.from_tms(139423, 171197, 18))
+    for points in polygon_points:
+        p = Polygon(points)
+        print(p.wkt)
     assert 1 == 1

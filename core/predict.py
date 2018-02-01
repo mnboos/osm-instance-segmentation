@@ -1,7 +1,10 @@
 import os
 from mask_rcnn import model as modellib
 from core.mask_rcnn_config import MyMaskRcnnConfig
+from core.utils import MarchingSquares, georeference
+from typing import Iterable, Tuple
 from PIL import Image
+from pygeotile.tile import Tile
 import numpy as np
 
 
@@ -21,7 +24,7 @@ class Predictor:
         self.weights_path = weights_path
         self._model = None
 
-    def predict(self, img_data):
+    def predict(self, img_data: np.ndarray, tile: Tile = None) -> Iterable[Tuple[int, int]]:
         if not self._model:
             inference_config = self.InferenceConfig()
             # Create model in training mode
@@ -31,14 +34,21 @@ class Predictor:
 
         model = self._model
         res = model.detect([img_data], verbose=1)
-        return res
+        point_sets = self._get_buildings(masks=res[0]['masks'])
+        if tile:
+            point_sets = map(lambda p: georeference(p, tile), point_sets)
+        return point_sets
 
-    def predict_path(self, img_path):
+    @staticmethod
+    def _get_buildings(masks: np.ndarray) -> Iterable[Tuple[int, int]]:
+        buildings = []
+        for i in range(masks.shape[-1]):
+            m = MarchingSquares.from_array(masks[:, :, i])
+            points = m.find_contour()
+            buildings.append(points)
+        return buildings
+
+    def predict_path(self, img_path: str, tile: Tile = None) -> Iterable[Tuple[int, int]]:
         img = Image.open(img_path)
         data = np.asarray(img, dtype="uint8")
-        return self.predict(data)
-
-
-# if __name__ == "__main__":
-#     p = Predictor(os.path.join(os.getcwd(), "model", "stage3_256px_overfitted.h5"))
-
+        return self.predict(img_data=data, tile=tile)

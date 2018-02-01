@@ -1,6 +1,7 @@
 from PIL import Image
 from typing import Iterable, Tuple
 from skimage.measure import approximate_polygon
+from pygeotile.tile import Tile, Point
 import numpy as np
 
 # numpy directions
@@ -14,7 +15,6 @@ class MarchingSquares:
     """
       Implementation of the marching square algorithm to find contours on images. O
       The current implementation finds only one contour per image (the one top-left, to be exact).
-
     """
 
     BORDER_SIZE = 1
@@ -44,7 +44,7 @@ class MarchingSquares:
         self._calc_cell_states()
         points = []
         if self._start:
-            points.append(self._start)
+            points.append(self._start[::-1])
             current_pos = None
             while current_pos != self._start:
                 if not current_pos:
@@ -54,9 +54,15 @@ class MarchingSquares:
                 direction = self._get_next_direction(state)
 
                 current_pos = tuple(map(sum, zip(current_pos, direction)))
-                points.append(current_pos)
-        c = approximate_polygon(np.array(points), tolerance=approximization_tolerance)
-        return c.tolist()
+                flipped = current_pos[::-1]
+                if current_pos != self._start and flipped in points:
+                    raise RuntimeError("Invalid contour")
+                points.append(flipped)
+        if approximization_tolerance:
+            c = approximate_polygon(np.array(points), tolerance=approximization_tolerance)
+            return c.tolist()
+        else:
+            return points
 
     @staticmethod
     def _get_next_direction(state: int) -> Tuple[int, int]:
@@ -89,3 +95,12 @@ class MarchingSquares:
     @staticmethod
     def _binarize(val: int) -> int:
         return 1 if val > 0 else 0
+
+
+def georeference(points: Iterable[Tuple[int, int]], tile: Tile) -> Iterable[Tuple]:
+    zoom_level = len(str(tile.quad_tree))
+    minx, maxy = tile.bounds[0].pixels(zoom_level)
+    maxx, miny = tile.bounds[1].pixels(zoom_level)
+    georeferenced = list(
+        map(lambda p: tuple(reversed(Point.from_pixel(p[0]+minx, p[1]+miny, zoom_level).latitude_longitude)), points))
+    return georeferenced
