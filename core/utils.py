@@ -1,7 +1,8 @@
-from PIL import Image, ImageOps
+from PIL import Image
+from typing import Iterable, Tuple
 import numpy as np
 
-# numpy index
+# numpy directions
 UP = (-1, 0)
 DOWN = (1, 0)
 RIGHT = (0, 1)
@@ -12,19 +13,27 @@ class MarchingSquares:
     """
       Implementation of the marching square algorithm to find contours on images. O
       The current implementation finds only one contour per image (the one top-left, to be exact).
+
     """
 
     BORDER_SIZE = 1
 
-    def __init__(self, img_path):
-        img = Image.open(img_path).convert("L")
-        img = ImageOps.expand(img, self.BORDER_SIZE)
-        np_arr = np.asarray(img)
-        self.img = np_arr
-        self._states = np.zeros(np_arr.shape, dtype=np.uint8)
+    def __init__(self, data: np.ndarray):
+        self.img = np.pad(data, pad_width=self.BORDER_SIZE, mode='constant')
+        self._states = np.zeros(self.img.shape, dtype=np.uint8)
         self._start = None
 
-    def find_contour(self):
+    @classmethod
+    def from_file(cls, img_path: str):
+        img = Image.open(img_path).convert("L")
+        np_arr = np.asarray(img)
+        return cls(np_arr)
+
+    @classmethod
+    def from_array(cls, data: np.ndarray):
+        return cls(data)
+
+    def find_contour(self) -> Iterable[Tuple[int, int]]:
         self._calc_cell_states()
         points = [self._start]
         if self._start:
@@ -41,7 +50,7 @@ class MarchingSquares:
         return points
 
     @staticmethod
-    def _get_next_direction(state):
+    def _get_next_direction(state: int) -> Tuple[int, int]:
         """
          * These directions will lead to a clockwise visit of the contour
         :param state:
@@ -57,7 +66,7 @@ class MarchingSquares:
             return LEFT
         raise RuntimeError("Illelgal state: {}".format(state))
 
-    def _calc_cell_states(self):
+    def _calc_cell_states(self) -> None:
         for (r, c), value in np.ndenumerate(self.img[:-1, :-1]):
             top_left = self._binarize(value)
             top_right = self._binarize(self.img[r, c+1])
@@ -69,5 +78,5 @@ class MarchingSquares:
                 self._start = (r, c)
 
     @staticmethod
-    def _binarize(val):
+    def _binarize(val: int) -> int:
         return 1 if val > 0 else 0
