@@ -18,13 +18,13 @@ class Predictor:
         IMAGE_MIN_DIM = 256
         IMAGE_MAX_DIM = 256
 
-    def __init__(self, weights_path):
+    def __init__(self, weights_path: str):
         if not os.path.isfile(weights_path):
             raise RuntimeError("Weights cannot be found at: {}".format(weights_path))
         self.weights_path = weights_path
         self._model = None
 
-    def predict(self, img_data: np.ndarray, tile: Tile = None) -> Iterable[Tuple[int, int]]:
+    def predict_array(self, img_data: np.ndarray, tile: Tile = None, approximiation_tolerance: float = None) -> Iterable[Tuple[int, int]]:
         if not self._model:
             inference_config = self.InferenceConfig()
             # Create model in training mode
@@ -34,21 +34,21 @@ class Predictor:
 
         model = self._model
         res = model.detect([img_data], verbose=1)
-        point_sets = self._get_buildings(masks=res[0]['masks'])
+        point_sets = self._get_buildings(masks=res[0]['masks'], approximiation_tolerance=approximiation_tolerance)
         if tile:
             point_sets = map(lambda p: georeference(p, tile), point_sets)
         return point_sets
 
-    @staticmethod
-    def _get_buildings(masks: np.ndarray) -> Iterable[Tuple[int, int]]:
-        buildings = []
-        for i in range(masks.shape[-1]):
-            m = MarchingSquares.from_array(masks[:, :, i])
-            points = m.find_contour()
-            buildings.append(points)
-        return buildings
-
     def predict_path(self, img_path: str, tile: Tile = None) -> Iterable[Tuple[int, int]]:
         img = Image.open(img_path)
         data = np.asarray(img, dtype="uint8")
-        return self.predict(img_data=data, tile=tile)
+        return self.predict_array(img_data=data, tile=tile)
+
+    @staticmethod
+    def _get_buildings(masks: np.ndarray, approximiation_tolerance: float) -> Iterable[Tuple[int, int]]:
+        buildings = []
+        for i in range(masks.shape[-1]):
+            m = MarchingSquares.from_array(masks[:, :, i])
+            points = m.find_contour(approximization_tolerance=approximiation_tolerance)
+            buildings.append(points)
+        return buildings

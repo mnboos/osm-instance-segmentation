@@ -1,27 +1,40 @@
 from rest_framework import serializers
-
-
-class BoundingBox(object):
-    def __init__(self, lat_min, lon_min, lat_max, lon_max):
-        self.lat_min = lat_min
-        self.lon_min = lon_min
-        self.lat_max = lat_max
-        self.lon_max = lon_max
+import base64
 
 
 class InferenceRequest(object):
-    def __init__(self, bbox, image_data):
-        self.bbox = bbox
+    def __init__(self, lat: float, lon: float, zoom_level: int, image_data: str, approximiation_tolerance: float = None):
+        self.lat = lat
+        self.lon = lon
+        self.zoom_level = zoom_level
         self.image_data = image_data
+        self.approximiation_tolerance = approximiation_tolerance
 
 
-class BoundingBoxSerializer(serializers.Serializer):
-    lat_min = serializers.FloatField(min_value=-85.05112878, max_value=85.05112878)
-    lat_max = serializers.FloatField(min_value=-85.05112878, max_value=85.05112878)
-    lon_min = serializers.FloatField(min_value=-180, max_value=180)
-    lon_max = serializers.FloatField(min_value=-180, max_value=180)
+def validate_base64(s: str) -> None:
+    try:
+        base64.standard_b64decode(s)
+    except Exception:
+        msg = "Ensure this value is a base64 encoded."
+        raise serializers.ValidationError(msg)
 
 
 class InferenceRequestSerializer(serializers.Serializer):
-    bbox = BoundingBoxSerializer(required=True)
-    image_data = serializers.CharField(required=True, allow_blank=False, allow_null=False)
+    approximiation_tolerance = serializers.FloatField(required=False,
+                                                      min_value=0)
+    lat = serializers.FloatField(required=True,
+                                 min_value=-85.05112878,
+                                 max_value=85.05112878,
+                                 help_text="Latitude of the top left corner regarding the image to be tested")
+    lon = serializers.FloatField(required=True,
+                                 min_value=-180,
+                                 max_value=180,
+                                 help_text="Longitude of the top left corner regarding the image")
+    zoom_level = serializers.FloatField(required=True,
+                                        min_value=17,
+                                        max_value=19)
+    image_data = serializers.CharField(required=True,
+                                       allow_blank=False,
+                                       allow_null=False,
+                                       help_text="Image data as base64 encoded string",
+                                       validators=[validate_base64])

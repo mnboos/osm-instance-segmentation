@@ -41,6 +41,9 @@ class MarchingSquares:
         :param approximization_tolerance: tolerance for the douglas-peucker approximization run on the resulting points
         :return:
         """
+        if not approximization_tolerance:
+            approximization_tolerance = 0.01
+
         self._calc_cell_states()
         points = []
         if self._start:
