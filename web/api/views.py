@@ -1,7 +1,8 @@
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser, FormParser
 from django.http import JsonResponse
-from web.api.serializers import InferenceRequestSerializer, InferenceRequest
+from .serializers import InferenceRequestSerializer, InferenceRequest
+# from .core.predict import Predictor
 from core.predict import Predictor
 import os
 import base64

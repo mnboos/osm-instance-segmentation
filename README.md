@@ -24,7 +24,7 @@ To download only a specific bbox run:
 ```python -m core.downloader {bbox_name}```
 
 ## Web service
-C:\DEV\osm-instance-segmentation\venv\Scripts\python.exe C:/DEV/osm-instance-segmentation/web/manage.py runserver
+The server can be started using the script ```runserver.bat```.
 
 ### Usage
 ```json
