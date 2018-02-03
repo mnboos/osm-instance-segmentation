@@ -2,6 +2,18 @@ from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser, FormParser
 from django.http import JsonResponse
 from web.api.serializers import InferenceRequestSerializer, InferenceRequest
+from core.predict import Predictor
+import os
+import base64
+import numpy as np
+from PIL import Image
+from pygeotile.tile import Tile, Point
+import io
+import tempfile
+from shapely import geometry
+import json
+
+_predictor = Predictor(os.path.join(os.getcwd(), "model", "mask_rcnn_osm_0060.h5"))
 
 
 """
@@ -26,8 +38,25 @@ def request_inference(request):
         data = JSONParser().parse(request)
         inference_serializer = InferenceRequestSerializer(data=data)
         if not inference_serializer.is_valid():
-            return JsonResponse({'error': inference_serializer.errors})
+            return JsonResponse({'errors': inference_serializer.errors})
 
         inference = InferenceRequest(**inference_serializer.data)
-        print("Inf: ", inference)
-        return JsonResponse({'postresponse': 'hello world'})
+        try:
+            res = _predict(inference)
+            return JsonResponse({'geometries': res})
+        except Exception as e:
+            return JsonResponse({'errors': str(e)})
+
+
+def _predict(request: InferenceRequest):
+    b64 = base64.b64decode(request.image_data)
+    barr = io.BytesIO(b64)
+    img = Image.open(barr)
+    arr = np.asarray(img)
+    tile = Tile.for_point(point=Point(latitude=request.lat, longitude=request.lon), zoom=int(request.zoom_level))
+    res = _predictor.predict_array(img_data=arr,
+                                   approximiation_tolerance=request.approximiation_tolerance,
+                                   tile=tile)
+    polygons = [geometry.Polygon(points) for points in res]
+    return list(map(lambda p: json.dumps(geometry.mapping(p)), polygons))
+
