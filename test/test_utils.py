@@ -1,8 +1,16 @@
+import math
 import numpy as np
 import os
 from core.utils import MarchingSquares, georeference
 from shapely import geometry
 from pygeotile.tile import Tile, Point
+
+
+def test_hough():
+    p = os.path.join(os.getcwd(), "test", "data", "diag.bmp")
+    m = MarchingSquares.from_file(p)
+    m.find_contour(approximization_tolerance=1)
+    assert m.main_orientation(angle_in_degrees=True) == 45
 
 
 def test_marchingsquares():
