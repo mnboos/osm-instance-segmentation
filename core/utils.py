@@ -2,6 +2,8 @@ from PIL import Image
 from typing import Iterable, Tuple
 from skimage.measure import approximate_polygon
 from pygeotile.tile import Tile, Point
+import cv2
+import math
 import numpy as np
 
 # numpy directions
@@ -22,8 +24,10 @@ class MarchingSquares:
     def __init__(self, data: np.ndarray):
         c = data.copy()
         self.img = np.pad(c, pad_width=self.BORDER_SIZE, mode='constant')
+        self._contour = np.zeros(self.img.shape, dtype=np.uint8)
         self._states = np.zeros(self.img.shape, dtype=np.uint8)
         self._start = None
+        self._marched = False
 
     @classmethod
     def from_file(cls, img_path: str):
@@ -35,18 +39,20 @@ class MarchingSquares:
     def from_array(cls, data: np.ndarray):
         return cls(data)
 
-    def find_contour(self, approximization_tolerance: int = 0.01) -> Iterable[Tuple[int, int]]:
+    def find_contour(self, approximization_tolerance: float = 0.01) -> Iterable[Tuple[int, int]]:
         """
          * Returns the first contour found.
         :param approximization_tolerance: tolerance for the douglas-peucker approximization run on the resulting points
         :return:
         """
-        if not approximization_tolerance:
+        if approximization_tolerance is None:
             approximization_tolerance = 0.01
 
         self._calc_cell_states()
         points = []
+        self._marched = True
         if self._start:
+            self._contour[self._sum_tuple(self._start, (1, 1))] = 1
             points.append(self._start[::-1])
             current_pos = None
             while current_pos != self._start:
@@ -56,16 +62,48 @@ class MarchingSquares:
                 state = self._states[current_pos]
                 direction = self._get_next_direction(state)
 
-                current_pos = tuple(map(sum, zip(current_pos, direction)))
+                current_pos = self._sum_tuple(current_pos, direction)
                 flipped = current_pos[::-1]
                 if current_pos != self._start and flipped in points:
                     raise RuntimeError("Invalid contour")
+                self._contour[self._sum_tuple(current_pos, (1, 1))] = 1
                 points.append(flipped)
         if approximization_tolerance:
             c = approximate_polygon(np.array(points), tolerance=approximization_tolerance)
-            return c.tolist()
-        else:
-            return points
+            points = c.tolist()
+        return points
+
+    @staticmethod
+    def _sum_tuple(t1: Tuple, t2: Tuple) -> Tuple:
+        return tuple(map(sum, zip(t1, t2)))
+
+    @property
+    def exact_contour(self):
+        return self._contour
+
+    def main_orientation(self, angle_in_degrees: bool = False) -> float:
+        if not self._marched:
+            raise RuntimeError("To get the main orientation, run 'find_contour' first.")
+
+        lines = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi / 180, threshold=50)
+        angles = {}
+        maxcount = 0
+        main_angle = None
+        if lines is not None:
+            for l in lines:  # rho = distance, theta = angle
+                for rho, theta in l:
+                    if angle_in_degrees:
+                        angle = int(math.degrees(theta))
+                    else:
+                        angle = theta
+                    if angle not in angles:
+                        angles[angle] = 0
+                    newcount = angles[angle] + 1
+                    angles[angle] = newcount
+                    if newcount > maxcount:
+                        maxcount = newcount
+                        main_angle = angle
+        return main_angle
 
     @staticmethod
     def _get_next_direction(state: int) -> Tuple[int, int]:
