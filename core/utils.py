@@ -4,6 +4,7 @@ from skimage.measure import approximate_polygon
 from skimage.transform import hough_line, hough_line_peaks
 from pygeotile.tile import Tile, Point
 from shapely.geometry import LineString
+from shapely.affinity import rotate, translate
 from shapely import geometry
 import cv2
 import math
@@ -14,6 +15,66 @@ UP = (-1, 0)
 DOWN = (1, 0)
 RIGHT = (0, 1)
 LEFT = (0, -1)
+
+
+class SleeveFitting:
+
+    def __init__(self, start: geometry.Point, starting_angle: int, sleeve_width: float = 3, sleeve_length: int = 15):
+        """
+
+        :param start: The starting point of the sleeve
+        :param theta: The starting angle of the sleeve in degrees
+        :param epsilon: The width of the sleeve
+        """
+        self._start = start
+        self._angle = starting_angle
+        self._sleeve_width = sleeve_width
+        self._sleeve_length = sleeve_length
+        # ls = LineString([start, Point(start.x+sleeve_length, start.y)]).buffer(sleeve_width, cap_style=2)
+        ls = LineString([start, Point(start.x+sleeve_length, start.y)])
+        self._sleeve = rotate(geom=ls, angle=starting_angle, origin=start)
+        print("sleeve: \n", self._sleeve.wkt)
+
+    def fit_sleeve(self, points: Iterable[Tuple[int, int]]):
+        segments = []
+        remaining_points = []
+        remaining_points.extend(points)
+        i = 0
+        while remaining_points[i] != self._start:
+            i += 1
+        while remaining_points:
+            seg_points = []
+
+
+        pass
+
+    def _align_sleeve(self):
+        pass
+
+    def move(self, angle: float = None, step_size: int = 1) -> None:
+        """
+         * Moves the sleeve in the direction specified direction.
+           If no angle is specified, the current angle will remain.
+        :param angle:
+        :param step_size:
+        :return:
+        """
+
+        x, y = self.sleeve_step
+        if angle:
+            self._sleeve = rotate(self._sleeve, angle=angle, origin=self.current_position)
+        if step_size:
+            self._sleeve = translate(self._sleeve, xoff=x*step_size, yoff=y*step_size)
+
+    @property
+    def current_position(self):
+        return self._sleeve.coords[0]
+
+    @property
+    def sleeve_step(self) -> Tuple[float, float]:
+        x0, y0 = self._sleeve.coords[0]
+        x1, y1 = self._sleeve.coords[-1]
+        return (x1-x0) / self._sleeve_length, (y1-y0) / self._sleeve_length
 
 
 class MarchingSquares:
@@ -76,6 +137,10 @@ class MarchingSquares:
             c = approximate_polygon(np.array(points), tolerance=approximization_tolerance)
             points = c.tolist()
 
+        # ls = LineString()
+        # p = geometry.Point()
+        # p.di
+
         self._contour = np.zeros(self.img.shape, dtype=np.uint8)
         for x, y in points:
             self._contour[y, x] = 1
@@ -91,7 +156,11 @@ class MarchingSquares:
     def exact_contour(self):
         return self._contour
 
-    def main_orientation(self, angle_in_degrees: bool = False) -> float:
+    @property
+    def starting_point(self):
+        pass
+
+    def main_orientation(self, angle_in_degrees: bool = False) -> Tuple[int, geometry.Point]:
         if not self._marched:
             raise RuntimeError("To get the main orientation, run 'find_contour' first.")
 
@@ -121,11 +190,12 @@ class MarchingSquares:
                 break
             max_threshold += 1
         print("max threshold: ", max_threshold)
-        lines = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi / 180, threshold=20)
+        # lines = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi / 180, threshold=20)
         angles = {}
         maxcount = 0
         main_angle = None
         lineimg = np.zeros(self.img.shape, dtype=np.uint8)
+        nearest_point = None
         if lines is not None:
             for l in lines:  # rho = distance, theta = angle
                 for rho, theta in l:
@@ -149,6 +219,15 @@ class MarchingSquares:
                     y1 = int(y0 + 1000 * a)
                     x2 = int(x0 - 1000 * -b)
                     y2 = int(y0 - 1000 * a)
+                    if not nearest_point:
+                        dist = None
+                        ls = LineString([(x1, y1), (x2, y2)])
+                        for px, py in self._points:
+                            p = geometry.Point(px, py)
+                            new_dist = p.distance(ls)
+                            if not nearest_point or new_dist < dist:
+                                nearest_point = p
+                                dist = new_dist
                     cv2.line(lineimg, (x1, y1), (x2, y2), 255, 1)
             print("\na1: ", angles)
 
@@ -159,56 +238,59 @@ class MarchingSquares:
                 counts += angles[a]
             weighted_avg = angle_sum / counts
             print("avg: ", weighted_avg)
-
-            # lines = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi/180*main_angle, srn=1, stn=np.pi/180*90, threshold=9)
-            thetas = [math.radians(main_angle), math.radians(main_angle+90 % 180)]
-            lines = cv2.HoughLines(image=self.exact_contour,
-                                   rho=1,
-                                   theta=np.pi / 180,
-                                   min_theta=min(thetas),
-                                   max_theta=max(thetas),
-                                   threshold=15)
-
-            angles = {}
-            if lines is not None:
-                for l in lines:  # rho = distance, theta = angle
-                    for rho, theta in l:
-                        if angle_in_degrees:
-                            angle = int(math.degrees(theta))
-                        else:
-                            angle = theta
-                        if angle not in angles:
-                            angles[angle] = 0
-                        angles[angle] = angles[angle] + 1
-                        a = np.cos(theta)
-                        b = np.sin(theta)
-                        x0 = a * rho
-                        y0 = b * rho
-                        x1 = int(x0 + 1000 * (-b))
-                        y1 = int(y0 + 1000 * (a))
-                        x2 = int(x0 - 1000 * (-b))
-                        y2 = int(y0 - 1000 * (a))
-                        # ls = LineString([(x1, y1), (x2, y2)])
-                        # for p in self._points:
-                        #     dist = ls.distance(geometry.Point(p))
-                            # print("dist: ", dist)
-
-                        cv2.line(lineimg, (x1, y1), (x2, y2), 127, 1)
-                print("\na2: ", angles)
             im = Image.fromarray(lineimg, mode="L")
             im.save("hough.bmp")
+            return int(round(weighted_avg)), nearest_point
 
-            # cv2.imwrite('houghlines3.bmp', self.exact_contour)
-
-
-        # lines = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi / 180, threshold=0, srn=np.pi / 180 * (90+main_angle), stn=1)
-        # for i, p in enumerate(self._points[1:]):
-        #     prev_p = self._points[i]
-        #     ls = LineString([p, prev_p])
-        #     angle = np.rad2deg(np.arctan2(p[1] - prev_p[1], p[0] - prev_p[0]))
-        #     print(angle)
-
-        return main_angle
+        #     # lines = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi/180*main_angle, srn=1, stn=np.pi/180*90, threshold=9)
+        #     thetas = [math.radians(main_angle), math.radians(main_angle+90 % 180)]
+        #     lines = cv2.HoughLines(image=self.exact_contour,
+        #                            rho=1,
+        #                            theta=math.radians(main_angle+90 % 180),
+        #                            # min_theta=min(thetas),
+        #                            # max_theta=max(thetas),
+        #                            threshold=4)
+        #
+        #     angles = {}
+        #     if lines is not None:
+        #         for l in lines:  # rho = distance, theta = angle
+        #             for rho, theta in l:
+        #                 if angle_in_degrees:
+        #                     angle = int(math.degrees(theta))
+        #                 else:
+        #                     angle = theta
+        #                 if angle not in angles:
+        #                     angles[angle] = 0
+        #                 angles[angle] = angles[angle] + 1
+        #                 a = np.cos(theta)
+        #                 b = np.sin(theta)
+        #                 x0 = a * rho
+        #                 y0 = b * rho
+        #                 x1 = int(x0 + 1000 * (-b))
+        #                 y1 = int(y0 + 1000 * (a))
+        #                 x2 = int(x0 - 1000 * (-b))
+        #                 y2 = int(y0 - 1000 * (a))
+        #                 # ls = LineString([(x1, y1), (x2, y2)])
+        #                 # for p in self._points:
+        #                 #     dist = ls.distance(geometry.Point(p))
+        #                     # print("dist: ", dist)
+        #
+        #                 cv2.line(lineimg, (x1, y1), (x2, y2), 127, 1)
+        #         print("\na2: ", angles)
+        #     im = Image.fromarray(lineimg, mode="L")
+        #     im.save("hough.bmp")
+        #
+        #     # cv2.imwrite('houghlines3.bmp', self.exact_contour)
+        #
+        #
+        # # lines = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi / 180, threshold=0, srn=np.pi / 180 * (90+main_angle), stn=1)
+        # # for i, p in enumerate(self._points[1:]):
+        # #     prev_p = self._points[i]
+        # #     ls = LineString([p, prev_p])
+        # #     angle = np.rad2deg(np.arctan2(p[1] - prev_p[1], p[0] - prev_p[0]))
+        # #     print(angle)
+        #
+        # return main_angle
 
     @staticmethod
     def _get_next_direction(state: int) -> Tuple[int, int]:
@@ -246,3 +328,5 @@ def georeference(points: Iterable[Tuple[int, int]], tile: Tile) -> Iterable[Tupl
     georeferenced = list(
         map(lambda p: tuple(reversed(Point.from_pixel(p[0]+minx, p[1]+miny, zoom_level).latitude_longitude)), points))
     return georeferenced
+
+

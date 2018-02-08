@@ -1,7 +1,7 @@
 import math
 import numpy as np
 import os
-from core.utils import MarchingSquares, georeference
+from core.utils import MarchingSquares, georeference, SleeveFitting
 from shapely import geometry
 from pygeotile.tile import Tile, Point
 
@@ -14,10 +14,48 @@ def test_hough():
     m = MarchingSquares.from_file(p)
     points = m.find_contour(approximization_tolerance=0.01)
     print("\nwkt:")
-    # print(geometry.Polygon(points).wkt)
-    # print(geometry.Polygon(points).buffer(1).wkt)
+    # print(list(geometry.Polygon(points).exterior.coords))
+    # print(geometry.Polygon(points).simplify(3, preserve_topology=False).wkt)
+    # print(geometry.Polygon(points).simplify(3, preserve_topology=True).wkt)
+    # b = geometry.Polygon(points).buffer(1, join_style=3)
+    # print(list(b.exterior.coords))
+    # print(b.wkt)
     print("")
-    assert 45 == m.main_orientation(angle_in_degrees=True)
+    angle, _ = m.main_orientation(angle_in_degrees=True)
+    assert 154 == angle
+
+
+def test_sleeve_step_horiz():
+    s = SleeveFitting(start=geometry.Point(0,0), starting_angle=0)
+    assert (1.0, 0.0) == s.sleeve_step
+
+
+def test_sleeve_step_vert():
+    s = SleeveFitting(start=geometry.Point(0,0), starting_angle=90)
+    assert (0.0, 1.0) == s.sleeve_step
+
+
+def test_sleeve_step_diag():
+    s = SleeveFitting(start=geometry.Point(0,0), starting_angle=45, sleeve_length=1)
+    x, y = s.sleeve_step
+    assert x == y
+    assert math.isclose(1/math.sqrt(2), x)
+
+
+def test_sleeve_move():
+    s = SleeveFitting(start=geometry.Point(0,0), starting_angle=0, sleeve_length=1)
+    s.move()
+    assert (1.0, 0) == s.current_position
+
+
+def test_sleeve_fitting():
+    p = os.path.join(os.getcwd(), "test", "data", "green.bmp")
+    m = MarchingSquares.from_file(p)
+    points = m.find_contour(approximization_tolerance=0.01)
+    hough_angle, nearest_point = m.main_orientation(angle_in_degrees=True)
+    rotation_angle = hough_angle % 90
+    s = SleeveFitting(start=nearest_point, starting_angle=rotation_angle)
+    # s.fit_sleeve(points)
 
 
 def test_marchingsquares():
