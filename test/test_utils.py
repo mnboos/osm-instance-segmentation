@@ -7,10 +7,17 @@ from pygeotile.tile import Tile, Point
 
 
 def test_hough():
-    p = os.path.join(os.getcwd(), "test", "data", "diag.bmp")
+    # p = os.path.join(os.getcwd(), "test", "data", "diag.bmp")
+    # p = os.path.join(os.getcwd(), "test", "data", "building.bmp")
+    # p = os.path.join(os.getcwd(), "test", "data", "Untitled.bmp")
+    p = os.path.join(os.getcwd(), "test", "data", "green.bmp")
     m = MarchingSquares.from_file(p)
-    m.find_contour(approximization_tolerance=1)
-    assert m.main_orientation(angle_in_degrees=True) == 45
+    points = m.find_contour(approximization_tolerance=0.01)
+    print("\nwkt:")
+    # print(geometry.Polygon(points).wkt)
+    # print(geometry.Polygon(points).buffer(1).wkt)
+    print("")
+    assert 45 == m.main_orientation(angle_in_degrees=True)
 
 
 def test_marchingsquares():

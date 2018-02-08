@@ -1,7 +1,10 @@
 from PIL import Image
 from typing import Iterable, Tuple
 from skimage.measure import approximate_polygon
+from skimage.transform import hough_line, hough_line_peaks
 from pygeotile.tile import Tile, Point
+from shapely.geometry import LineString
+from shapely import geometry
 import cv2
 import math
 import numpy as np
@@ -28,6 +31,7 @@ class MarchingSquares:
         self._states = np.zeros(self.img.shape, dtype=np.uint8)
         self._start = None
         self._marched = False
+        self._points = []
 
     @classmethod
     def from_file(cls, img_path: str):
@@ -66,11 +70,17 @@ class MarchingSquares:
                 flipped = current_pos[::-1]
                 if current_pos != self._start and flipped in points:
                     raise RuntimeError("Invalid contour")
-                self._contour[self._sum_tuple(current_pos, (1, 1))] = 1
+                self._contour[self._sum_tuple(current_pos, (1, 1))] = 255
                 points.append(flipped)
         if approximization_tolerance:
             c = approximate_polygon(np.array(points), tolerance=approximization_tolerance)
             points = c.tolist()
+
+        self._contour = np.zeros(self.img.shape, dtype=np.uint8)
+        for x, y in points:
+            self._contour[y, x] = 1
+
+        self._points = points
         return points
 
     @staticmethod
@@ -85,10 +95,37 @@ class MarchingSquares:
         if not self._marched:
             raise RuntimeError("To get the main orientation, run 'find_contour' first.")
 
-        lines = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi / 180, threshold=50)
+        # longest_line = None
+        # max_length = 0
+        # for i, p in enumerate(self._points[1:]):
+        #     prev_point = self._points[i-1]
+        #     li = LineString([p, prev_point])
+        #     if li.length > max_length:
+        #         max_length = li.length
+        #         longest_line = li
+
+        # parr = np.zeros(self.img.shape, dtype=np.uint8)
+        # for x, y in longest_line.coords:
+        #     parr[(int(y), int(x))] = 1
+
+        # lines2 = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi / 180, threshold=36)
+
+        max_threshold = 2
+        lines = None
+        while True:
+            new_lines = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi / 180, threshold=max_threshold)
+            if new_lines is not None:
+                lines = new_lines
+            else:
+                max_threshold -= 1
+                break
+            max_threshold += 1
+        print("max threshold: ", max_threshold)
+        lines = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi / 180, threshold=20)
         angles = {}
         maxcount = 0
         main_angle = None
+        lineimg = np.zeros(self.img.shape, dtype=np.uint8)
         if lines is not None:
             for l in lines:  # rho = distance, theta = angle
                 for rho, theta in l:
@@ -103,6 +140,74 @@ class MarchingSquares:
                     if newcount > maxcount:
                         maxcount = newcount
                         main_angle = angle
+
+                    a = np.cos(theta)
+                    b = np.sin(theta)
+                    x0 = a * rho
+                    y0 = b * rho
+                    x1 = int(x0 + 1000 * -b)
+                    y1 = int(y0 + 1000 * a)
+                    x2 = int(x0 - 1000 * -b)
+                    y2 = int(y0 - 1000 * a)
+                    cv2.line(lineimg, (x1, y1), (x2, y2), 255, 1)
+            print("\na1: ", angles)
+
+            angle_sum = 0
+            counts = 0
+            for a in angles:
+                angle_sum += a*angles[a]
+                counts += angles[a]
+            weighted_avg = angle_sum / counts
+            print("avg: ", weighted_avg)
+
+            # lines = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi/180*main_angle, srn=1, stn=np.pi/180*90, threshold=9)
+            thetas = [math.radians(main_angle), math.radians(main_angle+90 % 180)]
+            lines = cv2.HoughLines(image=self.exact_contour,
+                                   rho=1,
+                                   theta=np.pi / 180,
+                                   min_theta=min(thetas),
+                                   max_theta=max(thetas),
+                                   threshold=15)
+
+            angles = {}
+            if lines is not None:
+                for l in lines:  # rho = distance, theta = angle
+                    for rho, theta in l:
+                        if angle_in_degrees:
+                            angle = int(math.degrees(theta))
+                        else:
+                            angle = theta
+                        if angle not in angles:
+                            angles[angle] = 0
+                        angles[angle] = angles[angle] + 1
+                        a = np.cos(theta)
+                        b = np.sin(theta)
+                        x0 = a * rho
+                        y0 = b * rho
+                        x1 = int(x0 + 1000 * (-b))
+                        y1 = int(y0 + 1000 * (a))
+                        x2 = int(x0 - 1000 * (-b))
+                        y2 = int(y0 - 1000 * (a))
+                        # ls = LineString([(x1, y1), (x2, y2)])
+                        # for p in self._points:
+                        #     dist = ls.distance(geometry.Point(p))
+                            # print("dist: ", dist)
+
+                        cv2.line(lineimg, (x1, y1), (x2, y2), 127, 1)
+                print("\na2: ", angles)
+            im = Image.fromarray(lineimg, mode="L")
+            im.save("hough.bmp")
+
+            # cv2.imwrite('houghlines3.bmp', self.exact_contour)
+
+
+        # lines = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi / 180, threshold=0, srn=np.pi / 180 * (90+main_angle), stn=1)
+        # for i, p in enumerate(self._points[1:]):
+        #     prev_p = self._points[i]
+        #     ls = LineString([p, prev_p])
+        #     angle = np.rad2deg(np.arctan2(p[1] - prev_p[1], p[0] - prev_p[0]))
+        #     print(angle)
+
         return main_angle
 
     @staticmethod
@@ -124,18 +229,14 @@ class MarchingSquares:
 
     def _calc_cell_states(self) -> None:
         for (r, c), value in np.ndenumerate(self.img[:-1, :-1]):
-            top_left = self._binarize(value)
-            top_right = self._binarize(self.img[r, c+1])
-            bottom_right = self._binarize(self.img[r+1, c+1])
-            bottom_left = self._binarize(self.img[r+1, c])
+            top_left = value > 0
+            top_right = self.img[r, c+1] > 0
+            bottom_right = self.img[r+1, c+1] > 0
+            bottom_left = self.img[r+1, c] > 0
             cell_state = (top_left << 3) | (top_right << 2) | (bottom_right << 1) | bottom_left
             self._states[r, c] = cell_state
             if not self._start and 0 < cell_state < 15:
                 self._start = (r, c)
-
-    @staticmethod
-    def _binarize(val: int) -> int:
-        return 1 if val > 0 else 0
 
 
 def georeference(points: Iterable[Tuple[int, int]], tile: Tile) -> Iterable[Tuple]:
