@@ -32,7 +32,7 @@ class SleeveFitting:
         self._sleeve_length = sleeve_length
         # ls = LineString([start, Point(start.x+sleeve_length, start.y)]).buffer(sleeve_width, cap_style=2)
         ls = LineString([start, Point(start.x+sleeve_length, start.y)])
-        self._sleeve = rotate(geom=ls, angle=starting_angle, origin=start)
+        self._sleeve: geometry.LineString = rotate(geom=ls, angle=starting_angle, origin=start)
         print("sleeve: \n", self._sleeve.wkt)
 
     def fit_sleeve(self, points: Iterable[Tuple[int, int]]):
@@ -51,23 +51,24 @@ class SleeveFitting:
     def _align_sleeve(self):
         pass
 
-    def move(self, angle: float = None, step_size: int = 1) -> None:
+    def move(self, angle: float = None, step_multiplicator: int = 1) -> None:
         """
          * Moves the sleeve in the direction specified direction.
            If no angle is specified, the current angle will remain.
         :param angle:
-        :param step_size:
+        :param step_multiplicator: To calculate the actual step size, this value is multiplied with the sleeve_step
         :return:
         """
 
         x, y = self.sleeve_step
         if angle:
             self._sleeve = rotate(self._sleeve, angle=angle, origin=self.current_position)
-        if step_size:
-            self._sleeve = translate(self._sleeve, xoff=x*step_size, yoff=y*step_size)
+            x, y = self.sleeve_step
+        if step_multiplicator:
+            self._sleeve = translate(self._sleeve, xoff=x * step_multiplicator, yoff=y * step_multiplicator)
 
     @property
-    def current_position(self):
+    def current_position(self) -> Tuple[float, float]:
         return self._sleeve.coords[0]
 
     @property
@@ -75,6 +76,14 @@ class SleeveFitting:
         x0, y0 = self._sleeve.coords[0]
         x1, y1 = self._sleeve.coords[-1]
         return (x1-x0) / self._sleeve_length, (y1-y0) / self._sleeve_length
+
+    @property
+    def _buffer(self):
+        return self._sleeve.buffer(self._sleeve_width, cap_style=2)
+
+    @property
+    def wkt(self) -> str:
+        return self._buffer.wkt
 
 
 class MarchingSquares:
