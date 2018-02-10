@@ -25,19 +25,19 @@ def test_hough():
 
 def test_sleeve_step_horiz():
     s = SleeveFitting(start_point=geometry.Point(0, 0), starting_angle=0)
-    s.move()
+    s.move(step_size=1)
     assert (1.0, 0.0) == s.current_position
 
 
 def test_sleeve_step_vert():
     s = SleeveFitting(start_point=geometry.Point(0, 0), starting_angle=90)
-    s.move()
+    s.move(step_size=1)
     assert (0.0, 1.0) == s.current_position
 
 
 def test_sleeve_step_diag():
     s = SleeveFitting(start_point=geometry.Point(0, 0), starting_angle=45)
-    s.move()
+    s.move(step_size=1)
     assert (0.71, 0.71) == s.current_position
 
 
@@ -64,20 +64,13 @@ def test_sleeve_not_within():
     assert not s.within_sector((0, 1))
 
 
-def test_sleeve_wkt():
-    s = SleeveFitting(start_point=(3,1), starting_angle=45)
-    assert "GEOMETRYCOLLECTION(POINT (3 1),LINESTRING (3 0.9999999999999998, 12.23879532511287 4.826834323650898)," \
-           "LINESTRING (3 1, 6.826834323650898 10.23879532511287))" == s.wkt
-
-
 def test_sleeve_fitting():
     p = os.path.join(os.getcwd(), "test", "data", "bigL.bmp")
     m = MarchingSquares.from_file(p)
-    points = m.find_contour(approximization_tolerance=1)
+    points = m.find_contour(approximization_tolerance=0.1)
     hough_angle, nearest_point = m.main_orientation(angle_in_degrees=True)
     rotation_angle = hough_angle+90
     s = SleeveFitting(start_point=nearest_point, starting_angle=rotation_angle)
-    assert "" == s.wkt
     s.fit_sleeve(points)
 
 
@@ -89,7 +82,7 @@ def test_sleeve_sector():
 
 def test_sleeve_move():
     s = SleeveFitting(start_point=geometry.Point(0, 0), starting_angle=0)
-    s.move()
+    s.move(step_size=1)
     assert (1.0, 0) == s.current_position
 
 
