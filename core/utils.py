@@ -1,5 +1,5 @@
 from PIL import Image
-from typing import Iterable, Tuple
+from typing import Iterable, Tuple, Collection, List
 from skimage.measure import approximate_polygon
 from skimage.transform import hough_line, hough_line_peaks
 from pygeotile.tile import Tile, Point
@@ -19,71 +19,133 @@ LEFT = (0, -1)
 
 class SleeveFitting:
 
-    def __init__(self, start: geometry.Point, starting_angle: int, sleeve_width: float = 3, sleeve_length: int = 15):
+    def __init__(self, start_point, starting_angle: float, use_radians: bool = False):
         """
 
-        :param start: The starting point of the sleeve
-        :param theta: The starting angle of the sleeve in degrees
+        :param start_point: The starting point of the sleeve
+        :param theta: The starting angle of the sleeve in degree
         :param epsilon: The width of the sleeve
         """
-        self._start = start
-        self._angle = starting_angle
-        self._sleeve_width = sleeve_width
-        self._sleeve_length = sleeve_length
-        # ls = LineString([start, Point(start.x+sleeve_length, start.y)]).buffer(sleeve_width, cap_style=2)
-        ls = LineString([start, Point(start.x+sleeve_length, start.y)])
-        self._sleeve: geometry.LineString = rotate(geom=ls, angle=starting_angle, origin=start)
-        print("sleeve: \n", self._sleeve.wkt)
+        angle_constraint = 30
+        self._angle_constraint = angle_constraint if not use_radians else np.radians(angle_constraint)
+        if isinstance(start_point, geometry.Point):
+            self._position: geometry.Point = start_point
+        else:
+            self._position = geometry.Point(start_point)
+        self._current_angle = starting_angle
+        self._use_radians = use_radians
+        # self._sleeve_width = sleeve_width
+        # self._sleeve_length = sleeve_length
+        # ls = LineString([start_point, Point(start_point.x+sleeve_length, start_point.y)]).buffer(sleeve_width, cap_style=2)
+        # ls = LineString([self._position, Point(self._position.x+sleeve_length, self._position.y)])
+        # self._sleeve = rotate(geom=ls, angle=starting_angle, origin=self._position)
 
-    def fit_sleeve(self, points: Iterable[Tuple[int, int]]):
-        segments = []
-        remaining_points = []
-        remaining_points.extend(points)
+    def fit_sleeve(self, points: List[Tuple[int, int]]):
+        print("fitting to: \nGEOMETRYCOLLECTION({}, {}, {})".format(geometry.Polygon(points).wkt, self._buffer.wkt, geometry.Point(self._sleeve.coords[0])))
+        self.move()
+        self.move()
+        self.move()
+        self.move()
+        self.move()
+        print("fitting to: \nGEOMETRYCOLLECTION({}, {}, {})".format(geometry.Polygon(points).wkt, self._buffer.wkt, geometry.Point(self._sleeve.coords[0])))
+        return
+        # segments = []
+        # remaining_points = []
+        # remaining_points.extend(points)
+
         i = 0
-        while remaining_points[i] != self._start:
+        while points[i] != (self._start.x, self._start.y):
             i += 1
-        while remaining_points:
-            seg_points = []
 
+        start = points[i]
+        nr_points = len(points)
+        segments = []
+        seg = []
+        for _ in range(nr_points):
+            current_p = points[i % nr_points]
+            i += 1
+            next_p = points[i % nr_points]
+            seg.append(current_p)
+            if self.within_sector(next_p):
+                seg.append(next_p)
+                # self.move()
+            else:
+                segments.append(seg)
+                seg = []
+                # self.move(-90, step_multiplicator=0)
+
+        # print("fitting to: \nGEOMETRYCOLLECTION({}, {}, {})".format(geometry.Polygon(points).wkt, LineString(segments[0]).wkt, self._buffer))
 
         pass
 
     def _align_sleeve(self):
         pass
 
-    def move(self, angle: float = None, step_multiplicator: int = 1) -> None:
+    def move(self, angle: float = None, step_size: int = 1) -> None:
         """
          * Moves the sleeve in the direction specified direction.
            If no angle is specified, the current angle will remain.
-        :param angle:
-        :param step_multiplicator: To calculate the actual step size, this value is multiplied with the sleeve_step
+        :param angle: The angle will be added to the current angle
+        :param step_size: To calculate the actual step size, this value is multiplied with the sleeve_step
         :return:
         """
 
-        x, y = self.sleeve_step
+        # x, y = self.sleeve_step
         if angle:
-            self._sleeve = rotate(self._sleeve, angle=angle, origin=self.current_position)
-            x, y = self.sleeve_step
-        if step_multiplicator:
-            self._sleeve = translate(self._sleeve, xoff=x * step_multiplicator, yoff=y * step_multiplicator)
+            self._current_angle += angle
+            # self._sleeve = rotate(self._sleeve, angle=angle, origin=self.current_position)
+            # x, y = self.sleeve_step
+        if step_size:
+            theta = self._current_angle if self._use_radians else np.radians(self._current_angle)
+            x = np.round(self.current_position[0] + step_size * math.cos(theta), decimals=2)
+            y = np.round(self.current_position[1] + step_size * math.sin(theta), decimals=2)
+            self._position = geometry.Point((x, y))
+            # self.current_position
+            # self._sleeve = translate(self._sleeve, xoff=x * step_size, yoff=y * step_size)
 
     @property
     def current_position(self) -> Tuple[float, float]:
-        return self._sleeve.coords[0]
+        return self._position.x, self._position.y
 
-    @property
-    def sleeve_step(self) -> Tuple[float, float]:
-        x0, y0 = self._sleeve.coords[0]
-        x1, y1 = self._sleeve.coords[-1]
-        return (x1-x0) / self._sleeve_length, (y1-y0) / self._sleeve_length
+    def within_sector(self, p: Tuple[float, float]) -> bool:
+        """
+         * Checks if p fulfills the angle constraint: -c/2 <= alpha_pi - alpha_s <= c/2
+            c:          angle constraint
+            alpha_pi:   angle between a horizontal vector and a vector from the current sleeve point to p
+            alpha_s:    the current orientation of the sleeve / sector
+        :param p:
+        :return:
+        """
+        # buffer = self._sleeve.buffer(self._sleeve_width, cap_style=2)
+        # return geometry.Point(p).within(buffer)
 
-    @property
-    def _buffer(self):
-        return self._sleeve.buffer(self._sleeve_width, cap_style=2)
+        pos = self.current_position
+        # bound_left: LineString = rotate(self._sleeve, angle=self._sleeve_angle/2, origin=pos)
+        # bound_right: LineString = rotate(self._sleeve, angle=-self._sleeve_angle/2, origin=pos)
+        # coll = """
+        # GEOMETRYCOLLECTION({}, {}, {})
+        # """.format(bound_left.wkt, bound_right.wkt, geometry.Point(p).wkt)
+        # print(coll)
+        # raise RuntimeError("")
+        v0 = np.array((pos[1], pos[0])) - np.array((p[1], p[0]))
+        v1 = np.array([0, 0]) - np.array([0, 1])  # horizontal vector (numpy indexing)
+        angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
+        deg: float = np.degrees(angle)
+        return -self._angle_constraint/2 <= deg-self.current_angle() <= self._angle_constraint/2
+
+    def current_angle(self, in_rad=False):
+        if in_rad:
+            return self._current_angle if self._use_radians else np.radians(self._current_angle)
+        else:
+            return self._current_angle if not self._use_radians else np.degree(self._current_angle)
 
     @property
     def wkt(self) -> str:
-        return self._buffer.wkt
+        center = rotate(LineString([self._position, (self._position.x+100, self._position.y)]), angle=self._current_angle, use_radians=self._use_radians, origin=self._position)
+        ls_left = rotate(LineString([self._position, (self._position.x+100, self._position.y)]), angle=self._current_angle-self._angle_constraint/2, use_radians=self._use_radians, origin=self._position)
+        # ls_right = rotate(LineString([self._position, (self._position.x+10, self._position.y)]), angle=self._current_angle+self._angle_constraint/2, use_radians=self._use_radians, origin=self._position)
+        ls_right = rotate(ls_left, angle=self._angle_constraint, use_radians=self._use_radians, origin=self._position)
+        return "GEOMETRYCOLLECTION({},{},{},{})".format(self._position.wkt, ls_left.wkt, ls_right.wkt, center.wkt)
 
 
 class MarchingSquares:
@@ -144,7 +206,7 @@ class MarchingSquares:
                 points.append(flipped)
         if approximization_tolerance:
             c = approximate_polygon(np.array(points), tolerance=approximization_tolerance)
-            points = c.tolist()
+            points = list(map(lambda t: (t[0], t[1]), c.tolist()))
 
         # ls = LineString()
         # p = geometry.Point()
@@ -155,7 +217,7 @@ class MarchingSquares:
             self._contour[y, x] = 1
 
         self._points = points
-        return points
+        return self._points
 
     @staticmethod
     def _sum_tuple(t1: Tuple, t2: Tuple) -> Tuple:
@@ -238,7 +300,6 @@ class MarchingSquares:
                                 nearest_point = p
                                 dist = new_dist
                     cv2.line(lineimg, (x1, y1), (x2, y2), 255, 1)
-            print("\na1: ", angles)
 
             angle_sum = 0
             counts = 0
@@ -246,7 +307,6 @@ class MarchingSquares:
                 angle_sum += a*angles[a]
                 counts += angles[a]
             weighted_avg = angle_sum / counts
-            print("avg: ", weighted_avg)
             im = Image.fromarray(lineimg, mode="L")
             im.save("hough.bmp")
             return int(round(weighted_avg)), nearest_point
