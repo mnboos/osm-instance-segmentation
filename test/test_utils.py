@@ -70,6 +70,7 @@ def test_sleeve_fitting():
     points = m.find_contour(approximization_tolerance=0.1)
     hough_angle, nearest_point = m.main_orientation(angle_in_degrees=True)
     rotation_angle = hough_angle+90
+    print("main orientation: ", rotation_angle)
     s = SleeveFitting(start_point=nearest_point, starting_angle=rotation_angle)
     s.fit_sleeve(points)
 
