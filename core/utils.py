@@ -26,13 +26,13 @@ class SleeveFitting:
         :param theta: The starting angle of the sleeve in degree
         :param epsilon: The width of the sleeve
         """
-        angle_constraint = 90
+        angle_constraint = 45
         self._angle_constraint = angle_constraint if not use_radians else np.radians(angle_constraint)
         if isinstance(start_point, geometry.Point):
             self._position: geometry.Point = start_point
         else:
             self._position = geometry.Point(start_point)
-        self._current_angle = starting_angle
+        self._current_angle = starting_angle if not use_radians else starting_angle
         self._use_radians = use_radians
 
     def fit_sleeve(self, points: List[Tuple[float, float]]):
@@ -44,36 +44,76 @@ class SleeveFitting:
         # remaining_points = []
         # remaining_points.extend(points)
 
+        nr_points = len(points)
         i = points.index(self.current_position)
         if i is None:
             raise RuntimeError("Start point '{}' could not be found.".format(self.current_position))
 
-        nr_points_per_check = 5
-        measure_distance = 5  # ignore 3 points between the current position and the start of the selected points
+        # nr_points_per_check = 10
+        measure_distance = 3  # ignore 3 points between the current position and the start of the selected points
+        check_ratio_threshold = 0.85
 
-        nr_points = len(points)
         segments = []
         a = self._current_angle
+        cancel_count = 0
+        turn_angle = -90  # 90° clockwise
+        nr_points_per_check = 10
+        original_angle = self._current_angle
         while True:  # todo: find the corret check to determine the end of the search
             seg = [self.current_position]
-            while self._within_ratio(points[i-nr_points_per_check-measure_distance:i-measure_distance]) >= 0.8:
-                i = (i - nr_points_per_check) % nr_points
-                p = geometry.Point(points[i])
+            any_change = False
+            while self._within_ratio(points[i-nr_points_per_check-measure_distance:i-measure_distance]) >= check_ratio_threshold:
+            # while self._within_ratio(points[i-1:i]) >= check_ratio_threshold:
+            #     i = (i - nr_points_per_check) % nr_points
+                nr_points_per_check += 1
+                any_change = True
+
+            if any_change:
+                # p = geometry.Point(points[i])
+                p = geometry.Point(points[(i-nr_points_per_check) % nr_points])
                 self._position = self.center_line.interpolate(self.center_line.project(p))
-                seg.append((self._position.x, self._position.y))
 
+            wkt = self.wkt(points, points[i-nr_points_per_check-measure_distance:i-measure_distance])
             # we arrived at a turning point
-            seg.append(self.current_position)
-            segments.append(seg)
+            if seg[0] != self.current_position:
+                if turn_angle != -90:
+                    self._current_angle = original_angle
+                turn_angle = -90
+                cancel_count = 0
+                # self._position = self.center_line.interpolate(corner_radius)
+                seg.append(self.current_position)
+                segments.append(seg)
+                i -= nr_points_per_check
+            else:
+                cancel_count += 1
+            print("current fit: \n", wkt)
 
-            print("current fit: ", self.wkt(points))
-            raise RuntimeError("")
-            break
+            nr_points_per_check = 10
+            if cancel_count >= int(math.fabs(360 / turn_angle)):
+                # we did 4 full turns here and found nothing, let's search for next direction
+                if turn_angle != -30:
+                    original_angle = self._current_angle
+                    turn_angle = -30
+                else:
+                    assert False
+            self.move(angle=turn_angle, step_size=0)
+
+    def buffer(self):
+        cl = LineString([self._position, (self._position.x+30, self._position.y)])
+        b: LineString = rotate(geom=cl, angle=self._current_angle, use_radians=self._use_radians, origin=self._position)
+        buff = b.buffer(10, cap_style=2)
+        return buff
 
     def _within_ratio(self, points: List[Tuple[float, float]]):
+        if not points:
+            return False
+
         within_count = 0
+        buff = self.buffer()
+
         for p in points:
             if self.within_sector(p):
+            # if geometry.Point(p).within(buff):
                 within_count += 1
         return within_count / len(points)
 
@@ -92,6 +132,10 @@ class SleeveFitting:
         # x, y = self.sleeve_step
         if angle:
             self._current_angle += angle
+            if self._use_radians:
+                self._current_angle %= np.pi*2 if self._current_angle > 0 else -np.pi*2
+            else:
+                self._current_angle %= 360 if self._current_angle > 0 else -360
             # self._sleeve = rotate(self._sleeve, angle=angle, origin=self.current_position)
             # x, y = self.sleeve_step
         if step_size:
@@ -115,17 +159,7 @@ class SleeveFitting:
         :param p:
         :return:
         """
-        # buffer = self._sleeve.buffer(self._sleeve_width, cap_style=2)
-        # return geometry.Point(p).within(buffer)
-
         pos = self.current_position
-        # bound_left: LineString = rotate(self._sleeve, angle=self._sleeve_angle/2, origin=pos)
-        # bound_right: LineString = rotate(self._sleeve, angle=-self._sleeve_angle/2, origin=pos)
-        # coll = """
-        # GEOMETRYCOLLECTION({}, {}, {})
-        # """.format(bound_left.wkt, bound_right.wkt, geometry.Point(p).wkt)
-        # print(coll)
-        # raise RuntimeError("")
         v0 = np.array((pos[1], pos[0])) - np.array((p[1], p[0]))
         v1 = np.array([0, 0]) - np.array([0, 1])  # horizontal vector (numpy indexing)
         angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
@@ -146,13 +180,15 @@ class SleeveFitting:
                       use_radians=self._use_radians,
                       origin=self._position)
 
-    def wkt(self, points: Iterable[Tuple[float, float]]) -> str:
+    def wkt(self, points: Iterable[Tuple[float, float]], single_points: Iterable[Tuple[float, float]]=None) -> str:
         center = rotate(LineString([self._position, (self._position.x+100, self._position.y)]), angle=self._current_angle, use_radians=self._use_radians, origin=self._position)
         ls_left = rotate(LineString([self._position, (self._position.x+100, self._position.y)]), angle=self._current_angle-self._angle_constraint/2, use_radians=self._use_radians, origin=self._position)
         # ls_right = rotate(LineString([self._position, (self._position.x+10, self._position.y)]), angle=self._current_angle+self._angle_constraint/2, use_radians=self._use_radians, origin=self._position)
         ls_right = rotate(ls_left, angle=self._angle_constraint, use_radians=self._use_radians, origin=self._position)
         p = geometry.Polygon(points)
-        return "GEOMETRYCOLLECTION({},{},{},{},{})".format(p.wkt, self._position.wkt, ls_left.wkt, ls_right.wkt, center.wkt)
+        single_points = single_points if single_points is None else ",".join(map(lambda p: "POINT({} {})".format(p[0], p[1]), single_points))
+        return "GEOMETRYCOLLECTION({},{},{},{},{},{},{})".format(p.wkt, self._position.wkt, ls_left.wkt, ls_right.wkt, center.wkt, single_points,self.buffer().wkt)
+        # return "GEOMETRYCOLLECTION({},{},{},{})".format(p.wkt, center.wkt, single_points,self.buffer().wkt)
 
 
 class MarchingSquares:
