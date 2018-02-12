@@ -1,18 +1,57 @@
 import math
 import numpy as np
 import os
-from core.utils import MarchingSquares, georeference, SleeveFitting
+from skimage.measure import approximate_polygon
+from core.utils import MarchingSquares, georeference, SleeveFitting, root_mean_square_error
 from shapely import geometry
 from pygeotile.tile import Tile, Point
+import cv2
+from PIL import Image
 
 
 def test_hough():
     # p = os.path.join(os.getcwd(), "test", "data", "diag.bmp")
     # p = os.path.join(os.getcwd(), "test", "data", "building.bmp")
     # p = os.path.join(os.getcwd(), "test", "data", "Untitled.bmp")
-    p = os.path.join(os.getcwd(), "test", "data", "green.bmp")
+    p = os.path.join(os.getcwd(), "test", "data", "bigL.bmp")
     m = MarchingSquares.from_file(p)
     points = m.find_contour(approximization_tolerance=0.01)
+    original_points = []
+    original_points.extend(points)
+    im = Image.open(p).convert("L")
+    img = np.asarray(im)
+    all_wkts = []
+    while points:
+        seg = []
+        while points and len(seg) < 3:
+            seg.append(points.pop())
+        thre = 2
+        while True and points:
+            # p_i = points.pop()
+            # seg.append(points.pop())
+            err = root_mean_square_error(seg[-1], points[-1])
+            if err <= thre:
+                seg.append(points.pop())
+            else:
+                break
+
+        [vx, vy, x, y] = np.round(cv2.fitLine(points=np.asarray(seg, dtype=np.int32), distType=cv2.DIST_L2, param=0, reps=0.01, aeps=0.01),2)
+        if len(seg) >= 3:
+            dist = geometry.Point(seg[0]).distance(geometry.Point(seg[-1]))
+            x1 = float(x - dist/2 * vx)
+            x2 = float(x + dist/2 * vx)
+            y1 = float(y - dist/2 * vy)
+            y2 = float(y + dist/2 * vy)
+            wkt2 = geometry.LineString([(x1, y1), (x2, y2)]).wkt
+            all_wkts.append(wkt2)
+            print("wkt 2:\n", wkt2)
+
+    totalwkt = ",".join(all_wkts)
+    a = ""
+    cv2.imwrite("lines.bmp", img)
+    a = ""
+
+
     # print(list(geometry.Polygon(points).exterior.coords))
     # print(geometry.Polygon(points).simplify(3, preserve_topology=False).wkt)
     # print(geometry.Polygon(points).simplify(3, preserve_topology=True).wkt)
@@ -67,12 +106,17 @@ def test_sleeve_not_within():
 def test_sleeve_fitting():
     p = os.path.join(os.getcwd(), "test", "data", "bigL.bmp")
     m = MarchingSquares.from_file(p)
-    points = m.find_contour(approximization_tolerance=0.1)
-    hough_angle, nearest_point = m.main_orientation(angle_in_degrees=True)
-    rotation_angle = hough_angle+90
-    print("main orientation: ", rotation_angle)
-    s = SleeveFitting(start_point=nearest_point, starting_angle=rotation_angle)
-    s.fit_sleeve(points)
+    points = m.find_contour(approximization_tolerance=10)
+    # p = geometry.Polygon(points)
+    # print("wkt:\n", p.wkt)
+    # assert 1==2
+
+    # hough_angle, nearest_point = m.main_orientation(angle_in_degrees=True)
+
+    # rotation_angle = hough_angle+90
+    # print("main orientation: ", rotation_angle)
+    # s = SleeveFitting(start_point=nearest_point, starting_angle=rotation_angle)
+    # s.fit_sleeve(points)
 
 
 def test_sleeve_sector():
