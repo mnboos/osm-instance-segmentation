@@ -105,7 +105,11 @@ class InMemoryDataset(OsmMappingDataset):
         print("Loaded.")
 
     def load_image(self, image_id):
-        return self._cache[image_id]["img"]
+        info = self.image_info[image_id]
+        image_path = info["path"]
+        return self._cache[image_path]["img"]
 
     def load_mask(self, image_id: str) -> Tuple[np.ndarray, np.ndarray]:
-        return self._cache[image_id]["mask"]
+        info = self.image_info[image_id]
+        image_path = info["path"]
+        return self._cache[image_path]["mask"]
