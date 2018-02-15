@@ -2,7 +2,7 @@ import math
 import numpy as np
 import os
 from skimage.measure import approximate_polygon
-from core.utils import MarchingSquares, georeference, SleeveFitting, root_mean_square_error, get_angle
+from core.utils import MarchingSquares, georeference, SleeveFitting, root_mean_square_error, get_angle, parallel_or_perpendicular
 from shapely import geometry
 from pygeotile.tile import Tile, Point
 import cv2
@@ -49,18 +49,14 @@ def test_hough():
             all_wkts.append(wkt2)
             # print("wkt 2:\n", wkt2)
 
-    angle_threshold = 20
     grouped_lines = {}
-
-    lines = sorted(lines, reverse=True, key=lambda l: geometry.LineString(l).length)
+    lines = sorted(lines, key=lambda l: geometry.LineString(l).length)
     while lines:
-        longest_line = lines.pop(0)
+        longest_line = lines.pop()
         main_angle = get_angle(longest_line)
         group = [longest_line]
-        for l in list(lines):
-            ang = get_angle(longest_line, l)
-            is_parallel = 0 <= ang <= angle_threshold
-            is_perpendicular = 0 <= math.fabs(90-ang) <= angle_threshold
+        for l in lines.copy():
+            is_parallel, is_perpendicular = parallel_or_perpendicular(longest_line, l)
             if is_parallel or is_perpendicular:
                 group.append(l)
                 lines.remove(l)
@@ -87,6 +83,38 @@ def test_hough():
     # print(b.wkt)
     angle, _ = m.main_orientation(angle_in_degrees=True)
     assert 34 == angle
+
+
+def test_parallel():
+    l1 = ((79.04974365234375, 50.8869743347168), (88.85025024414063, 38.75302505493164))
+    l2 = ((7.280234336853027, 153.7339172363281), (12.71976566314697, 146.2660827636719))
+    is_parallel, is_perpendicular = parallel_or_perpendicular(l1, l2)
+    assert is_parallel
+    assert not is_perpendicular
+
+
+def test_angle_vertical_down():
+    is_parallel, is_perpendicular = parallel_or_perpendicular(((0,0), (1,0)), ((2,2), (2,3)))
+    assert not is_parallel
+    assert is_perpendicular
+
+
+def test_angle_vertical_up():
+    is_parallel, is_perpendicular = parallel_or_perpendicular(((0,0), (1,0)), ((2,2), (2,1)))
+    assert not is_parallel
+    assert is_perpendicular
+
+
+def test_angle_horizontal_right():
+    is_parallel, is_perpendicular = parallel_or_perpendicular(((0,0), (1,0)), ((2,2), (3,2)))
+    assert is_parallel
+    assert not is_perpendicular
+
+
+def test_angle_horizontal_left():
+    is_parallel, is_perpendicular = parallel_or_perpendicular(((0,0), (1,0)), ((-2,-2), (-3,-2)))
+    assert is_parallel
+    assert not is_perpendicular
 
 
 def test_get_angle_horizontal():
