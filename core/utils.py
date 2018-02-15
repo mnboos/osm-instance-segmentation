@@ -17,6 +17,23 @@ RIGHT = (0, 1)
 LEFT = (0, -1)
 
 
+def get_angle(first_line: Tuple[Tuple[float, float], Tuple[float, float]], second_line: Tuple[Tuple[float, float], Tuple[float, float]] = None) -> float:
+    """
+     * Measures the angle between a horizontal line and the line defined by p1 and p2.
+       The angle is in the range: 0 <= x < 180
+    :param p1:
+    :param p2:
+    :return:
+    """
+    if not second_line:
+        second_line = ((0, 0), (1, 0)) # horizontal vector (numpy indexing)
+    v1 = np.array([second_line[0][1], second_line[0][0]]) - np.array([second_line[1][1], second_line[1][0]])
+    v0 = np.array([first_line[0][1], first_line[0][0]]) - np.array([first_line[1][1], first_line[1][0]])
+    angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
+    deg: float = np.degrees(angle) % 180
+    return deg
+
+
 def root_mean_square_error(p1, p2) -> float:
     mean_x = (p1[0] - p2[0])**2
     mean_y = (p1[1] - p2[1])**2
@@ -387,6 +404,7 @@ class MarchingSquares:
                 angle_sum += a*angles[a]
                 counts += angles[a]
             weighted_avg = int(round(angle_sum / counts))
+            weighted_avg %= 180 if angle_in_degrees else np.pi
         return weighted_avg
 
     def main_orientation(self, angle_in_degrees: bool = False) -> Tuple[int, geometry.Point]:
@@ -461,9 +479,9 @@ class MarchingSquares:
         weighted_avg: int = self._get_main_orientation(lineimg, angle_in_degrees=angle_in_degrees)
         # weighted_avg2: int = self._get_main_orientation(lineimg, max_lines=20)
 
-        cv2.polylines(lineimg, np.asarray([self._points], dtype=np.int32), color=255, isClosed=True)
-        im = Image.fromarray(lineimg, mode="L")
-        im.save("hough.bmp")
+        # cv2.polylines(lineimg, np.asarray([self._points], dtype=np.int32), color=255, isClosed=True)
+        # im = Image.fromarray(lineimg, mode="L")
+        # im.save("hough.bmp")
         return weighted_avg, nearest_point
 
     @staticmethod

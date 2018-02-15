@@ -2,7 +2,7 @@ import math
 import numpy as np
 import os
 from skimage.measure import approximate_polygon
-from core.utils import MarchingSquares, georeference, SleeveFitting, root_mean_square_error
+from core.utils import MarchingSquares, georeference, SleeveFitting, root_mean_square_error, get_angle
 from shapely import geometry
 from pygeotile.tile import Tile, Point
 import cv2
@@ -16,11 +16,13 @@ def test_hough():
     p = os.path.join(os.getcwd(), "test", "data", "bigL.bmp")
     m = MarchingSquares.from_file(p)
     points = m.find_contour(approximization_tolerance=0.01)
+    main_orientation = m.main_orientation(True)
     original_points = []
     original_points.extend(points)
     im = Image.open(p).convert("L")
     img = np.asarray(im)
     all_wkts = []
+    lines = []
     while points:
         seg = []
         while points and len(seg) < 3:
@@ -43,9 +45,34 @@ def test_hough():
             y1 = float(y - dist/2 * vy)
             y2 = float(y + dist/2 * vy)
             wkt2 = geometry.LineString([(x1, y1), (x2, y2)]).wkt
+            lines.append(((x1, y1), (x2, y2)))
             all_wkts.append(wkt2)
-            print("wkt 2:\n", wkt2)
+            # print("wkt 2:\n", wkt2)
 
+    angle_threshold = 20
+    grouped_lines = {}
+
+    lines = sorted(lines, reverse=True, key=lambda l: geometry.LineString(l).length)
+    while lines:
+        longest_line = lines.pop(0)
+        main_angle = get_angle(longest_line)
+        group = [longest_line]
+        for l in list(lines):
+            ang = get_angle(longest_line, l)
+            is_parallel = 0 <= ang <= angle_threshold
+            is_perpendicular = 0 <= math.fabs(90-ang) <= angle_threshold
+            if is_parallel or is_perpendicular:
+                group.append(l)
+                lines.remove(l)
+        grouped_lines[main_angle] = group
+
+    for a in grouped_lines:
+        print("angle: ", a)
+        print(",".join(map(lambda l: geometry.LineString(l).wkt, grouped_lines[a])))
+
+        # print("angle: ", a)
+
+    all_wkts = map(lambda l: geometry.LineString(l).wkt, lines)
     totalwkt = ",".join(all_wkts)
     a = ""
     cv2.imwrite("lines.bmp", img)
@@ -59,7 +86,19 @@ def test_hough():
     # print(list(b.exterior.coords))
     # print(b.wkt)
     angle, _ = m.main_orientation(angle_in_degrees=True)
-    assert 154 == angle
+    assert 34 == angle
+
+
+def test_get_angle_horizontal():
+    assert 0 == get_angle(((1, 0), (0, 0)))
+
+
+def test_get_angle_vertical():
+    assert 90 == get_angle(((0, 0), (0, 1)))
+
+
+def test_get_angle_diagonal():
+    assert 45 == get_angle(((0, 0), (1, 1)))
 
 
 def test_sleeve_step_horiz():

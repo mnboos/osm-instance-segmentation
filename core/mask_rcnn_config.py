@@ -2,6 +2,7 @@ from mask_rcnn.config import Config
 from mask_rcnn import utils
 from core.training_data import get_instances
 from core.settings import IMAGE_WIDTH
+from typing import Tuple
 import os
 import numpy as np
 from PIL import Image
@@ -56,18 +57,19 @@ class OsmMappingDataset(utils.Dataset):
             self.add_image(source="osm", image_id=i, path=i)
         print("Loaded.")
 
-    def load_image(self, image_id):
-        info = self.image_info[image_id]
-        image_path = info["path"]
-        img = Image.open(image_path)
+    def _get_image(self, path: str) -> np.ndarray:
+        # info = self.image_info[path]
+        # image_path = info["path"]
+        img = Image.open(path)
         data = np.asarray(img, dtype="uint8")
         return data
 
-    def load_mask(self, image_id):
-        info = self.image_info[image_id]
-        mask_path = info["path"][:-1]  # images have fileextension ".tiff", masks have ".tif"
+    def _get_mask(self, path: str) -> Tuple[np.ndarray, np.ndarray]:
+        # info = self.image_info[image_id]
+        # mask_path = info["path"][:-1]  # images have fileextension ".tiff", masks have ".tif"
+        mask_path = path
         if not os.path.isfile(mask_path):
-            return None, None
+            raise RuntimeError("Mask does not exist")
 
         instances = get_instances(mask_path)
         class_ids = np.zeros(len(instances), np.int32)
@@ -76,5 +78,34 @@ class OsmMappingDataset(utils.Dataset):
         for i, inst in enumerate(instances):
             class_ids[i] = osm_class_ids["building"]
             mask[:, :, i] = inst
-
         return mask, class_ids
+
+    def load_image(self, image_id: str) -> np.ndarray:
+        return self._get_image(image_id)
+
+    def load_mask(self, image_id: str) -> Tuple[np.ndarray, np.ndarray]:
+        return self._get_mask(image_id)
+
+
+class InMemoryDataset(OsmMappingDataset):
+    def __init__(self):
+        OsmMappingDataset.__init__(self)
+        self._cache = {}
+
+    def load(self, images):
+        self.add_class("osm", 0, "building")
+        print("")
+        print("Loading {} images...".format(len(images)))
+        for i in images:
+            self.add_image(source="osm", image_id=i, path=i)
+            self._cache[i] = {
+                "img": self._get_image(path=i),
+                "mask": self._get_mask(i)
+            }
+        print("Loaded.")
+
+    def load_image(self, image_id):
+        return self._cache[image_id]["img"]
+
+    def load_mask(self, image_id: str) -> Tuple[np.ndarray, np.ndarray]:
+        return self._cache[image_id]["mask"]
