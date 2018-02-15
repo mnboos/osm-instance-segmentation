@@ -26,8 +26,8 @@ def get_angle(first_line: Tuple[Tuple[float, float], Tuple[float, float]],
     """
     if not second_line:
         second_line = ((0, 0), (1, 0)) # horizontal vector (numpy indexing)
-    v1 = np.array([second_line[0][1], second_line[0][0]]) - np.array([second_line[1][1], second_line[1][0]])
-    v0 = np.array([first_line[0][1], first_line[0][0]]) - np.array([first_line[1][1], first_line[1][0]])
+    v1 = np.array(second_line[0][::-1]) - np.array(second_line[1][::-1])
+    v0 = np.array(first_line[0][::-1]) - np.array(first_line[1][::-1])
     angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
     deg: float = np.degrees(angle) % 180
     return deg

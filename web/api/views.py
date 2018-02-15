@@ -44,7 +44,8 @@ def request_inference(request):
         inference = InferenceRequest(**inference_serializer.data)
         try:
             res = _predict(inference)
-            return JsonResponse({'geometries': res})
+            coll = "GEOMETRYCOLLECTION({})".format(", ".join(res))
+            return JsonResponse({'result': coll})
         except Exception as e:
             return JsonResponse({'errors': str(e)})
 
@@ -59,5 +60,6 @@ def _predict(request: InferenceRequest):
                                    approximiation_tolerance=request.approximiation_tolerance,
                                    tile=tile)
     polygons = [geometry.Polygon(points) for points in res]
-    return list(map(lambda p: json.dumps(geometry.mapping(p)), polygons))
+    # return list(map(lambda p: json.dumps(geometry.mapping(p)), polygons))
+    return list(map(lambda p: p.wkt, polygons))
 

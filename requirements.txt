@@ -13,3 +13,4 @@ geojson
 shapely
 django
 djangorestframework
+lmfit
