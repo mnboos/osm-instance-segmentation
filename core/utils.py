@@ -17,12 +17,11 @@ RIGHT = (0, 1)
 LEFT = (0, -1)
 
 
-def get_angle(first_line: Tuple[Tuple[float, float], Tuple[float, float]], second_line: Tuple[Tuple[float, float], Tuple[float, float]] = None) -> float:
+def get_angle(first_line: Tuple[Tuple[float, float], Tuple[float, float]],
+              second_line: Tuple[Tuple[float, float], Tuple[float, float]] = None) -> float:
     """
      * Measures the angle between a horizontal line and the line defined by p1 and p2.
        The angle is in the range: 0 <= x < 180
-    :param p1:
-    :param p2:
     :return:
     """
     if not second_line:
@@ -32,6 +31,15 @@ def get_angle(first_line: Tuple[Tuple[float, float], Tuple[float, float]], secon
     angle = np.math.atan2(np.linalg.det([v0, v1]), np.dot(v0, v1))
     deg: float = np.degrees(angle) % 180
     return deg
+
+
+def parallel_or_perpendicular(first_line: Tuple[Tuple[float, float], Tuple[float, float]],
+                              second_line: Tuple[Tuple[float, float], Tuple[float, float]] = None,
+                              threshold: float = 20) -> Tuple[bool, bool]:
+    ang = get_angle(first_line, second_line)
+    is_parallel = 0 <= min(ang, math.fabs(ang-180)) <= threshold
+    is_perpendicular = 90 - threshold <= ang <= 90 + threshold
+    return is_parallel, is_perpendicular
 
 
 def root_mean_square_error(p1, p2) -> float:
