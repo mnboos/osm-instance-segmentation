@@ -5,6 +5,7 @@ from skimage.measure import approximate_polygon
 from core.utils import MarchingSquares, georeference, SleeveFitting, root_mean_square_error, get_angle, parallel_or_perpendicular
 from shapely import geometry
 from pygeotile.tile import Tile, Point
+from scipy.optimize import curve_fit
 import cv2
 from PIL import Image
 
@@ -55,6 +56,8 @@ def test_hough():
         longest_line = lines.pop()
         main_angle = get_angle(longest_line)
         group = [longest_line]
+        parallels = []
+        orthos = []
         for l in lines.copy():
             is_parallel, is_perpendicular = parallel_or_perpendicular(longest_line, l)
             if is_parallel or is_perpendicular:
@@ -83,6 +86,25 @@ def test_hough():
     # print(b.wkt)
     angle, _ = m.main_orientation(angle_in_degrees=True)
     assert 34 == angle
+
+
+def make_fit_func(angle: float):
+    def fit_line(x, m, b):
+        return -angle * x + b
+    return fit_line
+
+
+def test_rectangularize():
+    x = [2, 3, 4]
+    y = [2, 5, 6]
+
+    xdata = np.array(x)
+    ydata = np.array(y)
+    angle_in_degrees = 45
+    f = make_fit_func(np.tan(np.radians(angle_in_degrees)))
+    [m, c], intercept = curve_fit(f, xdata, ydata)
+    angle = math.degrees(math.atan(m))
+    f = ""
 
 
 def test_parallel():
