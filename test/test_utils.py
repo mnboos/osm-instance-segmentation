@@ -55,19 +55,28 @@ def test_hough():
     while lines:
         longest_line = lines.pop()
         main_angle = get_angle(longest_line)
-        group = [longest_line]
-        parallels = []
-        orthos = []
+        group = {
+            "parallels": [longest_line],
+            "orthogonals": []
+        }
         for l in lines.copy():
             is_parallel, is_perpendicular = parallel_or_perpendicular(longest_line, l)
-            if is_parallel or is_perpendicular:
-                group.append(l)
+            if is_parallel:
+                group["parallels"].append(l)
+                lines.remove(l)
+            elif is_perpendicular:
+                group["orthogonals"].append(l)
                 lines.remove(l)
         grouped_lines[main_angle] = group
 
+    group_neighbours(grouped_lines)
+
     for a in grouped_lines:
         print("angle: ", a)
-        print(",".join(map(lambda l: geometry.LineString(l).wkt, grouped_lines[a])))
+        for line_type in grouped_lines[a]:
+            for g in grouped_lines[a][line_type]:
+                print("{} neighbours".format(line_type))
+                print(",".join(map(lambda l: geometry.LineString(l).wkt, g)))
 
         # print("angle: ", a)
 
@@ -86,6 +95,29 @@ def test_hough():
     # print(b.wkt)
     angle, _ = m.main_orientation(angle_in_degrees=True)
     assert 34 == angle
+
+
+def group_neighbours(all_groups: dict) -> None:
+    neighbour_threshold = 15
+    for angle in all_groups:
+        angle_group = all_groups[angle]
+        for line_type in angle_group:
+            neighbour_groups = []
+            lines = angle_group[line_type]
+            while lines:
+                current_neighbourhood = [lines.pop()]
+                found = True
+                while lines and found:
+                    found = False
+                    for current_line in current_neighbourhood:
+                        for n in lines:
+                            dist = geometry.LineString(current_line).distance(geometry.LineString(n))
+                            if 0 <= dist <= neighbour_threshold:
+                                current_neighbourhood.append(n)
+                                lines.remove(n)
+                                found = True
+                neighbour_groups.append(current_neighbourhood)
+            angle_group[line_type] = neighbour_groups
 
 
 def make_fit_func(angle: float):
