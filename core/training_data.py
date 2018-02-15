@@ -132,11 +132,10 @@ def create_tiles(source_folder, target_folder, tile_size, limit=None):
 #     for f in files:
 #         path = os.path.join(directory, f)
 
-def get_instances(mask_path):
+def get_instances(mask_path: str) -> list:
     img = Image.open(mask_path)
     imgray = img.convert('L')
     data = np.asarray(imgray)
-
     labeled, num_features = ndimage.label(data)
     instances = []
     for i in range(1, num_features+1):

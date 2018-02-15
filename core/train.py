@@ -1,6 +1,6 @@
 import os
 import random
-from core.mask_rcnn_config import MyMaskRcnnConfig, OsmMappingDataset
+from core.mask_rcnn_config import MyMaskRcnnConfig, OsmMappingDataset, InMemoryDataset
 from mask_rcnn import model as modellib, utils
 import glob
 from core.settings import IMAGE_OUTPUT_FOLDER
@@ -39,23 +39,18 @@ def get_random_datasets():
     training_images, validation_images = get_random_images(limit=DATASET_SIZE)
 
     # Training dataset
-    dataset_train = OsmMappingDataset()
+    dataset_train = InMemoryDataset()
     dataset_train.load(training_images)
     dataset_train.prepare()
 
     # Validation dataset
-    dataset_val = OsmMappingDataset()
+    dataset_val = InMemoryDataset()
     dataset_val.load(validation_images)
     dataset_val.prepare()
     return dataset_train, dataset_val
 
 
 def train():
-    if not os.path.isfile(COCO_MODEL_PATH):
-        utils.download_trained_weights(COCO_MODEL_PATH)
-
-    # training_data.download(os.path.join(DATA_DIR, "raw"), TRAINING_DATA_DIR)
-
     config = MyMaskRcnnConfig()
     config.display()
 
@@ -63,11 +58,13 @@ def train():
     model = modellib.MaskRCNN(mode="training", config=config, model_dir=MODEL_DIR)
 
     # Which weights to start with?
-    init_with = "coco"  # imagenet, coco, or last
+    init_with = "last"  # imagenet, coco, or last
 
     if init_with == "imagenet":
         model.load_weights(model.get_imagenet_weights(), by_name=True)
     elif init_with == "coco":
+        if not os.path.isfile(COCO_MODEL_PATH):
+            utils.download_trained_weights(COCO_MODEL_PATH)
         # Load weights trained on MS COCO, but skip layers that
         # are different due to the different number of classes
         # See README for instructions to download the COCO weights

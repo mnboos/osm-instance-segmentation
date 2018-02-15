@@ -29,7 +29,7 @@ class ShapesConfig(Config):
     # Train on 1 GPU and 8 images per GPU. We can put multiple images on each
     # GPU because the images are small. Batch size is 8 (GPUs * images/GPU).
     GPU_COUNT = 1
-    IMAGES_PER_GPU = 1
+    IMAGES_PER_GPU = 8
 
     # Number of classes (including background)
     NUM_CLASSES = 1 + 3  # background + 3 shapes
@@ -105,7 +105,6 @@ class ShapesDataset(utils.Dataset):
         """Generate instance masks for shapes of the given image ID.
         """
         info = self.image_info[image_id]
-        print("Load shape mask: ", info["id"])
         shapes = info['shapes']
         count = len(shapes)
         mask = np.zeros([info['height'], info['width'], count], dtype=np.uint8)
