@@ -17,17 +17,56 @@ RIGHT = (0, 1)
 LEFT = (0, -1)
 
 
-def make_lines(points: List[Tuple[float, float]]) -> List[Tuple[Tuple[float, float], Tuple[float, float]]]:
-    lines = []
+class Line:
+    def __init__(self, nr: int, p1: Tuple[float, float], p2: Tuple[float, float]):
+        self._nr = nr
+        self._p1 = p1
+        self._p2 = p2
+        self._length = LineString([p1, p2]).length
+
+    @property
+    def nr(self) -> int:
+        return self._nr
+
+    @property
+    def p1(self) -> Tuple[float, float]:
+        return self._p1
+
+    @property
+    def p2(self) -> Tuple[float, float]:
+        return self._p2
+
+    @property
+    def length(self) -> float:
+        return self._length
+
+    @property
+    def coords(self) -> Tuple[Tuple[float, float], Tuple[float, float]]:
+        return self._p1, self._p2
+
+    def distance(self, other) -> float:
+        return geometry.LineString(self.coords).distance(geometry.LineString(other.coords))
+
+    def __str__(self):
+        return "Line(nr={}, coords={})".format(self.nr, str(self.coords))
+
+    def __repr__(self):
+        return self.__str__()
+
+
+def make_lines(points: List[Tuple[float, float]], point_distance_threshold: float = 2) -> List[Line]:
+    lines: List[Line] = []
     while points:
-        seg = []
+        seg: List[Tuple[float, float]] = []
+        point_ids: List[int] = []
         while points and len(seg) < 3:
             seg.append(points.pop())
-        thre = 2
+            point_ids.append(len(points))
         while True and points:
             err = root_mean_square_error(seg[-1], points[-1])
-            if err <= thre:
+            if err <= point_distance_threshold:
                 seg.append(points.pop())
+                point_ids.append(len(points))
             else:
                 break
 
@@ -42,26 +81,23 @@ def make_lines(points: List[Tuple[float, float]]) -> List[Tuple[Tuple[float, flo
             x2 = float(x + dist/2 * vx)
             y1 = float(y - dist/2 * vy)
             y2 = float(y + dist/2 * vy)
-            # wkt2 = geometry.LineString([(x1, y1), (x2, y2)]).wkt
-            lines.append([(x1, y1), (x2, y2)])
-            # all_wkts.append(wkt2)
-            # print("wkt 2:\n", wkt2)
+            # lines.append([(x1, y1), (x2, y2)])
+            lines.append(Line(nr=len(lines), p1=(x1, y1), p2=(x2, y2)))
     return lines
 
 
-def group_by_orientation(lines: List[Tuple[Tuple[float, float], Tuple[float, float]]]) -> Dict:
+def group_by_orientation(lines: List[Line]) -> Dict:
     grouped_lines = {}
-    lines = list(lines)
-    lines = sorted(lines, key=lambda l: geometry.LineString(l).length)
+    lines = sorted(lines, key=lambda l: l.length)
     while lines:
         longest_line = lines.pop()
-        main_angle = get_angle(longest_line)
+        main_angle = get_angle(longest_line.coords)
         group = {
             "parallels": [longest_line],
             "orthogonals": []
         }
         for l in lines.copy():
-            is_parallel, is_perpendicular = parallel_or_perpendicular(longest_line, l)
+            is_parallel, is_perpendicular = parallel_or_perpendicular(longest_line.coords, l.coords)
             if is_parallel:
                 group["parallels"].append(l)
                 lines.remove(l)
@@ -78,15 +114,15 @@ def group_neighbours(all_groups: dict) -> None:
         angle_group = all_groups[angle]
         for line_type in angle_group:
             neighbour_groups = []
-            lines = angle_group[line_type]
+            lines: List[Line] = angle_group[line_type]
             while lines:
-                current_neighbourhood = [lines.pop()]
+                current_neighbourhood: List[Line] = [lines.pop()]
                 found = True
                 while lines and found:
                     found = False
                     for current_line in current_neighbourhood:
                         for n in lines:
-                            dist = geometry.LineString(current_line).distance(geometry.LineString(n))
+                            dist = current_line.distance(n)
                             if 0 <= dist <= neighbour_threshold:
                                 current_neighbourhood.append(n)
                                 lines.remove(n)
