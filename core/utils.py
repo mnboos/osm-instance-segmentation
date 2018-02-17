@@ -1,5 +1,5 @@
 from PIL import Image, ImageDraw
-from typing import Iterable, Tuple, Collection, List
+from typing import Iterable, Tuple, Collection, List, Dict
 from skimage.measure import approximate_polygon
 from skimage.transform import hough_line, hough_line_peaks
 from pygeotile.tile import Tile, Point
@@ -15,6 +15,84 @@ UP = (-1, 0)
 DOWN = (1, 0)
 RIGHT = (0, 1)
 LEFT = (0, -1)
+
+
+def make_lines(points: List[Tuple[float, float]]) -> List[Tuple[Tuple[float, float], Tuple[float, float]]]:
+    lines = []
+    while points:
+        seg = []
+        while points and len(seg) < 3:
+            seg.append(points.pop())
+        thre = 2
+        while True and points:
+            err = root_mean_square_error(seg[-1], points[-1])
+            if err <= thre:
+                seg.append(points.pop())
+            else:
+                break
+
+        [vx, vy, x, y] = np.round(cv2.fitLine(points=np.asarray(seg, dtype=np.int32),
+                                              distType=cv2.DIST_L2,
+                                              param=0,
+                                              reps=0.01,
+                                              aeps=0.01),2)
+        if len(seg) >= 3:
+            dist = geometry.Point(seg[0]).distance(geometry.Point(seg[-1]))
+            x1 = float(x - dist/2 * vx)
+            x2 = float(x + dist/2 * vx)
+            y1 = float(y - dist/2 * vy)
+            y2 = float(y + dist/2 * vy)
+            # wkt2 = geometry.LineString([(x1, y1), (x2, y2)]).wkt
+            lines.append([(x1, y1), (x2, y2)])
+            # all_wkts.append(wkt2)
+            # print("wkt 2:\n", wkt2)
+    return lines
+
+
+def group_by_orientation(lines: List[Tuple[Tuple[float, float], Tuple[float, float]]]) -> Dict:
+    grouped_lines = {}
+    lines = list(lines)
+    lines = sorted(lines, key=lambda l: geometry.LineString(l).length)
+    while lines:
+        longest_line = lines.pop()
+        main_angle = get_angle(longest_line)
+        group = {
+            "parallels": [longest_line],
+            "orthogonals": []
+        }
+        for l in lines.copy():
+            is_parallel, is_perpendicular = parallel_or_perpendicular(longest_line, l)
+            if is_parallel:
+                group["parallels"].append(l)
+                lines.remove(l)
+            elif is_perpendicular:
+                group["orthogonals"].append(l)
+                lines.remove(l)
+        grouped_lines[main_angle] = group
+    return grouped_lines
+
+
+def group_neighbours(all_groups: dict) -> None:
+    neighbour_threshold = 15
+    for angle in all_groups:
+        angle_group = all_groups[angle]
+        for line_type in angle_group:
+            neighbour_groups = []
+            lines = angle_group[line_type]
+            while lines:
+                current_neighbourhood = [lines.pop()]
+                found = True
+                while lines and found:
+                    found = False
+                    for current_line in current_neighbourhood:
+                        for n in lines:
+                            dist = geometry.LineString(current_line).distance(geometry.LineString(n))
+                            if 0 <= dist <= neighbour_threshold:
+                                current_neighbourhood.append(n)
+                                lines.remove(n)
+                                found = True
+                neighbour_groups.append(current_neighbourhood)
+            angle_group[line_type] = neighbour_groups
 
 
 def get_angle(first_line: Tuple[Tuple[float, float], Tuple[float, float]],
