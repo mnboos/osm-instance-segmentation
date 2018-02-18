@@ -9,6 +9,7 @@ from shapely import geometry
 import cv2
 import math
 import numpy as np
+import uuid
 
 # numpy directions
 UP = (-1, 0)
@@ -23,6 +24,30 @@ class Line:
         self._p1 = p1
         self._p2 = p2
         self._length = LineString([p1, p2]).length
+        self._orientation: float = None
+        self._orthogonal: bool = False
+        self._neighbourhood: uuid = None
+
+    def set_orientation(self, angle: float):
+        self._orientation = angle
+
+    def set_orthogonality(self, is_orthogonal: bool):
+        self._orthogonal = is_orthogonal
+
+    def set_neighbourhood(self, neighbourhood_id: uuid):
+        self._neighbourhood = neighbourhood_id
+
+    @property
+    def neighbourhood(self) -> uuid:
+        return self._neighbourhood
+
+    @property
+    def orthogonal(self) -> bool:
+        return self._orthogonal
+
+    @property
+    def orientation(self) -> float:
+        return self._orientation
 
     @property
     def nr(self) -> int:
@@ -48,7 +73,7 @@ class Line:
         return geometry.LineString(self.coords).distance(geometry.LineString(other.coords))
 
     def __str__(self):
-        return "Line(nr={}, coords={})".format(self.nr, str(self.coords))
+        return "Line(nr={}, coords={}, neighbourhood={})".format(self.nr, str(self.coords), str(self.neighbourhood)[:5])
 
     def __repr__(self):
         return self.__str__()
@@ -92,12 +117,16 @@ def group_by_orientation(lines: List[Line]) -> Dict:
     while lines:
         longest_line = lines.pop()
         main_angle = get_angle(longest_line.coords)
+        longest_line.set_orientation(main_angle)
         group = {
             "parallels": [longest_line],
             "orthogonals": []
         }
         for l in lines.copy():
             is_parallel, is_perpendicular = parallel_or_perpendicular(longest_line.coords, l.coords)
+            if is_parallel or is_perpendicular:
+                l.set_orthogonality(is_perpendicular)
+                l.set_orientation(main_angle)
             if is_parallel:
                 group["parallels"].append(l)
                 lines.remove(l)
@@ -106,6 +135,32 @@ def group_by_orientation(lines: List[Line]) -> Dict:
                 lines.remove(l)
         grouped_lines[main_angle] = group
     return grouped_lines
+
+
+def update_neighbourhoods(lines: List[Line], window_size: int = 5, reassignment_threshold: float = 0.25):
+    sorted_by_nr: List[Line] = sorted(lines, key=lambda l: l.nr)
+    for idx, _ in enumerate(sorted_by_nr):
+        group: List[Line] = []
+        while len(group) < window_size:
+            group.append(sorted_by_nr[idx])
+            idx = (idx + 1) % len(sorted_by_nr)
+        orientation_lengths = {}
+        total_length = 0
+        for l in group:
+            if l.orientation not in orientation_lengths:
+                orientation_lengths[l.orientation] = 0
+            orientation_lengths[l.orientation] += l.length
+            total_length += l.length
+        for ori in orientation_lengths:
+            orientation_lengths[ori] = orientation_lengths[ori] / total_length
+        most_probable_orientation = max(orientation_lengths, key=lambda l: orientation_lengths[l])
+        most_probable_neighbourhood = list(filter(lambda l: l.orientation == most_probable_orientation, group))[0].neighbourhood
+        for ori in orientation_lengths:
+            if orientation_lengths[ori] <= reassignment_threshold:
+                lines_to_reassign = filter(lambda l: l.orientation == ori, group)
+                for l in lines_to_reassign:
+                    l.set_orientation(most_probable_orientation)
+                    l.set_neighbourhood(most_probable_neighbourhood)
 
 
 def group_neighbours(all_groups: dict) -> None:
@@ -117,6 +172,8 @@ def group_neighbours(all_groups: dict) -> None:
             lines: List[Line] = angle_group[line_type]
             while lines:
                 current_neighbourhood: List[Line] = [lines.pop()]
+                neighbourhood_id = uuid.uuid4()
+                current_neighbourhood[0].set_neighbourhood(neighbourhood_id)
                 found = True
                 while lines and found:
                     found = False
@@ -125,6 +182,7 @@ def group_neighbours(all_groups: dict) -> None:
                             dist = current_line.distance(n)
                             if 0 <= dist <= neighbour_threshold:
                                 current_neighbourhood.append(n)
+                                n.set_neighbourhood(neighbourhood_id)
                                 lines.remove(n)
                                 found = True
                 neighbour_groups.append(current_neighbourhood)
