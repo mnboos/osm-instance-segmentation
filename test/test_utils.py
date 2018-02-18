@@ -3,12 +3,14 @@ import numpy as np
 import os
 from skimage.measure import approximate_polygon
 from core.utils import MarchingSquares, georeference, SleeveFitting, root_mean_square_error, get_angle, \
-    parallel_or_perpendicular, group_neighbours, make_lines, group_by_orientation
+    parallel_or_perpendicular, group_neighbours, make_lines, group_by_orientation, Line, update_neighbourhoods
 from shapely import geometry
 from pygeotile.tile import Tile, Point
 from scipy.optimize import curve_fit
+from typing import List, Tuple
 import cv2
 from PIL import Image
+from itertools import groupby
 
 
 def make_fit_func(angle: float):
@@ -30,56 +32,19 @@ def test_hough():
     original_points.extend(points)
     im = Image.open(p).convert("L")
     img = np.asarray(im)
-    all_wkts = []
-    # lines = []
-    # while points:
-    #     seg = []
-    #     while points and len(seg) < 3:
-    #         seg.append(points.pop())
-    #     thre = 2
-    #     while True and points:
-    #         # p_i = points.pop()
-    #         # seg.append(points.pop())
-    #         err = root_mean_square_error(seg[-1], points[-1])
-    #         if err <= thre:
-    #             seg.append(points.pop())
-    #         else:
-    #             break
-    #
-    #     [vx, vy, x, y] = np.round(cv2.fitLine(points=np.asarray(seg, dtype=np.int32), distType=cv2.DIST_L2, param=0, reps=0.01, aeps=0.01),2)
-    #     if len(seg) >= 3:
-    #         dist = geometry.Point(seg[0]).distance(geometry.Point(seg[-1]))
-    #         x1 = float(x - dist/2 * vx)
-    #         x2 = float(x + dist/2 * vx)
-    #         y1 = float(y - dist/2 * vy)
-    #         y2 = float(y + dist/2 * vy)
-    #         wkt2 = geometry.LineString([(x1, y1), (x2, y2)]).wkt
-    #         lines.append(((x1, y1), (x2, y2)))
-    #         all_wkts.append(wkt2)
-    #         # print("wkt 2:\n", wkt2)
 
     lines = make_lines(points)
-    # grouped_lines = {}
-    # lines = sorted(lines, key=lambda l: geometry.LineString(l).length)
-    # while lines:
-    #     longest_line = lines.pop()
-    #     main_angle = get_angle(longest_line)
-    #     group = {
-    #         "parallels": [longest_line],
-    #         "orthogonals": []
-    #     }
-    #     for l in lines.copy():
-    #         is_parallel, is_perpendicular = parallel_or_perpendicular(longest_line, l)
-    #         if is_parallel:
-    #             group["parallels"].append(l)
-    #             lines.remove(l)
-    #         elif is_perpendicular:
-    #             group["orthogonals"].append(l)
-    #             lines.remove(l)
-    #     grouped_lines[main_angle] = group
     grouped_lines = group_by_orientation(lines)
 
     group_neighbours(grouped_lines)
+
+    update_neighbourhoods(lines)
+
+    grouped = groupby(lines, key=lambda l: l.neighbourhood)
+    for k, g in grouped:
+        a = k
+        b = list(g)
+        c = ""
 
     for a in grouped_lines:
         print("angle: ", a)
