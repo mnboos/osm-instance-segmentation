@@ -1,13 +1,11 @@
 import math
 import numpy as np
 import os
-from skimage.measure import approximate_polygon
-from core.utils import MarchingSquares, georeference, SleeveFitting, root_mean_square_error, get_angle, \
-    parallel_or_perpendicular, group_neighbours, make_lines, group_by_orientation, Line, update_neighbourhoods
+from core.utils import MarchingSquares, georeference, get_angle, \
+    parallel_or_perpendicular, group_neighbours, make_lines, group_by_orientation, update_neighbourhoods
 from shapely import geometry
 from pygeotile.tile import Tile, Point
 from scipy.optimize import curve_fit
-from typing import List, Tuple
 import cv2
 from PIL import Image
 from itertools import groupby
@@ -134,75 +132,6 @@ def test_get_angle_vertical():
 
 def test_get_angle_diagonal():
     assert 45 == get_angle(((0, 0), (1, 1)))
-
-
-def test_sleeve_step_horiz():
-    s = SleeveFitting(start_point=geometry.Point(0, 0), starting_angle=0)
-    s.move(step_size=1)
-    assert (1.0, 0.0) == s.current_position
-
-
-def test_sleeve_step_vert():
-    s = SleeveFitting(start_point=geometry.Point(0, 0), starting_angle=90)
-    s.move(step_size=1)
-    assert (0.0, 1.0) == s.current_position
-
-
-def test_sleeve_step_diag():
-    s = SleeveFitting(start_point=geometry.Point(0, 0), starting_angle=45)
-    s.move(step_size=1)
-    assert (0.71, 0.71) == s.current_position
-
-
-def test_sleeve_move_diag():
-    s = SleeveFitting(start_point=geometry.Point(0, 0), starting_angle=45)
-    for i in range(20):
-        s.move()
-    s.move(angle=90, step_size=-2)
-    # assert "" == s.wkt
-
-
-def test_sleeve_within():
-    s = SleeveFitting(start_point=(0,0), starting_angle=0)
-    assert s.within_sector((0, 0))
-
-
-def test_sleeve_within_vertical():
-    s = SleeveFitting(start_point=(0,0), starting_angle=90)
-    assert s.within_sector((0, 1))
-
-
-def test_sleeve_not_within():
-    s = SleeveFitting(start_point=(0,0), starting_angle=0)
-    assert not s.within_sector((0, 1))
-
-
-def test_sleeve_fitting():
-    p = os.path.join(os.getcwd(), "test", "data", "bigL.bmp")
-    m = MarchingSquares.from_file(p)
-    points = m.find_contour(approximization_tolerance=10)
-    # p = geometry.Polygon(points)
-    # print("wkt:\n", p.wkt)
-    # assert 1==2
-
-    # hough_angle, nearest_point = m.main_orientation(angle_in_degrees=True)
-
-    # rotation_angle = hough_angle+90
-    # print("main orientation: ", rotation_angle)
-    # s = SleeveFitting(start_point=nearest_point, starting_angle=rotation_angle)
-    # s.fit_sleeve(points)
-
-
-def test_sleeve_sector():
-    s = SleeveFitting(start_point=geometry.Point(0, 0), starting_angle=0)
-    assert s.within_sector((2, 0.0))
-    assert not s.within_sector((2, 1))
-
-
-def test_sleeve_move():
-    s = SleeveFitting(start_point=geometry.Point(0, 0), starting_angle=0)
-    s.move(step_size=1)
-    assert (1.0, 0) == s.current_position
 
 
 def test_marchingsquares():
