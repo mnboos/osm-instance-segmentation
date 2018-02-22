@@ -35,8 +35,10 @@ def get_random_images(limit=None):
     return training_images, validation_images
 
 
-def get_random_datasets():
-    training_images, validation_images = get_random_images(limit=DATASET_SIZE)
+def get_random_datasets(size=None):
+    if not size:
+        size = DATASET_SIZE
+    training_images, validation_images = get_random_images(limit=size)
 
     # Training dataset
     dataset_train = InMemoryDataset()
