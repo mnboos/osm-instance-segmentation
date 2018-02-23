@@ -2,13 +2,11 @@ import math
 import numpy as np
 import os
 from core.utils import MarchingSquares, georeference, get_angle, \
-    parallel_or_perpendicular, group_neighbours, make_lines, group_by_orientation, update_neighbourhoods
+    parallel_or_perpendicular
 from shapely import geometry
 from pygeotile.tile import Tile, Point
 from scipy.optimize import curve_fit
-import cv2
-from PIL import Image
-from itertools import groupby
+
 
 
 def make_fit_func(angle: float):
@@ -16,78 +14,6 @@ def make_fit_func(angle: float):
         a = angle
         return m * x + b
     return fit_line
-
-
-def test_hough():
-    # p = os.path.join(os.getcwd(), "test", "data", "diag.bmp")
-    # p = os.path.join(os.getcwd(), "test", "data", "building.bmp")
-    # p = os.path.join(os.getcwd(), "test", "data", "Untitled.bmp")
-    p = os.path.join(os.getcwd(), "test", "data", "bigL.bmp")
-    m = MarchingSquares.from_file(p)
-    points = m.find_contour(approximization_tolerance=0.01)
-    main_orientation = m.main_orientation(True)
-    original_points = []
-    original_points.extend(points)
-    im = Image.open(p).convert("L")
-    img = np.asarray(im)
-
-    lines = make_lines(points)
-    grouped_lines = group_by_orientation(lines)
-
-    group_neighbours(grouped_lines)
-
-    update_neighbourhoods(lines)
-
-    grouped = groupby(lines, key=lambda l: l.neighbourhood)
-    for k, g in grouped:
-        a = k
-        b = list(g)
-        c = ""
-
-    for a in grouped_lines:
-        print("angle: ", a)
-        for line_type in grouped_lines[a]:
-            for g in grouped_lines[a][line_type]:
-                print("{} neighbours".format(line_type))
-                # print(",".join(map(lambda l: geometry.LineString(l).wkt, g)))
-                print(g)
-
-        # print("angle: ", a)
-
-    all_wkts = map(lambda l: geometry.LineString(l).wkt, lines)
-    totalwkt = ",".join(all_wkts)
-    a = ""
-    cv2.imwrite("lines.bmp", img)
-    a = ""
-
-
-    # print(list(geometry.Polygon(points).exterior.coords))
-    # print(geometry.Polygon(points).simplify(3, preserve_topology=False).wkt)
-    # print(geometry.Polygon(points).simplify(3, preserve_topology=True).wkt)
-    # b = geometry.Polygon(points).buffer(1, join_style=3)
-    # print(list(b.exterior.coords))
-    # print(b.wkt)
-    angle, _ = m.main_orientation(angle_in_degrees=True)
-    assert 34 == angle
-
-
-def make_fit_func(angle: float):
-    def fit_line(x, m, b):
-        return -angle * x + b
-    return fit_line
-
-
-def test_rectangularize():
-    x = [2, 3, 4]
-    y = [2, 5, 6]
-
-    xdata = np.array(x)
-    ydata = np.array(y)
-    angle_in_degrees = 45
-    f = make_fit_func(np.tan(np.radians(angle_in_degrees)))
-    [m, c], intercept = curve_fit(f, xdata, ydata)
-    angle = math.degrees(math.atan(m))
-    f = ""
 
 
 def test_parallel():

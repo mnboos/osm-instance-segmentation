@@ -1,4 +1,5 @@
 from PIL import Image, ImageDraw
+from itertools import groupby
 from typing import Iterable, Tuple, Collection, List, Dict
 from skimage.measure import approximate_polygon
 from skimage.transform import hough_line, hough_line_peaks
@@ -80,6 +81,13 @@ class Line:
 
 
 def make_lines(points: List[Tuple[float, float]], point_distance_threshold: float = 2) -> List[Line]:
+    """
+     * Creates multiple line segments from the points of the contour.
+    :param points:
+    :param point_distance_threshold: Points up to a distance of this value will be considered neighbours
+    :return:
+    """
+
     lines: List[Line] = []
     while points:
         seg: List[Tuple[float, float]] = []
@@ -111,17 +119,13 @@ def make_lines(points: List[Tuple[float, float]], point_distance_threshold: floa
     return lines
 
 
-def group_by_orientation(lines: List[Line], angle_parallelity_threshold: float = 20) -> Dict:
-    grouped_lines = {}
+def assign_orientation(lines: List[Line], angle_parallelity_threshold: float = 20) -> None:
+    lines = lines.copy()
     lines = sorted(lines, key=lambda l: l.length)
     while lines:
         longest_line = lines.pop()
         main_angle = get_angle(longest_line.coords)
         longest_line.set_orientation(main_angle)
-        group = {
-            "parallels": [longest_line],
-            "orthogonals": []
-        }
         for l in lines.copy():
             is_parallel, is_perpendicular = parallel_or_perpendicular(first_line=longest_line.coords,
                                                                       second_line=l.coords,
@@ -129,17 +133,20 @@ def group_by_orientation(lines: List[Line], angle_parallelity_threshold: float =
             if is_parallel or is_perpendicular:
                 l.set_orthogonality(is_perpendicular)
                 l.set_orientation(main_angle)
-            if is_parallel:
-                group["parallels"].append(l)
                 lines.remove(l)
-            elif is_perpendicular:
-                group["orthogonals"].append(l)
-                lines.remove(l)
-        grouped_lines[main_angle] = group
-    return grouped_lines
 
 
-def update_neighbourhoods(lines: List[Line], window_size: int = 5, reassignment_threshold: float = 0.25):
+def update_neighbourhoods(lines: List[Line], window_size: int = 5, reassignment_threshold: float = 0.25) -> None:
+    """
+     * Tries to find lines which have been assigned to the wrong neighbourhood.
+     > This can happen because initially the lines are only checked by its orientation. However, a single line of
+       another orientation is probably misassigned if it's in the middle of another orientation-group.
+    :param lines:
+    :param window_size:
+    :param reassignment_threshold:
+    :return:
+    """
+
     sorted_by_nr: List[Line] = sorted(lines, key=lambda l: l.nr)
     for idx, _ in enumerate(sorted_by_nr):
         group: List[Line] = []
@@ -165,29 +172,49 @@ def update_neighbourhoods(lines: List[Line], window_size: int = 5, reassignment_
                     l.set_neighbourhood(most_probable_neighbourhood)
 
 
-def group_neighbours(all_groups: dict, neighbour_distance_threshold: float = 15) -> None:
-    for angle in all_groups:
-        angle_group = all_groups[angle]
-        for line_type in angle_group:
-            neighbour_groups = []
-            lines: List[Line] = angle_group[line_type]
-            while lines:
-                current_neighbourhood: List[Line] = [lines.pop()]
-                neighbourhood_id = uuid.uuid4()
-                current_neighbourhood[0].set_neighbourhood(neighbourhood_id)
-                found = True
-                while lines and found:
-                    found = False
-                    for current_line in current_neighbourhood:
-                        for n in lines:
-                            dist = current_line.distance(n)
-                            if 0 <= dist <= neighbour_distance_threshold:
-                                current_neighbourhood.append(n)
-                                n.set_neighbourhood(neighbourhood_id)
-                                lines.remove(n)
-                                found = True
-                neighbour_groups.append(current_neighbourhood)
-            angle_group[line_type] = neighbour_groups
+def assign_neighbourhood(lines: List[Line], neighbour_distance_threshold: float = 15) -> None:
+    """
+     * Creates line clusters of neighbouring lines within each orientation group
+    :param lines:
+    :param neighbour_distance_threshold:
+    :return:
+    """
+
+    all_neighbourhoods: List[List[Line]] = []
+    grouped_by_orientation = groupby(lines, key=lambda l: "{};{}".format(l.orientation, l.orthogonal))
+    for angle, g in grouped_by_orientation:
+        group = list(g)
+        while group:
+            neighbourhood = [group.pop()]
+            new_neighbours = get_all_neighbours(neighbourhood[0], group, neighbour_distance_threshold)
+            neighbourhood.extend(new_neighbours)
+            all_neighbourhoods.append(neighbourhood)
+
+    for neighbourhood in all_neighbourhoods:
+        neighbourhood_id = uuid.uuid4()
+        for line in neighbourhood:
+            line.set_neighbourhood(neighbourhood_id)
+
+
+def get_all_neighbours(line: Line, remaining_lines: List[Line], neighbour_distance_threshold: float) -> List[Line]:
+    """
+     * Recursively finds all neighbours of the line and its neighbouring lines.
+    :param line:
+    :param remaining_lines:
+    :param neighbour_distance_threshold:
+    :return:
+    """
+
+    neighbours = []
+    for l in remaining_lines:
+        dist = line.distance(l)
+        if 0 <= dist <= neighbour_distance_threshold:
+            neighbours.append(l)
+            remaining_lines.remove(l)
+    for n in neighbours.copy():
+        new_neighbours = get_all_neighbours(n, remaining_lines, neighbour_distance_threshold)
+        neighbours.extend(new_neighbours)
+    return neighbours
 
 
 def get_angle(first_line: Tuple[Tuple[float, float], Tuple[float, float]],
@@ -219,6 +246,33 @@ def root_mean_square_error(p1, p2) -> float:
     mean_x = (p1[0] - p2[0])**2
     mean_y = (p1[1] - p2[1])**2
     return math.sqrt(1 / 2 * (mean_x + mean_y))
+
+
+def rectangularize(contour: List[Tuple[float, float]]) -> List[Tuple[float, float]]:
+    raise RuntimeError("NotImplemented")
+    # Tolerance for initial douglas-peucker run
+    approximization_tolerance = 0.01
+
+    # All points with a max distance from each other will be added to the same line
+    point_distance_threshold = 2
+
+    # Lines below this length will be discarded
+    line_length_threshold = 3
+
+    # Angles with a difference up to this value will be considered parallel
+    angle_parallelity_threshold = 20
+
+    # Lines located at a distance up to this value will be considered neighbours
+    neighbour_distance_threshold = 10
+
+    # Neighbour reassignment: A sliding window will be moved around the contour to detect wrong assignments
+    # Nr. of segments per window
+    window_size = 5
+    # If the probability of a segment to its class is below this threshold, it will be reassigned to the most probable class
+    reassignment_threshold = 0.25
+
+    lines = make_lines(contour.copy(), 2)
+    assign_orientation(lines.copy(), angle_parallelity_threshold=angle_parallelity_threshold)
 
 
 class MarchingSquares:
