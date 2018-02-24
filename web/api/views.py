@@ -14,7 +14,7 @@ import tempfile
 from shapely import geometry
 import json
 
-_predictor = Predictor(os.path.join(os.getcwd(), "model", "mask_rcnn_osm_0060.h5"))
+_predictor = Predictor(os.path.join(os.getcwd(), "model", "stage2.h5"))
 
 
 """
@@ -56,9 +56,7 @@ def _predict(request: InferenceRequest):
     img = Image.open(barr)
     arr = np.asarray(img)
     tile = Tile.for_point(point=Point(latitude=request.lat, longitude=request.lon), zoom=int(request.zoom_level))
-    res = _predictor.predict_array(img_data=arr,
-                                   approximiation_tolerance=request.approximiation_tolerance,
-                                   tile=tile)
+    res = _predictor.predict_array(img_data=arr, tile=tile)
     polygons = [geometry.Polygon(points) for points in res]
     # return list(map(lambda p: json.dumps(geometry.mapping(p)), polygons))
     return list(map(lambda p: p.wkt, polygons))
