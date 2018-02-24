@@ -1,0 +1,36 @@
+# This file contains metadata for this plugin interpreted by QGIS and e.g. plugins.qgis.org.
+
+# Mandatory items:
+
+[general]
+name=Deep OSM
+qgisMinimumVersion=2.18
+qgisMaximumVersion=3.98
+description=foo
+about=bar
+version=0.1.0
+author=Martin Boos
+email=geometalab@gmail.com
+
+# End of mandatory metadata
+
+# Recommended items:
+
+# Uncomment the following line and add your changelog:
+changelog=
+    ---0.1.0---
+    * Connection source added as custom property to the layers
+
+# Tags are comma separated with spaces allowed
+tags=machine learning, deep learning
+
+homepage=https://github.com/mnboos/osm-instance-segmentation
+tracker=https://github.com/mnboos/osm-instance-segmentation/issues
+repository=https://github.com/mnboos/osm-instance-segmentation
+category=Vector
+icon=icon.png
+experimental=True
+
+# deprecated flag (applies to the whole plugin, not just a single version)
+deprecated=False
+

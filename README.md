@@ -23,6 +23,13 @@ To download only a specific bbox run:
 
 ```python -m core.downloader {bbox_name}```
 
+## QGIS Plugin
+The QGIS plugin can be found in the folder `/qgis_plugin`. It can be installed by opening a cmd in the plugin folder and running the following command, which creates a symlink:
+
+ ```
+mklink /D "%userprofile%/.qgis2/python/plugins/deep_osm" %cd%
+ ```
+
 ## Web service
 The server can be started using the script ```runserver.bat```.
 
