@@ -1,0 +1,7 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+  <qresource prefix="/plugins/deep_osm">
+	<file alias="group.svg">icons/group.svg</file>
+	<file alias="info.svg">icons/info.svg</file>
+  </qresource>
+</RCC>
