@@ -23,10 +23,10 @@ class MyMaskRcnnConfig(Config):
     LEARNING_RATE = 0.001
 
     # faster training
-    STEPS_PER_EPOCH = 100 // IMAGES_PER_GPU
+    # STEPS_PER_EPOCH = 100 // IMAGES_PER_GPU
 
     # all images
-    # STEPS_PER_EPOCH = 100000 // IMAGES_PER_GPU
+    STEPS_PER_EPOCH = 100000 // IMAGES_PER_GPU
 
     # Each tile is 256 pixels across, training data is 3x3 tiles
     IMAGE_MIN_DIM = IMAGE_WIDTH
