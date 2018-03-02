@@ -65,10 +65,8 @@ class OsmMappingDataset(utils.Dataset):
         data = np.asarray(img, dtype="uint8")
         return data
 
-    def _get_mask(self, path: str) -> Tuple[np.ndarray, np.ndarray]:
-        # info = self.image_info[image_id]
-        # mask_path = info["path"][:-1]  # images have fileextension ".tiff", masks have ".tif"
-        mask_path = path
+    def _get_mask(self, mask_path: str) -> Tuple[np.ndarray, np.ndarray]:
+        # images have fileextension ".tiff", masks have ".tif"
         assert not mask_path.endswith(".tiff")
         if not os.path.isfile(mask_path):
             raise RuntimeError("Mask does not exist")
@@ -89,8 +87,8 @@ class OsmMappingDataset(utils.Dataset):
 
     def load_mask(self, image_id: str) -> Tuple[np.ndarray, np.ndarray]:
         info = self.image_info[image_id]
-        path = info["path"][:-1]
-        return self._get_mask(path)
+        image_path = info["path"]
+        return self._get_mask(image_path[:-1])
 
 
 class InMemoryDataset(OsmMappingDataset):
