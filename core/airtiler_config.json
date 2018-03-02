@@ -1,7 +1,7 @@
 {
   "options": {
-    "target_dir": "C:\\Temp\\images\\training\\output",
-    "zoom_levels": [18, 19],
+    "target_dir": "",
+    "zoom_levels": [17,18],
     "separate_instances": false
   },
   "boundingboxes": {
