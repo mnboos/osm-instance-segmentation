@@ -48,13 +48,14 @@ class OsmMappingDataset(utils.Dataset):
 
     def __init__(self):
         utils.Dataset.__init__(self)
+        print("Dataset: OsmMappingDataset")
 
     def load(self, images):
         self.add_class("osm", 0, "building")
         print("")
         print("Loading {} images...".format(len(images)))
-        for i in images:
-            self.add_image(source="osm", image_id=i, path=i)
+        for idx, path in enumerate(images):
+            self.add_image(source="osm", image_id=idx, path=path)
         print("Loaded.")
 
     def _get_image(self, path: str) -> np.ndarray:
@@ -68,6 +69,7 @@ class OsmMappingDataset(utils.Dataset):
         # info = self.image_info[image_id]
         # mask_path = info["path"][:-1]  # images have fileextension ".tiff", masks have ".tif"
         mask_path = path
+        assert not mask_path.endswith(".tiff")
         if not os.path.isfile(mask_path):
             raise RuntimeError("Mask does not exist")
 
@@ -81,26 +83,31 @@ class OsmMappingDataset(utils.Dataset):
         return mask, class_ids
 
     def load_image(self, image_id: str) -> np.ndarray:
-        return self._get_image(image_id)
+        info = self.image_info[image_id]
+        path = info["path"]
+        return self._get_image(path)
 
     def load_mask(self, image_id: str) -> Tuple[np.ndarray, np.ndarray]:
-        return self._get_mask(image_id)
+        info = self.image_info[image_id]
+        path = info["path"][:-1]
+        return self._get_mask(path)
 
 
 class InMemoryDataset(OsmMappingDataset):
     def __init__(self):
         OsmMappingDataset.__init__(self)
         self._cache = {}
+        print("Dataset: InMemoryDataset")
 
     def load(self, images):
         self.add_class("osm", 0, "building")
         print("")
         print("Loading {} images...".format(len(images)))
-        for i in images:
-            self.add_image(source="osm", image_id=i, path=i)
-            self._cache[i] = {
-                "img": self._get_image(path=i),
-                "mask": self._get_mask(i)
+        for image_path in images:
+            self.add_image(source="osm", image_id=image_path, path=image_path)
+            self._cache[image_path] = {
+                "img": self._get_image(path=image_path),
+                "mask": self._get_mask(image_path[:-1])
             }
         print("Loaded.")
 

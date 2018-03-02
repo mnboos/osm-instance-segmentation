@@ -42,11 +42,13 @@ def get_random_datasets(size=None, search_dir=TRAINING_DATA_DIR):
 
     # Training dataset
     dataset_train = InMemoryDataset()
+    # dataset_train = OsmMappingDataset()
     dataset_train.load(training_images)
     dataset_train.prepare()
 
     # Validation dataset
     dataset_val = InMemoryDataset()
+    # dataset_val = OsmMappingDataset()
     dataset_val.load(validation_images)
     dataset_val.prepare()
     return dataset_train, dataset_val
