@@ -20,9 +20,9 @@ if not os.path.isdir(TRAINING_DATA_DIR):
                            .format(TRAINING_DATA_DIR))
 
 
-def get_random_images(limit=None):
-    print("Using training images in: ", TRAINING_DATA_DIR)
-    images = glob.glob(os.path.join(TRAINING_DATA_DIR, "**/*.tiff"), recursive=True)
+def get_random_images(search_dir, limit=None):
+    print("Using training images in: ", search_dir)
+    images = glob.glob(os.path.join(search_dir, "**/*.tiff"), recursive=True)
     print("{} images found...".format(len(images)))
     random.shuffle(images)
     if limit and len(images) > limit:
@@ -35,10 +35,10 @@ def get_random_images(limit=None):
     return training_images, validation_images
 
 
-def get_random_datasets(size=None):
+def get_random_datasets(size=None, search_dir=TRAINING_DATA_DIR):
     if not size:
         size = DATASET_SIZE
-    training_images, validation_images = get_random_images(limit=size)
+    training_images, validation_images = get_random_images(limit=size, search_dir=search_dir)
 
     # Training dataset
     dataset_train = InMemoryDataset()
