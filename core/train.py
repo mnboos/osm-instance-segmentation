@@ -10,7 +10,7 @@ COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn", "mask_rcnn_coco.h5")
 MODEL_DIR = os.path.join(ROOT_DIR, "model")
 DATA_DIR = os.path.join(ROOT_DIR, "images")
 TRAINING_DATA_DIR = "/training-data"
-DATASET_SIZE = 30000
+DATASET_SIZE = None  # 30000  # None = Max
 
 if not os.path.isdir(TRAINING_DATA_DIR):
     if os.path.isdir(IMAGE_OUTPUT_FOLDER):
