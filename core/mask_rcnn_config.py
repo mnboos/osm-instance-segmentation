@@ -1,5 +1,5 @@
 from mask_rcnn.config import Config
-import math
+import sys
 from mask_rcnn import utils
 from core.training_data import get_instances
 from core.settings import IMAGE_WIDTH
@@ -120,6 +120,7 @@ class InMemoryDataset(OsmMappingDataset):
             if new_progress != progress:
                 progress = new_progress
                 print("Caching progress: {}% ({} images)".format(progress, idx+1))
+                sys.stdout.flush()
         print("Loaded.")
 
     def load_image(self, image_id):
