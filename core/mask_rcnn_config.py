@@ -27,7 +27,7 @@ class MyMaskRcnnConfig(Config):
     # STEPS_PER_EPOCH = 100 // IMAGES_PER_GPU
 
     # all images
-    STEPS_PER_EPOCH = 100000 // IMAGES_PER_GPU
+    # STEPS_PER_EPOCH = 1000
 
     # Each tile is 256 pixels across, training data is 3x3 tiles
     IMAGE_MIN_DIM = IMAGE_WIDTH
@@ -42,7 +42,7 @@ class MyMaskRcnnConfig(Config):
     # TRAIN_ROIS_PER_IMAGE = 64
     # DETECTION_MAX_INSTANCES = 64
 
-    VALIDATION_STEPS = 100
+    # VALIDATION_STEPS = 100
 
 
 class OsmMappingDataset(utils.Dataset):
