@@ -113,7 +113,7 @@ class InMemoryDataset(OsmMappingDataset):
             new_progress = int(round(idx / total_nr_images * 100))
             if new_progress != progress:
                 progress = new_progress
-                print("Caching progress: {}% ({} images)".format(progress, total_nr_images))
+                print("Caching progress: {}% ({} images)".format(progress, idx+1))
         print("Loaded.")
 
     def load_image(self, image_id):
