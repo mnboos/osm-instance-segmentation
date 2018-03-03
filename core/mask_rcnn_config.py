@@ -105,11 +105,17 @@ class InMemoryDataset(OsmMappingDataset):
         progress = 0
         total_nr_images = len(images)
         for idx, image_path in enumerate(images):
-            self.add_image(source="osm", image_id=image_path, path=image_path)
-            self._cache[image_path] = {
-                "img": self._get_image(path=image_path),
-                "mask": self._get_mask(image_path[:-1])
-            }
+            try:
+                img = self._get_image(path=image_path)
+                msk = self._get_mask(image_path[:-1])
+                self.add_image(source="osm", image_id=image_path, path=image_path)
+                self._cache[image_path] = {
+                    "img": img,
+                    "mask": msk
+                }
+            except:
+                print("Image loading failed: {}".format(image_path))
+
             new_progress = int(round(idx / total_nr_images * 100))
             if new_progress != progress:
                 progress = new_progress
