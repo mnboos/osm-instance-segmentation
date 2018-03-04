@@ -1,0 +1,16 @@
+before_install:
+- sudo apt-get update
+- sudo apt-get install -y texlive-latex-extra texlive-lang-german texlive-math-extra texlive-fonts-extra texlive-bibtex-extra biber texlive-science
+script:
+- pdflatex -interaction=nonstopmode doku
+- biber doku
+- makeindex -s doku.ist -t doku.glg -o doku.gls doku.glo
+- pdflatex -interaction=nonstopmode doku
+- pdflatex -interaction=nonstopmode doku
+deploy:
+  provider: releases
+  api_key: $GITHUB_RELEASE_TOKEN
+  file:
+   - ./doku.pdf
+  skip_cleanup: true
+
