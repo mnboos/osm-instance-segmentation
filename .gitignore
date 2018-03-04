@@ -114,3 +114,27 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# Latex Report
+*.aux
+*.bbl
+*.blg
+*.lof
+*.log
+*.lot
+*.out
+*.synctex.gz
+*.toc
+*.idx
+*.ilg
+*.ind
+*.glg
+*.gls
+*.glsdefs
+*.ist
+*.glo
+*.bcf
+*.run.xml
+*busy*
+*eps-converted-to.pdf*
+doku.pdf

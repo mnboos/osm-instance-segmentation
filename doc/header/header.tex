@@ -1,0 +1,330 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%
+% LaTeX Documentation Template - Header File
+%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% "THE BEER-WARE LICENSE" (Revision 42):
+% Hannes Badertscher (hbaderts@hsr.ch) wrote this file. As long as you retain 
+% this notice you can do whatever you want with this stuff. If we meet some day, 
+% and you think this stuff is worth it, you can buy me a beer in return. 
+% - Hannes Badertscher
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+% % % % % % % % % % % % % %
+% Basic document setup
+
+\documentclass[
+    11pt,                  % Font size
+    final,
+    parskip=half,          % Half a line skipped between paragraphs
+    twoside,               % Two-sided document
+    openright,             % Chapters start on right pages
+    bibliography=totoc,    % Bibliography in ToC
+    listof=totoc,          % LoF and LoT in ToC
+]{scrreprt}[2015/09/15]    % Use current version of KOMA-Script
+
+% Author and title of document
+\author{\Author}
+\title{\Title}
+\date{\today}
+
+% Load Fonts
+\usepackage[T1]{fontenc}                      % Use T1 encoding
+\usepackage[scaled=0.85]{berasans}            % Sans-serif: Bera Sans
+\usepackage[scaled=0.84]{beramono}            % Mono-space: Bera Mono
+\usepackage[sc]{mathpazo}                     % Serif: Palatino
+\linespread{1.05}                             % More linespread for Palatino
+
+% Define text area
+\typearea[10mm]{9}
+\setlength{\marginparwidth}{25mm}
+
+% Basic packages
+\usepackage[final,activate={true,nocompatibility}]{microtype}    % Enable micro-typography
+\usepackage{scrhack}             % Fixes koma-script incompatibilities
+\usepackage{mparhack}            % Improved marginpar placement
+
+% Load HSR colors
+\usepackage{xcolor}
+\usepackage{header/HSRColors}
+
+% Header and footer
+\usepackage[automark,headwidth=textwithmarginpar,footwidth=text,headsepline=0.4pt:textwithmarginpar]{scrlayer-scrpage}  % Custom header and footer
+\pagestyle{scrheadings}
+\renewcommand{\headfont}{\normalfont\sffamily}
+\makeatletter
+\renewcommand{\chaptermark}[1]{\markboth{\@chapapp~\thechapter~--~#1}{}}
+\makeatother
+\rohead{\rightmark}
+\lehead{\leftmark}
+
+% Bibliography
+\usepackage[backend=biber,style=ieee]{biblatex}
+\renewbibmacro*{bbx:savehash}{}                       % Don't abbreviate identical authors
+\defbibheading{bibintoc}[\bibname]{%                  % Make bibliography title a chapter*
+    \chapter*{#1}\markboth{#1}{#1}%
+    \addcontentsline{toc}{chapter}{#1}%
+}
+
+% Glossary
+\usepackage[toc]{glossaries}
+\renewcommand{\glsnamefont}[1]{\makefirstuc{#1}}
+
+% Index
+\usepackage{imakeidx}
+\makeindex[intoc,columnseprule]
+\indexsetup{firstpagestyle=plain}    % Show header/footer on index page
+
+% Aligned footnotes
+\usepackage[hang]{footmisc}
+\setlength{\footnotemargin}{1em}
+
+% % % % % % % % % % % % % %
+% Language stuff
+\newcommand*{\LangDE}{de}
+\ifx \Lang \LangDE
+    \usepackage[english,ngerman]{babel}  % Main language: German
+\else
+    \usepackage[ngerman,english]{babel}  % Main language: English
+\fi
+
+% % % % % % % % % % % % % %
+% Additional packages
+
+% Date and time format
+\usepackage{datetime}
+\newdateformat{titledate}{\THEDAY.~\monthname\space\THEYEAR}
+
+% Allow multicolumn document
+\usepackage{multicol}
+
+% Math
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{bm}
+
+% Tables
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{booktabs}
+
+% Figures
+\usepackage{pdfpages}
+\usepackage{epstopdf}
+\usepackage{float}
+
+% Listings - if you need advanced listings, switch to minted!
+\input{header/listings}
+% \usepackage[newfloat, chapter]{minted}
+% \usemintedstyle{friendly}
+
+% Si Units
+\usepackage{siunitx}
+\sisetup{detect-all,sticky-per,per-mode=symbol}
+
+% Quotation marks
+\usepackage{csquotes}
+\setquotestyle[quotes]{german}
+
+% % % % % % % % % % % % % %
+% Numbering and captions
+\numberwithin{equation}{chapter}
+\numberwithin{figure}{chapter}
+\numberwithin{table}{chapter}
+
+% Setup captions
+\usepackage{caption}[2008/08/24]
+\usepackage{subcaption}
+\setkomafont{captionlabel}{\scshape\color{HSRBlue}}
+\captionsetup{labelsep=quad}
+
+% Setup toc and section numbering depth
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{4}
+
+% % % % % % % % % % % % % %
+% Hyperref setup
+\usepackage[
+    pdftitle={\Title},
+    pdfauthor={\Author},
+    pdfkeywords={\Keywords},
+    pdflang={\Lang},
+    pdfpagemode=UseOutlines,  % Show outlines when opening pdf.
+    pdfdisplaydoctitle=true,  % Show document title in pdf viewer.
+    pdfcreator={LaTeX with hyperref and KOMA-Script},
+    colorlinks=true,
+    linkcolor=HSRBlue,
+    citecolor=HSRBlue,
+    filecolor=HSRBlue,
+    urlcolor=HSRBlue,
+    bookmarksnumbered=true
+]{hyperref}
+
+% If \Print=true, then make all links black for nicer print
+\providecommand*{\True}{true}
+\ifx \Print \True
+    \hypersetup{hidelinks}
+\fi
+
+% Set reference names
+\addto\extrasenglish{% English
+    \renewcommand*{\figureautorefname}{Fig.}             % fig:
+    \renewcommand*{\tableautorefname}{Tab.}              % tab:
+    \renewcommand*{\equationautorefname}{Eq.}            % eq:
+    \renewcommand*{\chapterautorefname}{Chp.}            % chp:
+    \renewcommand*{\sectionautorefname}{Sec.}            % sec:
+    \renewcommand*{\subsectionautorefname}{Sec.}         % subsec:
+    \providecommand*{\listingautorefname}{Listing}
+}
+\addto\extrasngerman{% German
+    \renewcommand*{\figureautorefname}{Abb.}             % fig:
+    \renewcommand*{\tableautorefname}{Tab.}              % tab:
+    \renewcommand*{\equationautorefname}{Gl.}            % eq:
+}
+
+% % % % % % % % % % % % % %
+% Marginpar setup
+\usepackage{ragged2e}
+\newcommand*{\oldmarginpar}{}
+\let\oldmarginpar\marginpar
+\renewcommand*{\marginpar}[1]{%
+    \leavevmode\oldmarginpar%
+    [\RaggedLeft\scshape\footnotesize\textcolor{HSRBlue}{\hspace{0pt}#1}]%
+    {\RaggedRight\scshape\footnotesize\textcolor{HSRBlue}{\hspace{0pt}#1}}%
+}
+
+% % % % % % % % % % % % % %
+% Itemize items
+\newcommand{\hsrlistitemi}{\textcolor{HSRBlue}{\raisebox{.3ex}{\tiny$\blacksquare$}}}
+\newcommand{\hsrlistitemii}{\textcolor{HSRLightGray}{\raisebox{.3ex}{\tiny$\blacksquare$}}}
+\newcommand{\hsrlistitemiii}{\textcolor{HSRLightGray}{\raisebox{.3ex}{\tiny$\blacktriangleright$}}}
+
+\renewcommand{\labelitemi}{\hsrlistitemi}
+\renewcommand{\labelitemii}{\hsrlistitemii}
+\renewcommand{\labelitemiii}{\hsrlistitemiii}
+
+% % % % % % % % % % % % % %
+% Chapter headings
+\makeatletter
+\renewcommand{\@makechapterhead}[1]{%
+    \vspace*{40\p@}%
+    \hfill%
+    \begin{minipage}[b]{9cm}%
+        \raggedleft%
+        \sffamily\huge\textbf{#1}%
+    \end{minipage}%
+    \quad%
+    {\fontsize{60pt}{3em}\selectfont\sffamily\textbf{\textcolor{HSRBlue}{\thechapter}}}%
+    \vskip 5\p@%
+    \noindent\makebox[\textwidth-2em][l]{\textcolor{HSRBlue}{\rule{\paperwidth-\oddsidemargin-\hoffset-1in}{0.7pt}}}%
+    \vskip 25\p@%
+    \normalfont\normalsize%
+}
+
+\renewcommand{\@makeschapterhead}[1]{%
+    \vspace*{40\p@}%
+    \hfill%
+    \begin{minipage}[b]{9cm}%
+        \raggedleft%
+        \sffamily\huge\textbf{#1}%
+    \end{minipage}%
+    \vskip 5\p@%
+    \noindent\makebox[\textwidth-2em][l]{\textcolor{HSRBlue}{\rule{\paperwidth-\oddsidemargin-\hoffset-1in}{0.7pt}}}%
+    \vskip 25\p@%
+    \normalfont\normalsize%
+}
+\makeatother
+
+% % % % % % % % % % % % % %
+% Appendix page + toc entry
+\usepackage{appendix}
+
+\makeatletter
+\renewcommand{\@chap@pppage}{%
+    \clear@ppage
+    \thispagestyle{empty} % this was 'plain' before
+    \if@twocolumn\onecolumn\@tempswatrue\else\@tempswafalse\fi
+    \null\vfil
+    \markboth{}{}%
+    {%
+        \centering
+        \interlinepenalty \@M
+        \normalfont
+        \Huge \bfseries\sffamily \appendixpagename\par % this was rmfamily
+    }%
+    \if@dotoc@pp
+        \addappheadtotoc
+    \fi
+    \vfil\newpage
+    \if@twoside
+        \if@openright
+            \null
+            \thispagestyle{empty}%
+            \newpage
+        \fi
+    \fi
+    \if@tempswa
+        \twocolumn
+    \fi
+}
+\makeatother
+
+% % % % % % % % % % % % % %
+% TikZ and PGF Plots
+\usepackage{tikz}
+\usepackage{pgfplots}
+
+% Tikz Libraries
+\usetikzlibrary{positioning}
+
+ % Use Sans-Serif family in TikZ graphics
+\tikzset{font=\sffamily}
+
+% If there are many TikZ images, make them external.
+% Note: you'll have to call pdflatex with the -shell-escape flag!
+%\usetikzlibrary{external}
+%\tikzexternalize[prefix=tikz/]
+
+% Create cycle list with HSR colors
+\pgfplotscreateplotcyclelist{hsrcolorlist}{%
+    HSRSchwarz,every mark/.append style={solid,fill=HSRSchwarz}     \\%
+    HSRBlue,every mark/.append style={solid,fill=HSRBlue}           \\%
+    HSRHematite,every mark/.append style={solid,fill=HSRHematite}   \\%
+    HSRBasswood,every mark/.append style={solid,fill=HSRBasswood}   \\%
+}
+% Set default cycle list for plots
+\pgfplotsset{cycle multi list={mark list\nextlist hsrcolorlist}}
+
+% Set default cycle list for bar plots
+\pgfplotsset{
+    /pgfplots/bar cycle list/.style={/pgfplots/cycle list={%
+        {HSRBlue,fill=HSRBlue60,mark=none},%
+        {HSRHematite,fill=HSRHematite60,mark=none},%
+        {HSRBasswood,fill=HSRBasswood60,mark=none},%
+    }}
+}
+
+% % % % % % % % % % % % % %
+% ToDo notes
+\newcommand{\todonotecolor}{red}
+
+% Small TODO note
+\newcommand{\todonote}[1]{%
+    \marginpar{\textcolor{\todonotecolor}{ToDo}}%
+    \colorbox{red}{\sffamily\textcolor{white}{#1}}%
+    \PackageWarning{ToDo:}{#1!}%
+}
+
+% Large TODO note
+\newcommand{\todo}[1]{%
+    \marginpar{\textcolor{\todonotecolor}{ToDo}}%
+    \colorbox{red}{\parbox{\linewidth}{\sffamily\textcolor{white}{#1}}}%
+    \PackageWarning{ToDo:}{#1!}%
+}
+
+% Command: Citation needed!
+\newcommand{\citationneeded}{%
+    \marginpar{\textcolor{\todonotecolor}{ToDo}}%
+    \sffamily\textcolor{red}{$^\text{[Citation needed]}$}
+    \PackageWarning{ToDo:}{Citation needed!}%
+}

@@ -1,0 +1,70 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%
+% LaTex Documentation Template
+%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% "THE BEER-WARE LICENSE" (Revision 42):
+% Hannes Badertscher (hbaderts@hsr.ch) wrote this file. As long as you retain 
+% this notice you can do whatever you want with this stuff. If we meet some day, 
+% and you think this stuff is worth it, you can buy me a beer in return. 
+% - Hannes Badertscher
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% !TeX program = pdflatex
+% !BIB program = biber
+% !TeX encoding = utf8
+% !TeX spellcheck = en_US
+
+\RequirePackage[l2tabu, orthodox]{nag}   % Warnings for obsolete packages
+\RequirePackage{etex}                    % Load extended TeX
+\RequirePackage[utf8]{inputenc}          % Use UTF-8 as input encoding
+
+% Document information
+\newcommand*{\Author}           {Martin Boos} 
+\newcommand*{\Title}            {Instance segmentation with neural networks based on aerial images}
+\newcommand*{\TitleInfo}        {Master Thesis}
+\newcommand*{\Subject}          {Generating building footprints from orthophotos and Open Street Map data}
+\newcommand*{\Keywords}         {keyword, even more keywords, and one more}
+\newcommand*{\Lang}             {en} % document language: de or en
+\newcommand*{\IsConfidential}   {false}
+\newcommand*{\Place}            {Rapperswil}
+\newcommand*{\TitleImage}       {frontmatter/Titelbild_bsp.jpg} % leave empty for no title image
+\newcommand*{\Print}            {true} % true for black links (print version), false for color links (pdf version)
+
+% main header file
+\include{header/header}
+\input{frontmatter/glossary.tex}
+\bibliography{frontmatter/bibliograpy.bib}
+
+% % % % % % % % % % % % % %
+\begin{document}
+
+    % Frontmatter
+    \pagenumbering{roman}
+    \include{frontmatter/titlepage}
+    \include{frontmatter/abstract}
+    \include{frontmatter/acknowledgments}
+    
+    % Table of Contents
+    {
+        \cleardoublepage
+        \markleft{\contentsname}
+        \pdfbookmark[0]{\contentsname}{\contentsname}
+        \hypersetup{hidelinks}    % Don't format as links
+        \tableofcontents
+    }
+
+    \cleardoublepage
+    \pagenumbering{arabic} 
+
+
+	this is my first citation: \cite{phdthesis}
+
+    % Main part
+    \include{chapters/bsp_chapter/bsp_chapter}
+	\include{chapters/challenges/challenges}
+
+    % Appendix
+    \include{appendices/appendix}
+
+\end{document}
+% % % % % % % % % % % % % % 

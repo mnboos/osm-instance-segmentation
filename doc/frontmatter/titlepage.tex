@@ -1,0 +1,52 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%
+% LaTex Titlepage according to HSR CI
+%
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% "THE BEER-WARE LICENSE" (Revision 42):
+% Hannes Badertscher (hbaderts@hsr.ch) wrote this file. As long as you retain 
+% this notice you can do whatever you want with this stuff. If we meet some day, 
+% and you think this stuff is worth it, you can buy me a beer in return. 
+% - Hannes Badertscher
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\providecommand*{\True}{true}
+\begin{titlepage}
+    \begin{tikzpicture}[remember picture,overlay,shift=(current page.south west)]
+
+        % Background image
+        \ifthenelse{\equal{\TitleImage}{}}
+        {\draw[draw=none,fill=none,inner sep=0pt] (0,0) rectangle (209mm,296mm);}
+        {\node[anchor=center,inner sep=0pt] at (105mm,148.5mm) (bgimage){\includegraphics[width=209mm,height=296mm]{\TitleImage}};}
+
+        % HSR square
+        \ifthenelse{\equal{\TitleImage}{}}
+        {\draw[draw=none,fill=HSRBlue] (24.5mm,28.4mm) rectangle (148.5mm,152.4mm);}
+        {\draw[draw=none,fill=HSRBlue80,opacity=0.85] (24.5mm,28.4mm) rectangle (148.5mm,152.4mm);}
+
+        % HSR logo
+        \node[anchor=south west,inner sep=0] at (20mm,19.2mm) {\includegraphics[width=60.6mm]{header/HSR_Logo_CMYK.eps}};
+
+        % Text
+        \node[anchor=west] at (34.5mm,140mm) (titleinfo) {\textcolor{white}{\parbox{104mm}{\Large\sffamily\TitleInfo}}};
+        \node[anchor=west,below=5mm of titleinfo] (title) {\textcolor{white}{\parbox{104mm}{\huge\sffamily\bfseries\Title}}};
+        \node[anchor=west,below=3mm of title] (subject) {\textcolor{white}{\parbox{104mm}{\Large\sffamily\Subject}}};
+        \ifx \IsConfidential \True
+            \ifx \Lang \LangDE
+                \node[anchor=west,below=5mm of subject] (conf) {\textcolor{white}{\parbox{104mm}{\LARGE\MakeUppercase{Vertraulich}}}};
+            \else
+                \node[anchor=west,below=5mm of subject] (conf) {\textcolor{white}{\parbox{104mm}{\LARGE\MakeUppercase{Confidential}}}};
+            \fi
+        \fi
+        \node[anchor=west] at (34.5mm,65mm) (author) {\textcolor{white}{\parbox{104mm}{\Large\sffamily\Author}}};
+        \node[anchor=west] at (34.5mm,58mm) (date) {\textcolor{white}{\parbox{104mm}{\Large\sffamily\titledate\today}}};
+    \end{tikzpicture}
+\end{titlepage}
+
+% Verso of title page
+\thispagestyle{empty}
+\begin{minipage}[t][\textheight][b]{5.8cm}
+    \scriptsize
+    This document was typeset using \LaTeX~and KOMA-Script and the HSRReport style by H.Badertscher. \\
+    \Place,~\titledate\today\hfill
+\end{minipage}
