@@ -3,13 +3,13 @@
 \chapter{Theoretical and Practical Challenges}
 
 \section{Building Outline Regularization}
-The predicted results of the neural network are not exact enough to be directly used as vector outline, as can be seen in \ref{fig:challenges:predicted_building_masks}. As a result of this, the contour points of the predicted area have first to be processed, in order to be usable as building outline.
+As a result of the inaccuracies in the predicted building masks, shown in \ref{fig:challenges:building_masks}, the contours of these predictions can not directly be used to create the vectorized outlines. Instead, the predictions have to be regularized. The approach used is derived from \cite{Partovi.2017} and described below.
 
 \begin{figure}[H]
 	\centering
 	\begin{subfigure}{0.4\textwidth}
 		\centering
-    	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/predicted_masks.png}		    \caption{Predicted building masks with round corners and the actual ground truths}
+    	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/predicted_masks.png}		    \caption{Predicted building masks}
     	\label{fig:challenges:predicted_building_masks}
 	\end{subfigure}~
 	\begin{subfigure}{0.4\textwidth}
@@ -17,12 +17,11 @@ The predicted results of the neural network are not exact enough to be directly 
     	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/predicted_masks_gt.png}		    \caption{Actual ground truth}
     	\label{fig:challenges:predicted_building_masks_gt}
 	\end{subfigure}
-	\caption{Predicted masks and }
+	\caption{Predicted masks and actual ground truth}
 	\label{fig:challenges:building_masks}
 \end{figure}
 
 
-As, the predictions can be used to derive a plausible building outline. Generally, buildings consists of mainly right angles. However, there are also other buildings, for which the general assumption of one or more rectangles is not appropriate.
 
 \begin{figure}[H]
     \centering
