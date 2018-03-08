@@ -300,7 +300,13 @@ def get_corner_points(outline: List[Line]) -> List[Tuple[float, float]]:
         ls_2 = LineString(next_line.coords)
         if ls_1.intersects(ls_2):
             p = ls_1.intersection(ls_2)
-            corner_points.append((p.x, p.y))
+            if isinstance(p, geometry.Point):
+                corner_points.append((p.x, p.y))
+            elif isinstance(p, LineString) and ls_1 == ls_2:
+                corner_points.append(line.coords)
+            else:
+                raise RuntimeError("Invalid intersection result: ", ls_1, ls_2, p)
+
         elif parallel:
             ls_middle = LineString([line.coords[-1], next_line.coords[0]])
             center = ls_middle.centroid
@@ -459,14 +465,14 @@ class MarchingSquares:
                     if newcount > maxcount:
                         maxcount = newcount
 
-                    a = np.cos(theta)
-                    b = np.sin(theta)
-                    x0 = a * rho
-                    y0 = b * rho
-                    x1 = int(x0 + 1000 * -b)
-                    y1 = int(y0 + 1000 * a)
-                    x2 = int(x0 - 1000 * -b)
-                    y2 = int(y0 - 1000 * a)
+                    # a = np.cos(theta)
+                    # b = np.sin(theta)
+                    # x0 = a * rho
+                    # y0 = b * rho
+                    # x1 = int(x0 + 1000 * -b)
+                    # y1 = int(y0 + 1000 * a)
+                    # x2 = int(x0 - 1000 * -b)
+                    # y2 = int(y0 - 1000 * a)
                     # if not nearest_point:
                     #     dist = None
                     #     ls = LineString([(x1, y1), (x2, y2)])
