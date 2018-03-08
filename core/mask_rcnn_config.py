@@ -93,10 +93,11 @@ class OsmMappingDataset(utils.Dataset):
 
 
 class InMemoryDataset(OsmMappingDataset):
-    def __init__(self):
+    def __init__(self, no_logging=False):
         OsmMappingDataset.__init__(self)
         self._cache = {}
         print("Dataset: InMemoryDataset")
+        self.no_logging = no_logging
 
     def load(self, images):
         self.add_class("osm", 0, "building")
@@ -117,7 +118,7 @@ class InMemoryDataset(OsmMappingDataset):
                 print("Image loading failed: {}".format(image_path))
 
             new_progress = int(round(idx / total_nr_images * 100))
-            if new_progress != progress:
+            if not self.no_logging and new_progress != progress:
                 progress = new_progress
                 print("Caching progress: {}% ({} images)".format(progress, idx+1))
                 sys.stdout.flush()
