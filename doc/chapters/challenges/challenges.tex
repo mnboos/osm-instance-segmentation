@@ -3,25 +3,31 @@
 \chapter{Theoretical and Practical Challenges}
 
 \section{Building Outline Regularization}
-As a result of the inaccuracies in the predicted building masks, shown in \ref{fig:challenges:building_masks}, the contours of these predictions can not directly be used to create the vectorized outlines. Instead, the predictions have to be regularized. The approach used is derived from \cite{Partovi.2017} and described below.
+Once the network has been trained, it can be used to make predictions on images, it has never "seen" before. However, there are situations in which the predictions are far from perfect, especially then if the building is partially covered from trees or has unclear outlines. This can be seen in \autoref{fig:challenges:building_masks}.
 
 \begin{figure}[H]
 	\centering
 	\begin{subfigure}{0.4\textwidth}
 		\centering
-    	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/predicted_masks.png}		    \caption{Predicted building masks}
-    	\label{fig:challenges:predicted_building_masks}
-	\end{subfigure}~
-	\begin{subfigure}{0.4\textwidth}
-		\centering
     	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/predicted_masks_gt.png}		    \caption{Actual ground truth}
     	\label{fig:challenges:predicted_building_masks_gt}
+	\end{subfigure}~
+		\begin{subfigure}{0.4\textwidth}
+		\centering
+    	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/predicted_masks.png}		    \caption{Predicted building masks}
+    	\label{fig:challenges:predicted_building_masks}
 	\end{subfigure}
 	\caption{Predicted masks and actual ground truth}
 	\label{fig:challenges:building_masks}
 \end{figure}
 
+As a result of the inaccuracies in the predicted building masks the contours of these predictions can not directly be used to create the vectorized outlines. Instead, the predictions have to be regularized. The approach used is similar to \cite{Partovi.2017} and described below.
 
+\begin{enumerate}
+	\item Contour extraction
+	\item Contour segmentation
+	\item Group segments by orientation
+\end{enumerate}
 
 \begin{figure}[H]
     \centering
