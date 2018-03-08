@@ -167,13 +167,17 @@ def update_neighbourhoods(lines: List[Line], window_size: int = 5, reassignment_
         for ori in orientation_lengths:
             orientation_lengths[ori] = orientation_lengths[ori] / total_length
         most_probable_orientation = max(orientation_lengths, key=lambda l: orientation_lengths[l])
-        most_probable_neighbourhood = list(filter(lambda l: l.orientation == most_probable_orientation, group))[0].neighbourhood
+        lines_of_most_probable_orientation: List[Line] = list(filter(lambda l: l.orientation == most_probable_orientation, lines))
+        most_probable_neighbourhood = lines_of_most_probable_orientation[0].neighbourhood
+        master_line: Line = list(sorted(lines_of_most_probable_orientation, key=lambda li: li.length*-1))[0]
         for ori in orientation_lengths:
             if orientation_lengths[ori] <= reassignment_threshold:
                 lines_to_reassign = filter(lambda l: l.orientation == ori, group)
                 for l in lines_to_reassign:
+                    is_parallel, is_perpendicular = parallel_or_perpendicular(master_line.coords, l.coords)
                     l.set_orientation(most_probable_orientation)
                     l.set_neighbourhood(most_probable_neighbourhood)
+                    l.set_orthogonality(not is_parallel)
 
 
 def assign_neighbourhood(lines: List[Line], neighbour_distance_threshold: float = 15) -> None:
