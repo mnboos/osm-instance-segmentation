@@ -35,19 +35,19 @@ def get_random_images(search_dir, limit=None):
     return training_images, validation_images
 
 
-def get_random_datasets(size=None, search_dir=TRAINING_DATA_DIR):
+def get_random_datasets(size=None, search_dir=TRAINING_DATA_DIR, no_logging=False):
     if not size:
         size = DATASET_SIZE
     training_images, validation_images = get_random_images(limit=size, search_dir=search_dir)
 
     # Training dataset
-    dataset_train = InMemoryDataset()
+    dataset_train = InMemoryDataset(no_logging)
     # dataset_train = OsmMappingDataset()
     dataset_train.load(training_images)
     dataset_train.prepare()
 
     # Validation dataset
-    dataset_val = InMemoryDataset()
+    dataset_val = InMemoryDataset(no_logging)
     # dataset_val = OsmMappingDataset()
     dataset_val.load(validation_images)
     dataset_val.prepare()
