@@ -24,7 +24,7 @@ class Predictor:
         self.weights_path = weights_path
         self._model = None
 
-    def predict_array(self, img_data: np.ndarray, tile: Tile = None) \
+    def predict_array(self, img_data: np.ndarray, tile: Tile = None, do_rectangularization=True) \
             -> List[List[Tuple[int, int]]]:
         if not self._model:
             print("Loading model")
@@ -36,14 +36,17 @@ class Predictor:
 
         model = self._model
         res = model.detect([img_data], verbose=1)
-        point_sets = self._get_buildings(masks=res[0]['masks'])
+        point_sets = self._get_contours(masks=res[0]['masks'])
         rectangularized_outlines = []
-        for p in point_sets:
-            reg = rectangularize(p)
-            rectangularized_outlines.append(reg)
+        if do_rectangularization:
+            for p in point_sets:
+                reg = rectangularize(p)
+                rectangularized_outlines.append(reg)
+        else:
+            rectangularized_outlines.extend(point_sets)
         if tile:
-            point_sets = map(lambda p: georeference(p, tile), rectangularized_outlines)
-        return point_sets
+            rectangularized_outlines = map(lambda p: georeference(p, tile), rectangularized_outlines)
+        return rectangularized_outlines
 
     def predict_path(self, img_path: str, tile: Tile = None) -> List[List[Tuple[int, int]]]:
         img = Image.open(img_path)
@@ -51,10 +54,10 @@ class Predictor:
         return self.predict_array(img_data=data, tile=tile)
 
     @staticmethod
-    def _get_buildings(masks: np.ndarray) -> List[List[Tuple[int, int]]]:
-        buildings: List[List[Tuple[int, int]]] = []
+    def _get_contours(masks: np.ndarray) -> List[List[Tuple[int, int]]]:
+        contours: List[List[Tuple[int, int]]] = []
         for i in range(masks.shape[-1]):
             m = MarchingSquares.from_array(masks[:, :, i])
             points: List[Tuple[int, int]] = m.find_contour()
-            buildings.append(points)
-        return buildings
+            contours.append(points)
+        return contours
