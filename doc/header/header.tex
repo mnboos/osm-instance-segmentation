@@ -103,6 +103,9 @@
 \usepackage{amssymb}
 \usepackage{bm}
 
+% Enum
+\usepackage{enumitem}
+
 % Tables
 \usepackage{multirow}
 \usepackage{tabularx}
@@ -114,9 +117,9 @@
 \usepackage{float}
 
 % Listings - if you need advanced listings, switch to minted!
-\input{header/listings}
-% \usepackage[newfloat, chapter]{minted}
-% \usemintedstyle{friendly}
+% \input{header/listings}
+\usepackage[newfloat, chapter]{minted}
+\usemintedstyle{friendly}
 
 % Si Units
 \usepackage{siunitx}
@@ -275,7 +278,13 @@
 \usepackage{pgfplots}
 
 % Tikz Libraries
-\usetikzlibrary{positioning}
+\usetikzlibrary{positioning,shapes,arrows}
+
+% Define block styles
+\tikzstyle{decision} = [diamond, draw, fill=blue!20, text width=4.5em, text centered, node distance=3cm, inner sep=0pt]
+\tikzstyle{block} = [rectangle, minimum width=5cm, minimum height=1cm, text centered, draw=black, fill=orange!30, node distance=1.5cm]
+\tikzstyle{line} = [draw, -latex']
+\tikzstyle{cloud} = [rectangle, rounded corners, minimum width=4cm, minimum height=1cm,text centered, draw=black, node distance=1.5cm, fill=green!30]
 
  % Use Sans-Serif family in TikZ graphics
 \tikzset{font=\sffamily}

@@ -110,13 +110,13 @@ def make_lines(points: List[Tuple[float, float]], point_distance_threshold: floa
                                               distType=cv2.DIST_L2,
                                               param=0,
                                               reps=0.01,
-                                              aeps=0.01),2)
+                                              aeps=0.01), 2)
         if len(seg) >= 3:
             dist = geometry.Point(seg[0]).distance(geometry.Point(seg[-1]))
-            x1 = float(x - dist/2 * vx)
-            x2 = float(x + dist/2 * vx)
-            y1 = float(y - dist/2 * vy)
-            y2 = float(y + dist/2 * vy)
+            x1 = float(x - dist / 2 * vx)
+            x2 = float(x + dist / 2 * vx)
+            y1 = float(y - dist / 2 * vy)
+            y2 = float(y + dist / 2 * vy)
             line = Line(nr=len(lines), p1=(x1, y1), p2=(x2, y2))
             if line.length >= min_line_length:
                 lines.append(line)
@@ -167,9 +167,10 @@ def update_neighbourhoods(lines: List[Line], window_size: int = 5, reassignment_
         for ori in orientation_lengths:
             orientation_lengths[ori] = orientation_lengths[ori] / total_length
         most_probable_orientation = max(orientation_lengths, key=lambda l: orientation_lengths[l])
-        lines_of_most_probable_orientation: List[Line] = list(filter(lambda l: l.orientation == most_probable_orientation, lines))
+        lines_of_most_probable_orientation: List[Line] = list(
+            filter(lambda l: l.orientation == most_probable_orientation, lines))
         most_probable_neighbourhood = lines_of_most_probable_orientation[0].neighbourhood
-        master_line: Line = list(sorted(lines_of_most_probable_orientation, key=lambda li: li.length*-1))[0]
+        master_line: Line = list(sorted(lines_of_most_probable_orientation, key=lambda li: li.length * -1))[0]
         for ori in orientation_lengths:
             if orientation_lengths[ori] <= reassignment_threshold:
                 lines_to_reassign = filter(lambda l: l.orientation == ori, group)
@@ -245,14 +246,14 @@ def parallel_or_perpendicular(first_line: Tuple[Tuple[float, float], Tuple[float
                               second_line: Tuple[Tuple[float, float], Tuple[float, float]] = None,
                               threshold: float = 20) -> Tuple[bool, bool]:
     ang = get_angle(first_line, second_line)
-    is_parallel = 0 <= min(ang, math.fabs(ang-180)) <= threshold
+    is_parallel = 0 <= min(ang, math.fabs(ang - 180)) <= threshold
     is_perpendicular = 90 - threshold <= ang <= 90 + threshold
     return is_parallel, is_perpendicular
 
 
 def root_mean_square_error(p1, p2) -> float:
-    mean_x = (p1[0] - p2[0])**2
-    mean_y = (p1[1] - p2[1])**2
+    mean_x = (p1[0] - p2[0]) ** 2
+    mean_y = (p1[1] - p2[1]) ** 2
     return math.sqrt(1 / 2 * (mean_x + mean_y))
 
 
@@ -432,14 +433,15 @@ class MarchingSquares:
     def exact_contour(self):
         return self._contour
 
-    def _get_main_orientation(self, angle: float = None, angle_in_degrees: bool = False, max_lines: int = None)\
+    def _get_main_orientation(self, angle: float = None, angle_in_degrees: bool = False, max_lines: int = None) \
             -> Tuple[float, Tuple[float, float]]:
         max_threshold = 5
         lines = None
         # ang = np.pi / 180 if angle is None else angle
         while True:
             if angle:
-                new_lines = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi / 180, threshold=max_threshold, min_theta=angle, max_theta=angle)
+                new_lines = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi / 180, threshold=max_threshold,
+                                           min_theta=angle, max_theta=angle)
             else:
                 new_lines = cv2.HoughLines(image=self.exact_contour, rho=1, theta=np.pi / 180, threshold=max_threshold)
             if new_lines is not None:
@@ -490,7 +492,7 @@ class MarchingSquares:
             angle_sum = 0
             counts = 0
             for a in angles:
-                angle_sum += a*angles[a]
+                angle_sum += a * angles[a]
                 counts += angles[a]
             weighted_avg = int(round(angle_sum / counts))
             weighted_avg %= 180 if angle_in_degrees else np.pi
@@ -524,9 +526,9 @@ class MarchingSquares:
     def _calc_cell_states(self) -> None:
         for (r, c), value in np.ndenumerate(self.img[:-1, :-1]):
             top_left = value > 0
-            top_right = self.img[r, c+1] > 0
-            bottom_right = self.img[r+1, c+1] > 0
-            bottom_left = self.img[r+1, c] > 0
+            top_right = self.img[r, c + 1] > 0
+            bottom_right = self.img[r + 1, c + 1] > 0
+            bottom_left = self.img[r + 1, c] > 0
             cell_state = (top_left << 3) | (top_right << 2) | (bottom_right << 1) | bottom_left
             self._states[r, c] = cell_state
             if not self._start and 0 < cell_state < 15:
@@ -538,7 +540,6 @@ def georeference(points: Iterable[Tuple[int, int]], tile: Tile) -> Iterable[Tupl
     minx, maxy = tile.bounds[0].pixels(zoom_level)
     maxx, miny = tile.bounds[1].pixels(zoom_level)
     georeferenced = list(
-        map(lambda p: tuple(reversed(Point.from_pixel(p[0]+minx, p[1]+miny, zoom_level).latitude_longitude)), points))
+        map(lambda p: tuple(reversed(Point.from_pixel(p[0] + minx, p[1] + miny, zoom_level).latitude_longitude)),
+            points))
     return georeferenced
-
-

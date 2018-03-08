@@ -2,7 +2,7 @@
 
 \chapter{Theoretical and Practical Challenges}
 
-\section{Building Outline Regularization}
+\section{Building outline regularization}
 Once the network has been trained, it can be used to make predictions on images, it has never "seen" before. However, there are situations in which the predictions are far from perfect, especially then if the building is partially covered from trees or has unclear outlines. This can be seen in \autoref{fig:challenges:building_masks}.
 
 \begin{figure}[H]
@@ -21,13 +21,37 @@ Once the network has been trained, it can be used to make predictions on images,
 	\label{fig:challenges:building_masks}
 \end{figure}
 
-As a result of the inaccuracies in the predicted building masks the contours of these predictions can not directly be used to create the vectorized outlines. Instead, the predictions have to be regularized. The approach used is similar to \cite{Partovi.2017} and described below.
+As a result of the inaccuracies in the predicted building masks the contours of these predictions can not directly be used to create the vectorized outlines. Instead, the predictions have to be regularized. The approach used is similar to \cite{Partovi.2017} and described in \autoref{fig:challenges:rectangularization}.
 
-\begin{enumerate}
-	\item Contour extraction
-	\item Contour segmentation
-	\item Group segments by orientation
-\end{enumerate}
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[node distance = 2cm, auto]
+    % Place nodes
+    \node [cloud] (mask) {Predicted mask};
+    \node [block, below of=mask] (extract_contour) {Extract contour};
+    \node [cloud, below of=extract_contour] (contour) {Approximated contour};
+    \node [block, below of=contour] (segment) {Line segmentation};
+    \node [cloud, below of=segment] (line_segments) {Line segments};
+    \node [block, below of=line_segments] (assign_orientation) {Create orientation classes};
+    \node [block, below of=assign_orientation] (assign_neighbourhoods) {Create neighbourhoods};
+    \node [block, below of=assign_neighbourhoods] (rotate_lines) {Rotate lines};
+    \node [block, below of=rotate_lines] (get_corner_points) {Extract corner points};
+    \node [cloud, below of=get_corner_points] (corner_points) {Building corner points};
+
+    % Draw edges
+    \path [line,dashed] (mask) -- (extract_contour);
+    \path [line,dashed] (extract_contour) -- (contour);
+    \path [line,dashed] (contour) -- (segment);
+    \path [line,dashed] (segment) -- (line_segments);
+    \path [line,dashed] (line_segments) -- (assign_orientation);
+    \path [line] (assign_orientation) -- (assign_neighbourhoods);
+    \path [line] (assign_neighbourhoods) -- (rotate_lines);
+    \path [line] (rotate_lines) -- (get_corner_points);
+    \path [line,dashed] (get_corner_points) -- (corner_points);
+\end{tikzpicture}
+	\caption{Rectangularization procedure}
+	\label{fig:challenges:rectangularization}
+\end{figure}
 
 \begin{figure}[H]
     \centering
@@ -43,13 +67,32 @@ As a result of the inaccuracies in the predicted building masks the contours of 
 	\label{fig:challenges:building_masks}
 \end{figure}
 
-The procedure 
+\subsection{Contour extraction}
+The first step of the building outline regularization procedure consists of getting the contour from the predicted mask, which covers the whole building. The extraction is done using the marching squares algorithm \cite{Maple.2003}. In this algorithm, a square consisting of four cells is moved (marched) along the contour in such a way, that at least one cell always covers the object to be contoured. Additionally, the square always has a state, which is derived from the content of its cells, according to \eqref{equ:challenges:marching_squares_state}. The cells are traversed in counter clockwise order.
 
+\newenvironment{conditions}
+  {\par\vspace{\abovedisplayskip}\noindent\begin{tabular}{>{$}l<{$} @{${}={}$} l}}
+  {\end{tabular}\par\vspace{\belowdisplayskip}}
 
 \begin{equation}
-    x^2 + y^2 = 1
-    \label{equ:bsp_chapter:example_equation}
+	s = \displaystyle\sum_{i=0}^3 2^i f(c_i)
+	\label{equ:challenges:marching_squares_state}
 \end{equation}
+where:
+\begin{itemize}[label=]
+    \item $c_i$: The value of the cell $i$
+    \item $c_0$: The bottom left cell
+\end{itemize}
+
+and
+
+\[ f(c_i) =
+  \begin{cases}
+    0  & \text{if $c_i \leq 0$}\\
+    1  & \text{if $c_i > 0$}
+  \end{cases}
+\]
+
 
 There are several environments for multi line equations. A very useful one
 is \emph{align}, see equation \eqref{equ:bsp_chapter:example_align}.
