@@ -35,7 +35,7 @@ As a result of the inaccuracies in the predicted building masks the contours of 
     \node [block, below of=line_segments] (assign_orientation) {Create orientation classes};
     \node [block, below of=assign_orientation] (assign_neighbourhoods) {Create neighbourhoods};
     \node [block, below of=assign_neighbourhoods] (rotate_lines) {Rotate lines};
-    \node [block, below of=rotate_lines] (get_corner_points) {Extract corner points};
+    \node [block, below of=rotate_lines] (get_corner_points) {Get corner points};
     \node [cloud, below of=get_corner_points] (corner_points) {Building corner points};
 
     % Draw edges
@@ -77,8 +77,12 @@ The first step of the building outline regularization procedure consists of gett
   {\end{tabular}\par\vspace{\belowdisplayskip}}
 
 \begin{equation}
-	s = \displaystyle\sum_{i=0}^3 2^i f(c_i)
+\begin{split}
+	s	&= \displaystyle\sum_{i=0}^3 2^i f(c_i) \\
+		&= 2^0 * f(c_0) + 2^1 * f(c_1) + 2^2 * f(c_2) + 2^3 * f(c_3) \\
+		&= f(c_{bottomLeft}) + 2 * f(c_{bottomRight}) + 4 * f(c_{topRight}) + 8 * f(c_{topLeft})
 	\label{equ:challenges:marching_squares_state}
+\end{split}
 \end{equation}
 where:
 \begin{itemize}[label=]
@@ -110,3 +114,45 @@ As soon as the contour has been extracted, its number of points will be reduced 
 	\label{fig:challenges:contour_approximation}
 \end{figure}
 
+\subsection{Line segmentation}
+Once the contour has been extracted, it is split into multiple line segments. For this, the main direction of the building is determined using the Hough lines algorithm. The result of this is the line which hits the greatest number of points. The angle between this line and a horizontal line gives the main building orientation.
+
+Once the main building direction is known, the line segmentation starts at the point which has the smallest distance to this line. The following algorithm describes the line segmentation process.
+
+\begin{algorithm}[H]
+\KwData{Contour points, startpoint}
+\KwResult{Lines}
+rearrange points so that startpoint == points[0]
+lines = []
+\While{any points left}{
+	segment = remove first 3 elements from points
+	\While{points is not empty}{
+		p = points.first()
+		err = rsme of distance between segment.last() and p
+		\If{err > threshold}{
+			break
+		}
+		
+		segment.append(p)
+		points.remove(p)
+	}
+	\If{segment.length() >= 3}{
+		line = fit line to points of segment
+		lines.append(line)
+	}
+}
+\caption{Line segmentation algorithm}
+\end{algorithm}
+
+	
+\subsection{Create orientation classes}
+tbd
+
+\subsection{Create neighbourhoods}
+tbd
+
+\subsection{Update line orientation}
+tbd
+
+\subsection{Get corner points}
+tbd
