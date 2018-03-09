@@ -25,7 +25,7 @@ As a result of the inaccuracies in the predicted building masks the contours of 
 
 \begin{figure}[H]
 \centering
-\begin{tikzpicture}[node distance = 2cm, auto]
+\begin{tikzpicture}[node distance = 2cm, auto, scale=0.7, every node/.style={transform shape}]
     % Place nodes
     \node [cloud] (mask) {Predicted mask};
     \node [block, below of=mask] (extract_contour) {Extract contour};
@@ -52,6 +52,8 @@ As a result of the inaccuracies in the predicted building masks the contours of 
 	\caption{Rectangularization procedure}
 	\label{fig:challenges:rectangularization}
 \end{figure}
+
+The single steps are described in detail in the following sections.
 
 \begin{figure}[H]
     \centering
@@ -94,118 +96,17 @@ and
 \]
 
 
-There are several environments for multi line equations. A very useful one
-is \emph{align}, see equation \eqref{equ:bsp_chapter:example_align}.
+As soon as the contour has been extracted, its number of points will be reduced using a Douglas-Peucker algorithm \cite{DOUGLAS.1973}. The reason for this is, that the contour has pixel accuracy. That means, there may be several points on the same horizontal or vertical line, even though, the startpoint and endpoint of each such line would be enough, to represent the line. Additionally, the lower the number of points per contour is, the faster the following processing will be.
 
-\begin{align}
-    \oint \vec{E} \cdot d \vec{A} &= \frac{q}{\epsilon_0} \\
-    \oint \vec{B} \cdot d \vec{A} &= 0 \\
-    \oint \vec{E} \cdot d \vec{s} &= - \frac{d \Phi_B}{dt}
-    \label{equ:bsp_chapter:example_align}
-\end{align}
-
-\marginpar{Figures and Tables}%
-Images\index{Image} are always inserted inside a \emph{figure}
-environment. If possible, it is advisable to use \texttt{[tb]} as position.
-Always remember to add a caption and a label, so you can reference the image
-like this: \autoref{fig:bsp_chapter:example_figure}. If possible, images should be
-inserted as vector graphics, e.g. \texttt{eps} or \texttt{pdf} - or even drawn
-manually in TikZ.
-
-\begin{figure}[t]
+\begin{figure}[H]
     \centering
-    \includegraphics[width=2cm]{chapters/bsp_chapter/images/thumbs_up.jpg}
-    \caption{An example image}
-    \label{fig:bsp_chapter:example_figure}
+	\begin{subfigure}{0.4\textwidth}
+    	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/original_contour.png}		    	\caption{Original contour}
+	\end{subfigure}~
+	\begin{subfigure}{0.4\textwidth}
+    	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/approx_contour.png}       			\caption{Approximated contour}
+	\end{subfigure}
+	\caption{Contour before and after approximation}
+	\label{fig:challenges:contour_approximation}
 \end{figure}
 
-Tables\index{Table} can be used quite similarly. They are inserted inside a \emph{table}\index{Table!tabular}
-environment, as shown in \autoref{tab:bsp_chapter:example_table}.
-
-\begin{table}[t]
-    \centering
-    \begin{tabular}{lcrp{4cm}} \toprule
-        some & text & is shown & here \\ \midrule
-        there is more & text here & and here & cool. \\
-        and & even & more & here. \\ \bottomrule
-    \end{tabular}
-    \caption{A sample table}
-    \label{tab:bsp_chapter:example_table}
-\end{table}
-
-Another useful tool is the \emph{tabularx} environment. \index{Table!tabularx}
-It lets the user specify the total width of the table, instead of each column. 
-An example is shown in \autoref{tab:bsp_chapter:example_tabularx}.
-
-\begin{table}[t]
-    \centering
-    \begin{tabularx}{0.9\linewidth}{lXX} \toprule
-        some & text & is shown here \\ \midrule
-        there is more & text here & and here. \\
-        and & even & more here. \\ \bottomrule
-    \end{tabularx}
-    \caption{Tabularx example}
-    \label{tab:bsp_chapter:example_tabularx}
-\end{table}
-
-Please read the documentation of the
-\emph{booktabs}\footnote{\url{http://www.ctan.org/pkg/booktabs}} 
-package to find information on how to create good tables.
-Always remember the first two guidelines and try also to stick to the other three:
-\begin{enumerate}
-    \item Never, ever use vertical rules.
-    \item Never use double rules.
-    \item Put the units in the column heading (not in the body of the table).
-    \item Always precede a decimal point by a digit; thus $0.1$ \emph{not} just $.1$.
-    \item Do not use \enquote{ditto} signs to repeate a value. In many circumstances a blank will serve just as well. If it won't, then repeat the value.
-\end{enumerate}
-
-\marginpar{Paragraphs}%
-Note that each paragraph is ended with an empty line. 
-\emph{Never} use \verb|\\| to end paragraphs -- this is a new line, not a new paragraph.
-Also try to keep your source code clean: about 80 characters per line.
-Using source control makes your life much easier
-
-\marginpar{Quotes}%
-Quotes can easily be made using the \enquote{csquotes} package.
-Citing text passages is easily done: \textquote[me][!]{First argument: citation,
-second argument: terminal punctuation} Whole block quotes are also easily 
-possible.
-
-\blockquote{Formal requirements in academic writing frequently demand that
-quotations be embedded in the text if they are short but set oV as a distinct
-and typically indented paragraph, a so-called block quotation, if they are
-longer than a certain number of lines or words. In the latter case no quotation
-marks are inserted.}
-
-\marginpar{SI Units}%
-Any numbers and units should by typed using the siunitx package.
-Numbers are written as \num{1234} \num{3.45e-5} \numlist{1;2;4} \numrange{4}{30} \ang{10} \ang{5;3;2}.
-Units are written with \si{\kilo\gram\meter\per\square\second} or \SI{14}{\farad\tothe{4}}.
-Of course also possible is \SIlist{10;40;12}{\meter} or \SIrange{-40}{+125}{\degreeCelsius}
-Almost every unit you could possibly think of is implemented!
-
-\marginpar{Bibliography}%
-The bibliography is created using \emph{Bibtex}. The
-standard format is set to \texttt{ieeetr}, which is the IEEE Standard. There
-are example entries for different types of  in the separate bibliography file
-\cite{article} \cite{book} \cite{booklet} \cite{conference} \cite{inbook}
-\cite{incollection} \cite{manual} \cite{mastersthesis} \cite{misc}
-\cite{phdthesis} \cite{proceedings} \cite{techreport} \cite{unpublished}.
-
-\marginpar{Index \& Glossary}%
-All glossary entries are made in the separate file \texttt{glossary.tex}.
-They can then be used with \gls{equation}.
-Acronyms are defined as shown there and used similarly. 
-The first time, it will be \emph{\gls{svm}}.
-The second time: \emph{\gls{svm}}.
-The glossary has to be created manually by invoking \texttt{makeindex -s doku.ist -t doku.glg -o doku.gls doku.glo}.
-The index is simply created by using \texttt{index\{text\}}. It is generated automatically.
-
-\subsection{Listings}
-Listings are created by the \texttt{lstlistings} package.
-
-\todo{This is a simple ToDo note}
-
-\todonote{This is a small note}
-\citationneeded
