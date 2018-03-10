@@ -3,12 +3,11 @@ import base64
 
 
 class InferenceRequest(object):
-    def __init__(self, lat: float, lon: float, zoom_level: int, image_data: str, approximiation_tolerance: float = None):
+    def __init__(self, lat: float, lon: float, zoom_level: int, image_data: str):
         self.lat = lat
         self.lon = lon
         self.zoom_level = zoom_level
         self.image_data = image_data
-        self.approximiation_tolerance = approximiation_tolerance
 
 
 def validate_base64(s: str) -> None:
@@ -20,8 +19,6 @@ def validate_base64(s: str) -> None:
 
 
 class InferenceRequestSerializer(serializers.Serializer):
-    approximiation_tolerance = serializers.FloatField(required=False,
-                                                      min_value=0)
     lat = serializers.FloatField(required=True,
                                  min_value=-85.05112878,
                                  max_value=85.05112878,
