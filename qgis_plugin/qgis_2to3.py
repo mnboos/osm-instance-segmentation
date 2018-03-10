@@ -12,6 +12,7 @@ except ImportError:
 from qgis.core import (
     QgsApplication,
     QgsRectangle,
+    QgsFeature,
     QgsCoordinateReferenceSystem,
     QgsProject,
     QgsCoordinateReferenceSystem,

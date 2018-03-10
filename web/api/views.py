@@ -1,3 +1,4 @@
+import sys
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser, FormParser
 from django.http import JsonResponse
@@ -13,6 +14,7 @@ import io
 import tempfile
 from shapely import geometry
 import json
+import traceback
 
 _predictor = Predictor(os.path.join(os.getcwd(), "model", "mask_rcnn_osm_0248.h5"))
 
@@ -45,18 +47,27 @@ def request_inference(request):
         try:
             res = _predict(inference)
             coll = "GEOMETRYCOLLECTION({})".format(", ".join(res))
-            return JsonResponse({'result': coll})
+            return JsonResponse({'features': res})
         except Exception as e:
-            return JsonResponse({'errors': str(e)})
+            tb = ""
+            if traceback:
+                tb = traceback.format_exc()
+            print("Server error: {}, {}", sys.exc_info(), tb)
+            msg = str(e)
+            return JsonResponse({'error': msg})
 
 
 def _predict(request: InferenceRequest):
     b64 = base64.b64decode(request.image_data)
     barr = io.BytesIO(b64)
     img = Image.open(barr)
+    img = img.convert("RGB")
+    img = img.crop((0, 0, 256, 256))
+    img.save(r"D:\training_images\_last_predicted\img.png")
+    print("Image shape: ", img.size)
     arr = np.asarray(img)
     tile = Tile.for_point(point=Point(latitude=request.lat, longitude=request.lon), zoom=int(request.zoom_level))
-    res = _predictor.predict_array(img_data=arr, tile=tile)
+    res = _predictor.predict_array(img_data=arr, tile=tile, do_rectangularization=request.rectangularize)
     polygons = [geometry.Polygon(points) for points in res]
     # return list(map(lambda p: json.dumps(geometry.mapping(p)), polygons))
     return list(map(lambda p: p.wkt, polygons))

@@ -50,26 +50,44 @@ class DeepOsmPlugin:
         scale = self._get_current_map_scale()
         zoom = get_zoom_by_scale(scale)
 
-        info("extent @ zoom {}: {}", zoom, (lon, lat))
+        info("extent @ zoom {}: {} (={})", zoom, (lon, lat), (x, y))
         temp_dir = os.path.join(tempfile.gettempdir(), "deep_osm")
         if not os.path.isdir(temp_dir):
             os.makedirs(temp_dir)
-        file_path = os.path.join(temp_dir, "screenshot.tiff")
-        self.iface.mapCanvas().saveAsImage(file_path, None, 'TIFF')
+        file_path = os.path.join(temp_dir, "screenshot.png")
+        self.iface.mapCanvas().saveAsImage(file_path, None, 'PNG')
         with open(file_path, 'rb') as f:
             binary_data = f.read()
         image_data = base64.standard_b64encode(binary_data)
         data = {
+            'rectangularize': False,
             'lat': lat,
             'lon': lon,
             'zoom_level': zoom,
             'image_data': image_data
         }
-        response = post("http://localhost:8000/inference", json.dumps(data))
-        info("response: {}", response)
+        status, raw = post("http://localhost:8000/inference", json.dumps(data))
+        response = json.loads(raw)
+        if "features" in response:
+            self.detection_finished(response["features"])
+        else:
+            info("Prediction failed: {}", response)
 
-    def detection_finished(self, data):
-        info("detection finished: {}", data)
+    def detection_finished(self, features):
+        info("detection finished. {} features predicted", len(features))
+        layer = QgsVectorLayer("Polygon", "Prediction", "memory")
+        layer.startEditing()
+
+        for f in features:
+            feature = QgsFeature()
+            geom = QgsGeometry.fromWkt(f)
+            if geom:
+                feature.setGeometry(geom)
+                layer.addFeature(feature, True)
+        layer.commitChanges()
+        layer.updateExtents()
+        QgsMapLayerRegistry.instance().addMapLayer(layer)
+        info("done")
 
     def unload(self):
         self.iface.layerToolBar().removeAction(self.toolButtonAction)
