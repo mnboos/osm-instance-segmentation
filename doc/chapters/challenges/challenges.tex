@@ -35,8 +35,8 @@ As a result of the inaccuracies in the predicted building masks the contours of 
     \node [block, below of=line_segments] (assign_orientation) {Create orientation classes};
     \node [block, below of=assign_orientation] (assign_neighbourhoods) {Create neighbourhoods};
     \node [block, below of=assign_neighbourhoods] (rotate_lines) {Rotate lines};
-    \node [block, below of=rotate_lines] (get_corner_points) {Get corner points};
-    \node [cloud, below of=get_corner_points] (corner_points) {Building corner points};
+    \node [block, below of=rotate_lines] (gap_filling) {Gap filling};
+    \node [cloud, below of=gap_filling] (corner_points) {Building corner points};
 
     % Draw edges
     \path [line,dashed] (mask) -- (extract_contour);
@@ -46,28 +46,14 @@ As a result of the inaccuracies in the predicted building masks the contours of 
     \path [line,dashed] (line_segments) -- (assign_orientation);
     \path [line] (assign_orientation) -- (assign_neighbourhoods);
     \path [line] (assign_neighbourhoods) -- (rotate_lines);
-    \path [line] (rotate_lines) -- (get_corner_points);
-    \path [line,dashed] (get_corner_points) -- (corner_points);
+    \path [line] (rotate_lines) -- (gap_filling);
+    \path [line,dashed] (gap_filling) -- (corner_points);
 \end{tikzpicture}
 	\caption{Rectangularization procedure}
 	\label{fig:challenges:rectangularization}
 \end{figure}
 
 The single steps are described in detail in the following sections.
-
-\begin{figure}[H]
-    \centering
-	\begin{subfigure}{0.4\textwidth}
-    	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/regular_building_masks.png}		    \caption{Regular buildings}
-    	\label{fig:challenges:regular_buildings}
-	\end{subfigure}~
-	\begin{subfigure}{0.4\textwidth}
-    	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/irregular_building_masks.png}       	\caption{Non-orthogonal buildings}
-    	\label{fig:challenges:irregular_buildings}
-	\end{subfigure}
-	\caption{Different kinds of buildings with regard to their corner angles}
-	\label{fig:challenges:building_masks}
-\end{figure}
 
 \subsection{Contour extraction}
 The first step of the building outline regularization procedure consists of getting the contour from the predicted mask, which covers the whole building. The extraction is done using the marching squares algorithm \cite{Maple.2003}. In this algorithm, a square consisting of four cells is moved (marched) along the contour in such a way, that at least one cell always covers the object to be contoured. Additionally, the square always has a state, which is derived from the content of its cells, according to \eqref{equ:challenges:marching_squares_state}. The cells are traversed in counter clockwise order.
@@ -114,45 +100,83 @@ As soon as the contour has been extracted, its number of points will be reduced 
 	\label{fig:challenges:contour_approximation}
 \end{figure}
 
+
 \subsection{Line segmentation}
 Once the contour has been extracted, it is split into multiple line segments. For this, the main direction of the building is determined using the Hough lines algorithm. The result of this is the line which hits the greatest number of points. The angle between this line and a horizontal line gives the main building orientation.
 
-Once the main building direction is known, the line segmentation starts at the point which has the smallest distance to this line. The following algorithm describes the line segmentation process.
+Once the main building direction is known, the line segmentation starts at the point which has the smallest distance to this line. The whole procedure is depicted in \autoref{alg:challenges:line_segmentation}.
 
 \begin{algorithm}[H]
 \KwData{Contour points, startpoint}
 \KwResult{Lines}
-rearrange points so that startpoint == points[0]
-lines = []
+rearrange points so that startpoint == points[0]\\
+lines = []\\
 \While{any points left}{
-	segment = remove first 3 elements from points
+	segment = remove first 3 elements from points\\
 	\While{points is not empty}{
-		p = points.first()
-		err = rsme of distance between segment.last() and p
+		p = points.first()\\
+		err = root mean square error of distance between segment.last() and p\\
 		\If{err > threshold}{
 			break
 		}
-		
-		segment.append(p)
-		points.remove(p)
+		segment.append(p)\\
+		points.remove(p)\\
 	}
 	\If{segment.length() >= 3}{
-		line = fit line to points of segment
+		line = fit line to points of segment\\
 		lines.append(line)
 	}
 }
-\caption{Line segmentation algorithm}
+\caption{Line segmentation}
+\label{alg:challenges:line_segmentation}
 \end{algorithm}
 
-	
 \subsection{Create orientation classes}
-tbd
+After the line segmentation, an orientation will be assigned to each line. Generally, most of the buildings consist of mainly right angles. However, there are still buildings, for which this assumption is not true. Due to this, orthogonality will be preferred, but other angles will still be possible. Algorithm~\ref{alg:challenges:define_orientations} shows the procedure, which assigns a main orientation class to each line and defines the lines parallelity / orthogonality to the longest line of the same orientation class.
+
+\begin{figure}[H]
+    \centering
+	\begin{subfigure}{0.4\textwidth}
+    	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/regular_building_masks.png}		    \caption{Regular buildings}
+    	\label{fig:challenges:regular_buildings}
+	\end{subfigure}~
+	\begin{subfigure}{0.4\textwidth}
+    	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/irregular_building_masks.png}       	\caption{Non-orthogonal buildings}
+    	\label{fig:challenges:irregular_buildings}
+	\end{subfigure}
+	\caption{Different kinds of buildings with regard to their corner angles}
+	\label{fig:challenges:building_masks}
+\end{figure}
+
+\begin{algorithm}[H]
+\KwData{Lines, angleThreshold}
+	\While{any line without orientation}{
+		line = longest of unprocessed lines\\
+		line.orientation = angle between line and horizontal-line \\
+		\ForEach{line li without orientation}{
+			a = angle between line and li\\
+			\If{a $\leq$ angleThreshold}{
+				li.orientation = line.orientation
+				li.orthogonal = line.orthogonalTo(line)
+			}
+		}
+	}
+\caption{Orientation assignment}
+\label{alg:challenges:define_orientations}
+\end{algorithm}
 
 \subsection{Create neighbourhoods}
-tbd
+At this point, each line segment belongs to a orientation class and the parallelity / orthogonality of each line to the orientation classes main line is known. However, the spatial location of each line has not been taken into account yet, which is done in this step. Clusters of neighbouring lines are created within each orientation class. As a result of this, it is now possible to find lines, which may be better placed in an other orientation class. This is based in the assumption, that it is unprobable, that a line $k$ of the orientation class $x$ is surrounded by lines of the orientation class $y$. In this case, the line $k$ will be assigned to the orientation class $y$.
 
 \subsection{Update line orientation}
-tbd
+Finally, the lines will be adjusted to their orientation class with respect to each lines parallelity / orthogonality. The result of such an adjustment, can be seen in \autoref{fig:challenges:adjusted_lines}, which shows a single orientation class and lines, which have been adjusted either parallel or orthogonal to the orientation class.
 
-\subsection{Get corner points}
-tbd
+\begin{figure}[H]
+    \centering
+	\includegraphics[width=0.4\linewidth]{chapters/challenges/images/adjusted_lines.png}
+	\caption{Adjusted lines}
+	\label{fig:challenges:adjusted_lines}
+\end{figure}
+
+\subsection{Gap filling}
+The final step, before the final outline can be extracted, is the filling of the gaps between each line segment and its ancestor.
