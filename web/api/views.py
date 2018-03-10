@@ -14,7 +14,7 @@ import tempfile
 from shapely import geometry
 import json
 
-_predictor = Predictor(os.path.join(os.getcwd(), "model", "stage2.h5"))
+_predictor = Predictor(os.path.join(os.getcwd(), "model", "mask_rcnn_osm_0248.h5"))
 
 
 """
