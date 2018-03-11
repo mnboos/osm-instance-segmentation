@@ -534,12 +534,27 @@ class MarchingSquares:
             if not self._start and 0 < cell_state < 15:
                 self._start = (r, c)
 
+def _get_abs(p: Tuple[float, float], width, height) -> Tuple[float, float]:
+    img_size = 256
 
-def georeference(points: Iterable[Tuple[int, int]], tile: Tile) -> Iterable[Tuple]:
-    zoom_level = len(str(tile.quad_tree))
-    minx, maxy = tile.bounds[0].pixels(zoom_level)
-    maxx, miny = tile.bounds[1].pixels(zoom_level)
+
+def georeference(points: Iterable[Tuple[float, float]], extent) -> Iterable[Tuple]:
+    # zoom_level = len(str(tile.quad_tree))
+    # minx, maxy = tile.bounds[0].pixels(zoom_level)
+    # maxx, miny = tile.bounds[1].pixels(zoom_level)
+    min_x = extent['x_min']
+    # max_x = extent['x_max']
+    min_y = extent['y_min']
+    max_y = extent['y_max']
+    print(extent)
+    max_x = extent['x_min'] + 256.0 * (extent['x_max'] - min_x) / extent['img_width']
+    min_y = max_y + 256.0 * (extent['y_max'] - min_y) / extent['img_height']
+    per_pixel_width = (max_x - min_x) / 256.0
+    per_pixel_height = (max_y - min_y) / 256.0
+    print(max_x, max_y, per_pixel_width, per_pixel_height)
+
     georeferenced = list(
-        map(lambda p: tuple(reversed(Point.from_pixel(p[0] + minx, p[1] + miny, zoom_level).latitude_longitude)),
+        # map(lambda p: tuple(reversed(Point.from_pixel(p[0] + minx, p[1] + miny, zoom_level).latitude_longitude)),
+        map(lambda p: (min_x + p[0]*per_pixel_width, max_y + p[1]*per_pixel_height),
             points))
     return georeferenced
