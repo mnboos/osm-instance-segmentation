@@ -68,11 +68,16 @@ class DeepOsmPlugin:
             'image_data': image_data
         }
         status, raw = post("http://localhost:8000/inference", json.dumps(data))
-        response = json.loads(raw)
-        if "features" in response:
-            self.detection_finished(response["features"])
-        else:
-            info("Prediction failed: {}", response)
+        if status == 200 and raw:
+            response = {}
+            try:
+                response = json.loads(raw)
+            except Exception as e:
+                info("Parsing response failed: {}", str(e))
+            if "features" in response:
+                self.detection_finished(response["features"])
+            else:
+                info("Prediction failed: {}", response)
 
     def detection_finished(self, features):
         info("detection finished. {} features predicted", len(features))
