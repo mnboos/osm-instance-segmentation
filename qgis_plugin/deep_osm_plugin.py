@@ -42,15 +42,14 @@ class DeepOsmPlugin:
 
     def detect(self):
         extent = self.iface.mapCanvas().extent()
-        x = extent.xMinimum()
-        y = extent.yMaximum()
         qgis_crs = self._get_qgis_crs()
 
-        lon, lat = convert_coordinate(qgis_crs, 4326, y, x)
+        lon_min, lat_min = convert_coordinate(qgis_crs, 3857, extent.yMinimum(), extent.xMinimum())
+        lon_max, lat_max = convert_coordinate(qgis_crs, 3857, extent.yMaximum(), extent.xMaximum())
         scale = self._get_current_map_scale()
         zoom = get_zoom_by_scale(scale)
 
-        info("extent @ zoom {}: {} (={})", zoom, (lon, lat), (x, y))
+        info("extent @ zoom {}: {}", zoom, (lon_min, lat_min, lon_max, lat_max))
         temp_dir = os.path.join(tempfile.gettempdir(), "deep_osm")
         if not os.path.isdir(temp_dir):
             os.makedirs(temp_dir)
@@ -61,8 +60,10 @@ class DeepOsmPlugin:
         image_data = base64.standard_b64encode(binary_data)
         data = {
             'rectangularize': False,
-            'lat': lat,
-            'lon': lon,
+            'x_min': lon_min,
+            'x_max': lon_max,
+            'y_min': lat_min,
+            'y_max': lat_max,
             'zoom_level': zoom,
             'image_data': image_data
         }
@@ -75,7 +76,8 @@ class DeepOsmPlugin:
 
     def detection_finished(self, features):
         info("detection finished. {} features predicted", len(features))
-        layer = QgsVectorLayer("Polygon", "Prediction", "memory")
+        layer = QgsVectorLayer("Polygon?crs=EPSG:3857", "Prediction", "memory")
+        layer.setCrs(QgsCoordinateReferenceSystem(3857))
         layer.startEditing()
 
         for f in features:

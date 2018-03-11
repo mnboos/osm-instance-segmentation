@@ -44,9 +44,12 @@ def request_inference(request):
             return JsonResponse({'errors': inference_serializer.errors})
 
         inference = InferenceRequest(**inference_serializer.data)
+        print("Inf: ", inference)
         try:
             res = _predict(inference)
             coll = "GEOMETRYCOLLECTION({})".format(", ".join(res))
+            with open(r"D:\training_images\_last_predicted\wkt.txt", 'w') as f:
+                f.write(coll)
             return JsonResponse({'features': res})
         except Exception as e:
             tb = ""
@@ -62,12 +65,23 @@ def _predict(request: InferenceRequest):
     barr = io.BytesIO(b64)
     img = Image.open(barr)
     img = img.convert("RGB")
+    width, height = img.size
+    print("size: ", width, height)
     img = img.crop((0, 0, 256, 256))
     img.save(r"D:\training_images\_last_predicted\img.png")
     print("Image shape: ", img.size)
     arr = np.asarray(img)
-    tile = Tile.for_point(point=Point(latitude=request.lat, longitude=request.lon), zoom=int(request.zoom_level))
-    res = _predictor.predict_array(img_data=arr, tile=tile, do_rectangularization=request.rectangularize)
+    # tile = Tile.for_point(point=Point(latitude=request.lat, longitude=request.lon), zoom=int(request.zoom_level))
+    # print("Tile: ", tile)
+    extent = {
+        'x_min': request.x_min,
+        'y_min': request.y_min,
+        'x_max': request.x_max,
+        'y_max': request.y_max,
+        'img_width': width,
+        'img_height': height
+    }
+    res = _predictor.predict_array(img_data=arr, extent=extent, do_rectangularization=request.rectangularize)
     polygons = [geometry.Polygon(points) for points in res]
     # return list(map(lambda p: json.dumps(geometry.mapping(p)), polygons))
     return list(map(lambda p: p.wkt, polygons))
