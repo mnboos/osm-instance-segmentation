@@ -30,6 +30,8 @@ The QGIS plugin can be found in the folder `/qgis_plugin`. It can be installed b
 mklink /D "%userprofile%/.qgis2/python/plugins/deep_osm" %cd%
  ```
 
+![Alt Text](./sample_data/qgis_prototype.gif)
+
 ## Web service
 The server can be started using the script ```runserver.bat```.
 
