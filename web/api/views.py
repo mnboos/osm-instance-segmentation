@@ -1,4 +1,5 @@
 import sys
+import math
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser, FormParser
 from django.http import JsonResponse
@@ -16,7 +17,7 @@ from shapely import geometry
 import json
 import traceback
 
-_predictor = Predictor(os.path.join(os.getcwd(), "model", "mask_rcnn_osm_0248.h5"))
+_predictor = Predictor(os.path.join(os.getcwd(), "model", "mask_rcnn_osm_0444.h5"))
 
 
 """
@@ -61,18 +62,13 @@ def request_inference(request):
 
 
 def _predict(request: InferenceRequest):
+    print("Decoding image")
     b64 = base64.b64decode(request.image_data)
+    print("Image decoded")
     barr = io.BytesIO(b64)
     img = Image.open(barr)
     img = img.convert("RGB")
     width, height = img.size
-    print("size: ", width, height)
-    img = img.crop((0, 0, 256, 256))
-    img.save(r"D:\training_images\_last_predicted\img.png")
-    print("Image shape: ", img.size)
-    arr = np.asarray(img)
-    # tile = Tile.for_point(point=Point(latitude=request.lat, longitude=request.lon), zoom=int(request.zoom_level))
-    # print("Tile: ", tile)
     extent = {
         'x_min': request.x_min,
         'y_min': request.y_min,
@@ -81,8 +77,22 @@ def _predict(request: InferenceRequest):
         'img_width': width,
         'img_height': height
     }
-    res = _predictor.predict_array(img_data=arr, extent=extent, do_rectangularization=request.rectangularize)
-    polygons = [geometry.Polygon(points) for points in res]
-    # return list(map(lambda p: json.dumps(geometry.mapping(p)), polygons))
-    return list(map(lambda p: p.wkt, polygons))
+
+    all_polygons = []
+    cols = math.ceil(width / 256.0)
+    rows = math.ceil(height / 256.0)
+    for col in range(0, cols):
+        for row in range(0, rows):
+            print("Processing tile (x={},y={})".format(col, row))
+            start_width = col * 256
+            start_height = row * 256
+            img_copy = img.crop((start_width, start_height, start_width+256, start_height+256))
+            arr = np.asarray(img_copy)
+            res = _predictor.predict_array(img_data=arr, extent=extent, do_rectangularization=request.rectangularize, tile=(col, row))
+            polygons = [geometry.Polygon(points) for points in res]
+            all_polygons.extend(polygons)
+            # break
+        # break
+
+    return list(map(lambda p: p.wkt, all_polygons))
 
