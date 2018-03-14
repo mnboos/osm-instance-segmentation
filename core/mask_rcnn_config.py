@@ -31,9 +31,9 @@ class MyMaskRcnnConfig(Config):
 
     # Each tile is 256 pixels across, training data is 3x3 tiles
     IMAGE_MIN_DIM = IMAGE_WIDTH
-    IMAGE_MAX_DIM = IMAGE_WIDTH
+    IMAGE_MAX_DIM = 1024
 
-    USE_MINI_MASK = False
+    USE_MINI_MASK = True
     # MINI_MASK_SHAPE = (128, 128)
     # MASK_SHAPE = (IMAGE_MIN_DIM, IMAGE_MIN_DIM)
 

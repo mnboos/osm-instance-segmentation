@@ -285,19 +285,25 @@ def get_reoriented_lines(lines: List[Line]) -> List[Line]:
             outline.append(new_line)
 
             # This step is important: The points are arranged in CCW order
-    lines_reordered = [outline.pop()]
-    while outline:
-        line = outline.pop()
-        p_1 = min(line.coords, key=lambda p: geometry.Point(p).distance(geometry.Point(lines_reordered[-1].p2)))
-        p_2 = line.coords[1] if p_1 == line.coords[0] else line.coords[0]
-        next_line = Line(line.nr, p_1, p_2)
-        next_line.set_orientation(line.orientation)
-        lines_reordered.append(next_line)
+    if not outline:
+        lines_reordered = []
+    else:
+        lines_reordered = [outline.pop()]
+        while outline:
+            line = outline.pop()
+            p_1 = min(line.coords, key=lambda p: geometry.Point(p).distance(geometry.Point(lines_reordered[-1].p2)))
+            p_2 = line.coords[1] if p_1 == line.coords[0] else line.coords[0]
+            next_line = Line(line.nr, p_1, p_2)
+            next_line.set_orientation(line.orientation)
+            lines_reordered.append(next_line)
     return lines_reordered
 
 
 def get_corner_points(outline: List[Line]) -> List[Tuple[float, float]]:
     corner_points = []
+    if not outline:
+        return corner_points
+
     for i, line in enumerate(outline):
         next_line = outline[(i + 1) % len(outline)]
         parallel = line.orientation == next_line.orientation
@@ -534,27 +540,23 @@ class MarchingSquares:
             if not self._start and 0 < cell_state < 15:
                 self._start = (r, c)
 
-def _get_abs(p: Tuple[float, float], width, height) -> Tuple[float, float]:
-    img_size = 256
+def _get_abs(p: Tuple[float, float], offset_x, offset_y, per_pixel_width, per_pixel_height) -> Tuple[float, float]:
+    return offset_x + p[0] * per_pixel_width, offset_y + p[1] * per_pixel_height
 
 
 def georeference(points: Iterable[Tuple[float, float]], extent) -> Iterable[Tuple]:
-    # zoom_level = len(str(tile.quad_tree))
-    # minx, maxy = tile.bounds[0].pixels(zoom_level)
-    # maxx, miny = tile.bounds[1].pixels(zoom_level)
     min_x = extent['x_min']
-    # max_x = extent['x_max']
     min_y = extent['y_min']
     max_y = extent['y_max']
-    print(extent)
     max_x = extent['x_min'] + 256.0 * (extent['x_max'] - min_x) / extent['img_width']
     min_y = max_y + 256.0 * (extent['y_max'] - min_y) / extent['img_height']
     per_pixel_width = (max_x - min_x) / 256.0
     per_pixel_height = (max_y - min_y) / 256.0
-    print(max_x, max_y, per_pixel_width, per_pixel_height)
 
-    georeferenced = list(
-        # map(lambda p: tuple(reversed(Point.from_pixel(p[0] + minx, p[1] + miny, zoom_level).latitude_longitude)),
-        map(lambda p: (min_x + p[0]*per_pixel_width, max_y + p[1]*per_pixel_height),
-            points))
+    georeferenced = []
+    try:
+        georeferenced = list(map(lambda p: _get_abs(p, min_x, max_y, per_pixel_width, per_pixel_height), points))
+    except:
+        print("invalid outline: ", points)
+        # raise RuntimeError("Invalid outline: ", points)
     return georeferenced
