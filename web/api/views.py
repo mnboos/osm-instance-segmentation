@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser, FormParser
 from django.http import JsonResponse
 from .serializers import InferenceRequestSerializer, InferenceRequest
-# from .core.predict import Predictor
+from core.settings import IMAGE_WIDTH
 from core.predict import Predictor
 import os
 import base64
@@ -78,15 +78,17 @@ def _predict(request: InferenceRequest):
         'img_height': height
     }
 
+    IMG_SIZE = float(1024)
+
     all_polygons = []
-    cols = math.ceil(width / 256.0)
-    rows = math.ceil(height / 256.0)
+    cols = math.ceil(width / IMG_SIZE)
+    rows = math.ceil(height / IMG_SIZE)
     for col in range(0, cols):
         for row in range(0, rows):
             print("Processing tile (x={},y={})".format(col, row))
-            start_width = col * 256
-            start_height = row * 256
-            img_copy = img.crop((start_width, start_height, start_width+256, start_height+256))
+            start_width = col * IMG_SIZE
+            start_height = row * IMG_SIZE
+            img_copy = img.crop((start_width, start_height, start_width+IMG_SIZE, start_height+IMG_SIZE))
             arr = np.asarray(img_copy)
             res = _predictor.predict_array(img_data=arr, extent=extent, do_rectangularization=request.rectangularize, tile=(col, row))
             polygons = [geometry.Polygon(points) for points in res]

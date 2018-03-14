@@ -15,13 +15,16 @@ class DeepOsmPlugin:
 
     def initGui(self):
         self.about_action = self._create_action("About", "info.svg", self.show_about)
-        self.detect_action = self._create_action("Detect", "group.svg", self.detect)
+        self.detect_rectangles_action = self._create_action("Detect (rectangularized)", "group.svg", lambda: self.detect(True))
+        self.detect_raw_action = self._create_action("Detect (raw)", "group.svg", lambda: self.detect(False))
 
         self.popupMenu = QMenu(self.iface.mainWindow())
         self.popupMenu.addAction(self.about_action)
+        self.popupMenu.addAction(self.detect_raw_action)
+        self.popupMenu.addAction(self.detect_rectangles_action)
         self.toolButton = QToolButton()
         self.toolButton.setMenu(self.popupMenu)
-        self.toolButton.setDefaultAction(self.detect_action)
+        self.toolButton.setDefaultAction(self.detect_rectangles_action)
         self.toolButton.setPopupMode(QToolButton.MenuButtonPopup)
         self.toolButtonAction = self.iface.layerToolBar().addWidget(self.toolButton)
 
@@ -40,7 +43,7 @@ class DeepOsmPlugin:
         current_scale = int(round(canvas.scale()))
         return current_scale
 
-    def detect(self):
+    def detect(self, rectangularize):
         extent = self.iface.mapCanvas().extent()
         qgis_crs = self._get_qgis_crs()
 
@@ -59,7 +62,7 @@ class DeepOsmPlugin:
             binary_data = f.read()
         image_data = base64.standard_b64encode(binary_data)
         data = {
-            'rectangularize': False,
+            'rectangularize': rectangularize,
             'x_min': lon_min,
             'x_max': lon_max,
             'y_min': lat_min,
