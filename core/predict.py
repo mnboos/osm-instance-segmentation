@@ -34,6 +34,8 @@ class Predictor:
             model = modellib.MaskRCNN(mode="inference", config=inference_config, model_dir="log")
             model.load_weights(self.weights_path, by_name=True)
             self._model = model
+        if not tile:
+            tile = (0, 0)
 
         model = self._model
         print("Predicting...")
