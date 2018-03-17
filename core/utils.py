@@ -299,6 +299,26 @@ def get_reoriented_lines(lines: List[Line]) -> List[Line]:
     return lines_reordered
 
 
+def remove_redundant_segments(outline: List[Line]) -> None:
+    i = 0
+    while outline and i <= len(outline):
+        line = outline[i % len(outline)]
+        next_line = outline[(i + 1) % len(outline)]
+        parallel = line.orientation == next_line.orientation and line.orthogonal == next_line.orthogonal
+        if parallel:
+            ls_1 = LineString(line.coords)
+            ls_2 = LineString(next_line.coords)
+            ls_1_scaled = scale(ls_1, 1000, 1000)
+            ls_2_scaled = scale(ls_2, 1000, 1000)
+            dist = ls_1_scaled.distance(ls_2_scaled)
+            if dist <= 2:
+                outline.remove(next_line)
+            else:
+                i += 1
+        else:
+            i += 1
+
+
 def get_corner_points(outline: List[Line]) -> List[Tuple[float, float]]:
     corner_points = []
     if not outline:
@@ -306,18 +326,12 @@ def get_corner_points(outline: List[Line]) -> List[Tuple[float, float]]:
 
     for i, line in enumerate(outline):
         next_line = outline[(i + 1) % len(outline)]
-        parallel = line.orientation == next_line.orientation
+        parallel = line.orientation == next_line.orientation and line.orthogonal == next_line.orthogonal
         ls_1 = LineString(line.coords)
         ls_2 = LineString(next_line.coords)
         if ls_1.intersects(ls_2):
             p = ls_1.intersection(ls_2)
-            if isinstance(p, geometry.Point):
-                corner_points.append((p.x, p.y))
-            elif isinstance(p, LineString) and ls_1 == ls_2:
-                corner_points.append(line.coords)
-            else:
-                raise RuntimeError("Invalid intersection result: ", ls_1, ls_2, p)
-
+            _add_coords(p, corner_points)
         elif parallel:
             ls_middle = LineString([line.coords[-1], next_line.coords[0]])
             center = ls_middle.centroid
@@ -327,14 +341,24 @@ def get_corner_points(outline: List[Line]) -> List[Tuple[float, float]]:
 
             p_1 = scale(ls_1, 1000, 1000).intersection(center_line)
             p_2 = scale(ls_2, 1000, 1000).intersection(center_line)
-            corner_points.append((p_1.x, p_1.y))
-            corner_points.append((p_2.x, p_2.y))
+            _add_coords(p_1, corner_points)
+            if p_2 != p_1:
+                _add_coords(p_2, corner_points)
         else:
             p = scale(ls_1, 1000, 1000).intersection(scale(ls_2, 1000, 1000))
             corner_points.append((p.x, p.y))
 
     corner_points.append(corner_points[0])
     return corner_points
+
+
+def _add_coords(geom, coords: List[Tuple[float, float]]) -> None:
+    if isinstance(geom, geometry.Point):
+        coords.append((geom.x, geom.y))
+    elif isinstance(geom, LineString):
+        coords.extend(geom.coords)
+    else:
+        raise RuntimeError("Invalid intersection result: ", ls_1, ls_2, p)
 
 
 def rectangularize(contour_points: List[Tuple[int, int]]) -> List[Tuple[float, float]]:
@@ -366,7 +390,10 @@ def rectangularize(contour_points: List[Tuple[int, int]]) -> List[Tuple[float, f
     assign_neighbourhood(lines, neighbour_distance_threshold=neighbour_distance_threshold)
     update_neighbourhoods(lines, window_size=window_size, reassignment_threshold=reassignment_threshold)
     lines = get_reoriented_lines(lines)
+    remove_redundant_segments(lines)
     corner_points = get_corner_points(lines)
+    # p = geometry.Polygon(corner_points).simplify(1)
+    # corner_points = list(map(lambda c: (c[0], c[1]), p.exterior.coords))
     return corner_points
 
 
