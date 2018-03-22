@@ -27,6 +27,9 @@ class Predictor:
 
     def predict_array(self, img_data: np.ndarray, extent=None, do_rectangularization=True, tile=None) \
             -> List[List[Tuple[int, int]]]:
+        if not tile:
+            tile = (0, 0)
+
         if not self._model:
             print("Loading model")
             inference_config = self.InferenceConfig()
@@ -34,8 +37,6 @@ class Predictor:
             model = modellib.MaskRCNN(mode="inference", config=inference_config, model_dir="log")
             model.load_weights(self.weights_path, by_name=True)
             self._model = model
-        if not tile:
-            tile = (0, 0)
 
         model = self._model
         print("Predicting...")
@@ -43,7 +44,12 @@ class Predictor:
         print("Prediction done")
         print("Extracting contours...")
         point_sets = self._get_contours(masks=res[0]['masks'])
+        point_sets = list(map(lambda point_set: list(point_set), point_sets))
         print("Contours extracted")
+
+        rectangularized_outlines = []
+        if do_rectangularization:
+            point_sets = list(map(lambda point_set: rectangularize(point_set), point_sets))
 
         point_sets_mapped = []
         col, row = tile
@@ -53,9 +59,6 @@ class Predictor:
                 point_sets_mapped.append(pp)
         point_sets = point_sets_mapped
 
-        rectangularized_outlines = []
-        if do_rectangularization:
-            point_sets = list(map(lambda point_set: rectangularize(point_set), point_sets))
         if not extent:
             rectangularized_outlines = point_sets
         else:

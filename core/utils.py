@@ -1,10 +1,7 @@
 from PIL import Image, ImageDraw
 from itertools import groupby
 from typing import Iterable, Tuple, Collection, List, Dict
-from skimage.measure import approximate_polygon
-from skimage.transform import hough_line, hough_line_peaks
-from pygeotile.tile import Tile, Point
-from shapely.geometry import LineString
+from shapely.geometry import LineString, Point
 from shapely.affinity import rotate, scale
 from shapely import geometry
 import cv2
@@ -28,6 +25,9 @@ class Line:
         self._orientation: float = None
         self._orthogonal: bool = False
         self._neighbourhood: uuid = None
+
+    def set_nr(self, nr: int):
+        self._nr = nr
 
     def set_orientation(self, angle: float):
         self._orientation = angle
@@ -78,6 +78,125 @@ class Line:
 
     def __repr__(self):
         return self.__str__()
+
+
+def get_main_orientation(contour, angle_in_degrees: bool = False, max_lines: int = None):
+    max_threshold = 5
+    lines = None
+    # ang = np.pi / 180 if angle is None else angle
+    while True:
+        new_lines = cv2.HoughLines(image=contour, rho=1, theta=np.pi / 180, threshold=max_threshold)
+        if new_lines is not None:
+            lines = new_lines
+        else:
+            max_threshold -= 1
+            break
+        if max_lines and len(lines) <= max_lines:
+            break
+        max_threshold += 1
+
+    angles = {}
+    maxcount = 0
+    nearest_point = None
+    weighted_avg = None
+    line: Line = None
+    if lines is not None:
+        for l in lines:  # rho = distance, theta = angle
+            for rho, theta in l:
+                if angle_in_degrees:
+                    angle = int(math.degrees(theta))
+                else:
+                    angle = theta
+                if angle not in angles:
+                    angles[angle] = 0
+                newcount = angles[angle] + 1
+                angles[angle] = newcount
+                if newcount > maxcount:
+                    maxcount = newcount
+
+                a = np.cos(theta)
+                b = np.sin(theta)
+                x0 = a * rho
+                y0 = b * rho
+                x1 = int(x0 + 1000 * -b)
+                y1 = int(y0 + 1000 * a)
+                x2 = int(x0 - 1000 * -b)
+                y2 = int(y0 - 1000 * a)
+                line = Line(nr=0, p1=(x1, y1), p2=(x2, y2))
+                # if not nearest_point:
+                #     dist = None
+                #     ls = LineString([(x1, y1), (x2, y2)])
+                #     for px, py in self._points:
+                #         p = geometry.Point(px, py)
+                #         new_dist = p.distance(ls)
+                #         if not nearest_point or new_dist < dist:
+                #             nearest_point = p
+                #             dist = new_dist
+
+        angle_sum = 0
+        counts = 0
+        for a in angles:
+            angle_sum += a * angles[a]
+            counts += angles[a]
+        weighted_avg = int(round(angle_sum / counts))
+        weighted_avg %= 180 if angle_in_degrees else np.pi
+    return line, weighted_avg
+
+
+def make_lines_new(points: List[Tuple[float, float]]) -> List[Line]:
+    lines = []
+    new_lines_added = True
+    while new_lines_added and points:
+        new_lines_added = False
+        x, y = [i[0] for i in points], [i[1] for i in points]
+        max_x, max_y = max(x), max(y)
+
+        img = np.zeros((max_y + 1, max_x + 1), dtype=np.uint8)
+        for x, y in points:
+            img[y, x] = 1
+
+        line, angle = get_main_orientation(img, angle_in_degrees=True)
+        if line:
+            ls = LineString(line.coords)
+            first_line = []
+            for p in points:
+                if Point(p).distance(ls) <= 3:
+                    first_line.append(p)
+
+            while len(first_line) > 2:
+                segment = [first_line.pop()]
+                neighbours = nearest_neighbours_recursive(segment[0], first_line)
+                segment.extend(neighbours)
+                if len(segment) > 6:
+                    new_lines_added = True
+                    for p in segment:
+                        points.remove(p)
+                    segment = sorted(segment)
+                    t_1 = ls.interpolate(ls.project(Point(segment[0])))
+                    t_2 = ls.interpolate(ls.project(Point(segment[-1])))
+                    line = Line(nr=1, p1=(t_1.x, t_1.y), p2=(t_2.x, t_2.y))
+                    lines.append(line)
+            # assert not len(first_line)
+
+    if lines:
+        lines_reordered = [lines.pop()]
+        lines_reordered[0].set_nr(0)
+        while lines:
+            current_line = LineString(lines_reordered[-1].coords)
+            nearest_line = None
+            min_dist = None
+            for l in lines:
+                dist = current_line.distance(LineString(l.coords))
+                if min_dist is None or dist < min_dist:
+                    min_dist = dist
+                    nearest_line = l
+            lines.remove(nearest_line)
+
+            nearest_line.set_nr(len(lines_reordered))
+            lines_reordered.append(nearest_line)
+        lines = lines_reordered
+
+    return lines
 
 
 def make_lines(points: List[Tuple[float, float]], point_distance_threshold: float = 2, min_line_length: float = 3) \
@@ -203,6 +322,19 @@ def assign_neighbourhood(lines: List[Line], neighbour_distance_threshold: float 
         neighbourhood_id = uuid.uuid4()
         for line in neighbourhood:
             line.set_neighbourhood(neighbourhood_id)
+
+
+def nearest_neighbours_recursive(point: Tuple[float, float], remaining_points: List[Tuple[float, float]])\
+        -> List[Tuple[float, float]]:
+    neighbours = []
+    for p in remaining_points:
+        if Point(point).distance(Point(p)) <= 2:
+            neighbours.append(p)
+            remaining_points.remove(p)
+    for p in neighbours:
+        new_neighbours = nearest_neighbours_recursive(p, remaining_points)
+        neighbours.extend(new_neighbours)
+    return neighbours
 
 
 def get_all_neighbours(line: Line, remaining_lines: List[Line], neighbour_distance_threshold: float) -> List[Line]:
@@ -383,9 +515,14 @@ def rectangularize(contour_points: List[Tuple[int, int]]) -> List[Tuple[float, f
     # If the probability of a segment to its class is below this threshold, it will be reassigned to the most probable class
     reassignment_threshold = 0.25
 
-    contour_approximate = approximate_polygon(np.array(contour_points), tolerance=approximization_tolerance)
-    points = list(map(lambda t: (t[0], t[1]), contour_approximate.tolist()))
-    lines = make_lines(points, point_distance_threshold=point_distance_threshold, min_line_length=min_line_length)
+    # contour_approximate = approximate_polygon(np.array(contour_points), tolerance=approximization_tolerance)
+
+    # line, angle = get_main_orientation(contour_approximate, angle_in_degrees=True)
+
+    # points = list(map(lambda t: (t[0], t[1]), contour_approximate.tolist()))
+    # lines = make_lines(points, point_distance_threshold=point_distance_threshold, min_line_length=min_line_length)
+
+    lines = make_lines_new(contour_points)
     assign_orientation(lines, angle_parallelity_threshold=angle_parallelity_threshold)
     assign_neighbourhood(lines, neighbour_distance_threshold=neighbour_distance_threshold)
     update_neighbourhoods(lines, window_size=window_size, reassignment_threshold=reassignment_threshold)
