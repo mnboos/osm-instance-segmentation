@@ -17,7 +17,7 @@ from shapely import geometry
 import json
 import traceback
 
-_predictor = Predictor(os.path.join(os.getcwd(), "model", "mask_rcnn_osm_0607.h5"))
+_predictor = Predictor(os.path.join(os.getcwd(), "model", "mask_rcnn_osm_0741.h5"))
 
 
 """
