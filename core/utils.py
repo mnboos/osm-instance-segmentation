@@ -80,8 +80,7 @@ class Line:
         return self.__str__()
 
 
-def get_main_orientation(contour, angle_in_degrees: bool = False, max_lines: int = None):
-    max_threshold = 5
+def get_main_orientation(contour, angle_in_degrees: bool = False, max_lines: int = None, max_threshold: int = 5):
     lines = None
     # ang = np.pi / 180 if angle is None else angle
     while True:
@@ -143,7 +142,8 @@ def get_main_orientation(contour, angle_in_degrees: bool = False, max_lines: int
     return line, weighted_avg
 
 
-def make_lines_new(points: List[Tuple[float, float]]) -> List[Line]:
+def make_lines_new(points: List[Tuple[float, float]], max_point_distance: float = 3, min_points_per_segment: int = 7,
+                   hough_lines_threshold: int = 5) -> List[Line]:
     lines = []
     new_lines_added = True
     while new_lines_added and points:
@@ -155,19 +155,19 @@ def make_lines_new(points: List[Tuple[float, float]]) -> List[Line]:
         for x, y in points:
             img[y, x] = 1
 
-        line, angle = get_main_orientation(img, angle_in_degrees=True)
+        line, angle = get_main_orientation(img, angle_in_degrees=True, max_threshold=hough_lines_threshold)
         if line:
             ls = LineString(line.coords)
             first_line = []
             for p in points:
-                if Point(p).distance(ls) <= 3:
+                if Point(p).distance(ls) <= max_point_distance:
                     first_line.append(p)
 
-            while len(first_line) > 2:
+            while len(first_line) >= min_points_per_segment:
                 segment = [first_line.pop()]
                 neighbours = nearest_neighbours_recursive(segment[0], first_line)
                 segment.extend(neighbours)
-                if len(segment) > 6:
+                if len(segment) >= min_points_per_segment:
                     new_lines_added = True
                     for p in segment:
                         points.remove(p)
@@ -270,6 +270,7 @@ def update_neighbourhoods(lines: List[Line], window_size: int = 5, reassignment_
     :return:
     """
 
+    window_size = min(window_size, len(lines))
     sorted_by_nr: List[Line] = sorted(lines, key=lambda l: l.nr)
     for idx, _ in enumerate(sorted_by_nr):
         group: List[Line] = []
@@ -498,13 +499,16 @@ def rectangularize(contour_points: List[Tuple[int, int]]) -> List[Tuple[float, f
     approximization_tolerance = 0.01
 
     # All points with a max distance from each other will be added to the same line
-    point_distance_threshold = 2
+    point_distance_threshold = 1
 
     # Lines below this length will be discarded
-    min_line_length = 3
+    min_points_per_segment = 7
 
     # Angles with a difference up to this value will be considered parallel
     angle_parallelity_threshold = 20
+
+    # Threshold for the hough-algorithm when finding the lines
+    hough_lines_threshold = 5
 
     # Lines located at a distance up to this value will be considered neighbours
     neighbour_distance_threshold = 10
@@ -512,17 +516,15 @@ def rectangularize(contour_points: List[Tuple[int, int]]) -> List[Tuple[float, f
     # Neighbour reassignment: A sliding window will be moved around the contour to detect wrong assignments
     # Nr. of segments per window
     window_size = 5
-    # If the probability of a segment to its class is below this threshold, it will be reassigned to the most probable class
+
+    # If the probability of a segment to its class is below this threshold,
+    # it will be reassigned to the most probable class
     reassignment_threshold = 0.25
 
-    # contour_approximate = approximate_polygon(np.array(contour_points), tolerance=approximization_tolerance)
-
-    # line, angle = get_main_orientation(contour_approximate, angle_in_degrees=True)
-
-    # points = list(map(lambda t: (t[0], t[1]), contour_approximate.tolist()))
-    # lines = make_lines(points, point_distance_threshold=point_distance_threshold, min_line_length=min_line_length)
-
-    lines = make_lines_new(contour_points)
+    lines = make_lines_new(contour_points,
+                           max_point_distance=point_distance_threshold,
+                           min_points_per_segment=min_points_per_segment,
+                           hough_lines_threshold=hough_lines_threshold)
     assign_orientation(lines, angle_parallelity_threshold=angle_parallelity_threshold)
     assign_neighbourhood(lines, neighbour_distance_threshold=neighbour_distance_threshold)
     update_neighbourhoods(lines, window_size=window_size, reassignment_threshold=reassignment_threshold)
