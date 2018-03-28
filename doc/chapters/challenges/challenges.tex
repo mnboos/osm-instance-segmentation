@@ -2,6 +2,11 @@
 
 \chapter{Theoretical and Practical Challenges}
 
+\section{Training data generation}
+In order to train the neural network a data set was required, which could then be used for training and validation. Due to this, a tool \cite{airtiler} has been developed which uses publicly available vector data from OpenStreetMap and satellite imagery Microsoft Bing.
+
+tbd
+
 \section{Building outline regularization}
 Once the network has been trained, it can be used to make predictions on images, it has never "seen" before. However, there are situations in which the predictions are far from perfect, especially then if the building is partially covered from trees or has unclear outlines. This can be seen in \autoref{fig:challenges:building_masks}.
 
@@ -145,7 +150,7 @@ After the line segmentation, an orientation will be assigned to each line. Gener
     	\label{fig:challenges:irregular_buildings}
 	\end{subfigure}
 	\caption{Different kinds of buildings with regard to their corner angles}
-	\label{fig:challenges:building_masks}
+	\label{fig:challenges:building_ground_truths}
 \end{figure}
 
 \begin{algorithm}[H]
