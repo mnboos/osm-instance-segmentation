@@ -479,7 +479,8 @@ def get_corner_points(outline: List[Line]) -> List[Tuple[float, float]]:
                 _add_coords(p_2, corner_points)
         else:
             p = scale(ls_1, 1000, 1000).intersection(scale(ls_2, 1000, 1000))
-            corner_points.append((p.x, p.y))
+            if isinstance(p, Point):
+                corner_points.append((p.x, p.y))
 
     corner_points.append(corner_points[0])
     return corner_points
@@ -491,7 +492,8 @@ def _add_coords(geom, coords: List[Tuple[float, float]]) -> None:
     elif isinstance(geom, LineString):
         coords.extend(geom.coords)
     else:
-        raise RuntimeError("Invalid intersection result: ", ls_1, ls_2, p)
+        pass
+        # raise RuntimeError("Invalid intersection result: ", geom, coords)
 
 
 def rectangularize(contour_points: List[Tuple[int, int]]) -> List[Tuple[float, float]]:
