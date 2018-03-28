@@ -70,7 +70,7 @@ class DeepOsmPlugin:
             'zoom_level': zoom,
             'image_data': image_data
         }
-        status, raw = post("http://localhost:8000/inference", json.dumps(data))
+        status, raw = post("http://localhost:8000/predict", json.dumps(data))
         if status == 200 and raw:
             response = {}
             try:
