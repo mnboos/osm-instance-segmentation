@@ -4,6 +4,8 @@ from typing import Iterable, Tuple, Collection, List, Dict
 from shapely.geometry import LineString, Point
 from shapely.affinity import rotate, scale
 from shapely import geometry
+from skimage.draw import polygon_perimeter
+from skimage.measure import find_contours
 import cv2
 import math
 import numpy as np
@@ -450,6 +452,19 @@ def remove_redundant_segments(outline: List[Line]) -> None:
                 i += 1
         else:
             i += 1
+
+
+def get_contours(masks: np.ndarray) -> List[List[Tuple[int, int]]]:
+    contours: List[List[Tuple[int, int]]] = []
+    for i in range(masks.shape[-1]):
+        mask = masks[:, :, i]
+        if mask.any():
+            conts = find_contours(mask, 0.5)
+            for c in conts:
+                rr, cc = polygon_perimeter(c[:, 0], c[:, 1], shape=mask.shape, clip=False)
+                points = tuple(zip(cc, rr))
+                contours.append(points)
+    return contours
 
 
 def get_corner_points(outline: List[Line]) -> List[Tuple[float, float]]:

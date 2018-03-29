@@ -1,11 +1,12 @@
 import os
 from mask_rcnn import model as modellib
 from core.mask_rcnn_config import MyMaskRcnnConfig
-from core.utils import MarchingSquares, georeference, rectangularize
+from core.utils import MarchingSquares, georeference, rectangularize, get_contours
 from typing import Iterable, Tuple, List
 from PIL import Image
 from skimage.draw import polygon_perimeter
 from skimage.measure import find_contours
+from core.settings import IMAGE_WIDTH
 import numpy as np
 
 
@@ -16,8 +17,8 @@ class Predictor:
         # Run detection on one image at a time
         GPU_COUNT = 1
         IMAGES_PER_GPU = 1
-        IMAGE_MIN_DIM = 256
-        IMAGE_MAX_DIM = 256
+        IMAGE_MIN_DIM = IMAGE_WIDTH
+        IMAGE_MAX_DIM = IMAGE_WIDTH
 
     def __init__(self, weights_path: str):
         if not os.path.isfile(weights_path):
@@ -43,7 +44,7 @@ class Predictor:
         res = model.detect([img_data], verbose=1)
         print("Prediction done")
         print("Extracting contours...")
-        point_sets = self._get_contours(masks=res[0]['masks'])
+        point_sets = get_contours(masks=res[0]['masks'])
         point_sets = list(map(lambda point_set: list(point_set), point_sets))
         print("Contours extracted")
 
@@ -72,16 +73,3 @@ class Predictor:
         img = Image.open(img_path)
         data = np.asarray(img, dtype="uint8")
         return self.predict_array(img_data=data, extent=extent)
-
-    @staticmethod
-    def _get_contours(masks: np.ndarray) -> List[List[Tuple[int, int]]]:
-        contours: List[List[Tuple[int, int]]] = []
-        for i in range(masks.shape[-1]):
-            mask = masks[:, :, i]
-            if mask.any():
-                conts = find_contours(mask, 0.5)
-                for c in conts:
-                    rr, cc = polygon_perimeter(c[:, 0], c[:, 1], shape=mask.shape, clip=False)
-                    points = tuple(zip(cc, rr))
-                    contours.append(points)
-        return contours
