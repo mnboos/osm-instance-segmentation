@@ -15,8 +15,8 @@ class DeepOsmPlugin:
 
     def initGui(self):
         self.about_action = self._create_action("About", "info.svg", self.show_about)
-        self.detect_rectangles_action = self._create_action("Detect (rectangularized)", "group.svg", lambda: self.detect(True))
-        self.detect_raw_action = self._create_action("Detect (raw)", "group.svg", lambda: self.detect(False))
+        self.detect_rectangles_action = self._create_action("Detect building area (rectangularized)", "group.svg", lambda: self.detect(True))
+        self.detect_raw_action = self._create_action("Detect building area (raw)", "group.svg", lambda: self.detect(False))
 
         self.popupMenu = QMenu(self.iface.mainWindow())
         self.popupMenu.addAction(self.about_action)
