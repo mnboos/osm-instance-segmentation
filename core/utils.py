@@ -445,8 +445,8 @@ def remove_redundant_segments(outline: List[Line]) -> None:
             ls_2 = LineString(next_line.coords)
             ls_1_scaled = scale(ls_1, 1000, 1000)
             ls_2_scaled = scale(ls_2, 1000, 1000)
-            dist = ls_1_scaled.distance(ls_2_scaled)
-            if dist <= 2:
+            redundant = ls_1_scaled.buffer(1).intersects(ls_2_scaled.buffer(1))
+            if redundant:
                 outline.remove(next_line)
             else:
                 i += 1
