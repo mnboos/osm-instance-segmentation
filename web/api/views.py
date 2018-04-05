@@ -48,9 +48,9 @@ def request_inference(request):
         print("Inf: ", inference)
         try:
             res = _predict(inference)
-            coll = "GEOMETRYCOLLECTION({})".format(", ".join(res))
-            with open(r"D:\training_images\_last_predicted\wkt.txt", 'w') as f:
-                f.write(coll)
+            # coll = "GEOMETRYCOLLECTION({})".format(", ".join(res))
+            # with open(r"D:\training_images\_last_predicted\wkt.txt", 'w') as f:
+            #     f.write(coll)
             return JsonResponse({'features': res})
         except Exception as e:
             tb = ""
