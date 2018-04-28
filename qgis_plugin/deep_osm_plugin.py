@@ -1,30 +1,35 @@
 from .qgis_2to3 import *
-from .ui.dialogs import AboutDialog
+from .ui.dialogs import AboutDialog, SettingsDialog
 from .log_helper import info
 from .tile_helper import get_code_from_epsg, convert_coordinate, get_zoom_by_scale
 import tempfile
 import base64
 import json
 from .network_helper import post, post_async
+from PyQt4.QtCore import QSettings
 
 
 class DeepOsmPlugin:
 
     def __init__(self, iface):
         self.iface = iface
+        self.settings = QSettings("Vector Tile Reader", "vectortilereader")
+        self.settings_dialog = SettingsDialog(self.settings)
 
     def initGui(self):
         self.about_action = self._create_action("About", "info.svg", self.show_about)
         self.detect_rectangles_action = self._create_action("Detect building area (rectangularized)", "group.svg", lambda: self.detect(True))
         self.detect_raw_action = self._create_action("Detect building area (raw)", "group.svg", lambda: self.detect(False))
+        self.settings_action = self._create_action("Settings", "settings.svg", lambda: self.settings_dialog.show())
 
         self.popupMenu = QMenu(self.iface.mainWindow())
-        self.popupMenu.addAction(self.about_action)
         self.popupMenu.addAction(self.detect_raw_action)
         self.popupMenu.addAction(self.detect_rectangles_action)
+        self.popupMenu.addAction(self.settings_action)
+        self.popupMenu.addAction(self.about_action)
         self.toolButton = QToolButton()
         self.toolButton.setMenu(self.popupMenu)
-        self.toolButton.setDefaultAction(self.detect_rectangles_action)
+        self.toolButton.setDefaultAction(self.detect_raw_action)
         self.toolButton.setPopupMode(QToolButton.MenuButtonPopup)
         self.toolButtonAction = self.iface.layerToolBar().addWidget(self.toolButton)
 

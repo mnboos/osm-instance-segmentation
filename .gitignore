@@ -1,3 +1,4 @@
+tested_images.txt
 secrets.py
 *.tiff
 *.tif
@@ -137,4 +138,3 @@ ENV/
 *.run.xml
 *busy*
 *eps-converted-to.pdf*
-doku.pdf

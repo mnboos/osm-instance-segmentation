@@ -7,5 +7,6 @@ services:
     working_dir: /osm-instance-segmentation
     volumes:
       - ~/dev/osm-instance-segmentation:/osm-instance-segmentation
-      - ~/dev/training-data:/training-data
-      - ~/dev/raw-images:/source-images
+      - ~/dev/mapping-challenge/train:/training-data
+      - ~/dev/mapping-challenge/val:/validation-data
+      - ~/dev/mapping-challenge/test:/test-data

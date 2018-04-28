@@ -10,7 +10,7 @@ def test_predict():
 
     img_path = os.path.join(os.getcwd(), "test", "data", "18_139423_171197.tiff")
     p = Predictor(weights_path)
-    polygon_points = p.predict_path(img_path=img_path, tile=Tile.from_tms(139423, 171197, 18))
+    polygon_points = p.predict_path(img_path=img_path)
     for points in polygon_points:
         p = Polygon(points)
         print(p.wkt)

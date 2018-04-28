@@ -1,8 +1,10 @@
 from ..qgis_2to3 import *
 try:
     from .dlg_about_qt5 import Ui_DlgAbout
+    from .dlg_settings_qt5 import Ui_DlgSettings
 except:
     from .dlg_about_qt4 import Ui_DlgAbout
+    from .dlg_settings_qt4 import Ui_DlgSettings
 
 
 def _update_size(dialog):
@@ -39,3 +41,22 @@ class AboutDialog(QDialog, Ui_DlgAbout):
 
     def show(self):
         self.exec_()
+
+
+class SettingsDialog(QDialog, Ui_DlgSettings):
+    def __init__(self, settings):
+        QDialog.__init__(self)
+        self.setupUi(self)
+        _update_size(self)
+        self._settings = settings
+
+        self.txtServerPath.textChanged.connect(self.on_host_changed)
+        server_path = settings.value("HOST", None)
+        if server_path:
+            self.txtServerPath.setText(server_path)
+
+    def show(self):
+        self.exec_()
+
+    def on_host_changed(self):
+        self._settings.setValue("HOST", self.txtServerPath.text())

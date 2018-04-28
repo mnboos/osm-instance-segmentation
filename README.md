@@ -2,6 +2,13 @@
 This project is about generating building footprints from orthophotos (i.e. aerial imagery) using deep learning.
 
 
+## Installation
+If the server should be run on a windows machine, make sure the Visual C++ Build Tools are installed.
+
+Otherwise the installation of the python requirements will fail (pycocotools needs to be built).
+
+`pip install git+https://github.com/philferriere/cocoapi.git#egg=pycocotools^&subdirectory=PythonAPI`
+
 
 ## Training Data
 I've written a script that generates training data (i.e. ortophoto + binary masks) from Microsoft Bing in combination with Open Street Map (OSM).

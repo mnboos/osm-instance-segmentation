@@ -1,23 +1,20 @@
 import sys
 import math
 from rest_framework.decorators import api_view
-from rest_framework.parsers import JSONParser, FormParser
+from rest_framework.parsers import JSONParser
 from django.http import JsonResponse
 from .serializers import InferenceRequestSerializer, InferenceRequest
-from core.settings import IMAGE_WIDTH
+from core.utils import get_contour, georeference, rectangularize
 from core.predict import Predictor
-import os
 import base64
 import numpy as np
 from PIL import Image
-from pygeotile.tile import Tile, Point
 import io
-import tempfile
 from shapely import geometry
-import json
 import traceback
+from pycocotools import mask as cocomask
 
-_predictor = Predictor(os.path.join(os.getcwd(), "model", "mask_rcnn_osm_0076.h5"))
+_predictor = Predictor(r"D:\_mapping-challenge\stage2_0.833.h5")
 
 
 """
@@ -48,9 +45,6 @@ def request_inference(request):
         print("Inf: ", inference)
         try:
             res = _predict(inference)
-            coll = "GEOMETRYCOLLECTION({})".format(", ".join(res))
-            with open(r"D:\training_images\_last_predicted\wkt.txt", 'w') as f:
-                f.write(coll)
             return JsonResponse({'features': res})
         except Exception as e:
             tb = ""
@@ -78,23 +72,37 @@ def _predict(request: InferenceRequest):
         'img_height': height
     }
 
-    IMG_SIZE = float(1024)
+    img_size = 1024
 
     all_polygons = []
-    cols = math.ceil(width / IMG_SIZE)
-    rows = math.ceil(height / IMG_SIZE)
+    cols = int(math.ceil(width / float(img_size)))
+    rows = int(math.ceil(height / float(img_size)))
+    images_to_predict = []
+    tiles_by_img_id = {}
     for col in range(0, cols):
         for row in range(0, rows):
             print("Processing tile (x={},y={})".format(col, row))
-            start_width = col * IMG_SIZE
-            start_height = row * IMG_SIZE
-            img_copy = img.crop((start_width, start_height, start_width+IMG_SIZE, start_height+IMG_SIZE))
+            start_width = col * img_size
+            start_height = row * img_size
+            img_copy = img.crop((start_width, start_height, start_width+img_size, start_height+img_size))
             arr = np.asarray(img_copy)
-            res = _predictor.predict_array(img_data=arr, extent=extent, do_rectangularization=request.rectangularize, tile=(col, row))
-            polygons = [geometry.Polygon(points) for points in res]
-            all_polygons.extend(polygons)
-            # break
-        # break
+            img_id = "img_id_{}_{}".format(col, row)
+            tiles_by_img_id[img_id] = (col, row)
+            images_to_predict.append((arr, img_id))
+    point_set = _predictor.predict_arrays(images=images_to_predict)
+    for rle, score, img_id in point_set:
+        col, row = tiles_by_img_id[img_id]
+        mask = cocomask.decode(rle)
+        mask = mask.reshape((img_size, img_size))
+        points = get_contour(mask)
+        points = list(map(lambda p: (p[0]+col*256, p[1]+row*256), points))
+        if request.rectangularize:
+            points = rectangularize(points)
+        georeffed = georeference(points, extent)
+        if georeffed:
+            points = georeffed
+        polygon = geometry.Polygon(points)
+        all_polygons.append(polygon)
 
     return list(map(lambda p: p.wkt, all_polygons))
 
