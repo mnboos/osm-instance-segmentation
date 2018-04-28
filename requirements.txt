@@ -1,7 +1,8 @@
 requests==2.18.4
 overpy==0.4
 numpy==1.14.1
-tensorflow-gpu==1.5.0
+# tensorflow-gpu==1.5.0
+# tensorflow==1.5.0
 keras==2.1.4
 scipy==1.0.0
 scikit-image==0.13.1
@@ -17,3 +18,5 @@ jupyter_contrib_nbextensions
 widgetsnbextension
 ipywidgets
 matplotlib
+Cython
+pycocotools

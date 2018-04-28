@@ -20,7 +20,7 @@
 
 % Document information
 \newcommand*{\Author}           {Martin Boos} 
-\newcommand*{\Title}            {Instance segmentation with neural networks based on aerial images}
+\newcommand*{\Title}            {Image Segmentation using Convolutional Neural Networks for Change Detection of Landcover}
 \newcommand*{\TitleInfo}        {Master Thesis}
 \newcommand*{\Subject}          {Generating building footprints from orthophotos and Open Street Map data}
 \newcommand*{\Keywords}         {keyword, even more keywords, and one more}
@@ -33,7 +33,7 @@
 % main header file
 \include{header/header}
 \input{frontmatter/glossary.tex}
-\bibliography{frontmatter/bibliograpy.bib}
+\bibliography{frontmatter/bibliograhpy.bib}
 
 % % % % % % % % % % % % % %
 \begin{document}
@@ -57,8 +57,32 @@
     \pagenumbering{arabic} 
     
     % Main part
-    \include{chapters/bsp_chapter/bsp_chapter}
+    \include{chapters/bsp_chapter/bsp_chapter}    
+    
+    \chapter{Management Summary}
+	\chapter{Overview}
+		\section{Was ist in welchem Kapitel etc.}
+	
+	\chapter{Introduction}
+	\section{Technical Background - PNF / AV}
+	
+    \include{chapters/neural_networks/neural_networks}
+
 	\include{chapters/challenges/challenges}
+	
+	\chapter{Theoretical and Experimental Results}
+		\section{Training data}
+		\section{Microsoft COCO}
+		\section{Building detection}
+
+	\chapter{Practical Results}
+		\section{QGIS Plugin}
+		\subsection{Wie es von den Leuten genutzt wird}
+		\subsection{Effizienzsteigerung}
+	
+	\chapter{Conclusion}
+
+	
     % Appendix
     \include{appendices/appendix}
 \end{document}
