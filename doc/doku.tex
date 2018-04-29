@@ -22,7 +22,7 @@
 \newcommand*{\Author}           {Martin Boos} 
 \newcommand*{\Title}            {Image Segmentation using Convolutional Neural Networks for Change Detection of Landcover}
 \newcommand*{\TitleInfo}        {Master Thesis}
-\newcommand*{\Subject}          {Generating building footprints from orthophotos and Open Street Map data}
+\newcommand*{\Subject}          {Deep Learning }
 \newcommand*{\Keywords}         {keyword, even more keywords, and one more}
 \newcommand*{\Lang}             {en} % document language: de or en
 \newcommand*{\IsConfidential}   {false}
@@ -33,7 +33,7 @@
 % main header file
 \include{header/header}
 \input{frontmatter/glossary.tex}
-\bibliography{frontmatter/bibliograhpy.bib}
+\bibliography{frontmatter/bibliography.bib}
 
 % % % % % % % % % % % % % %
 \begin{document}
@@ -69,11 +69,8 @@
     \include{chapters/neural_networks/neural_networks}
 
 	\include{chapters/challenges/challenges}
-	
-	\chapter{Theoretical and Experimental Results}
-		\section{Training data}
-		\section{Microsoft COCO}
-		\section{Building detection}
+
+	\include{chapters/theoretical_and_experimental_results/theoretical_and_experimental_results}
 
 	\chapter{Practical Results}
 		\section{QGIS Plugin}
