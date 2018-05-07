@@ -58,7 +58,7 @@ class Ui_DlgSettings(object):
         QtCore.QMetaObject.connectSlotsByName(DlgSettings)
 
     def retranslateUi(self, DlgSettings):
-        DlgSettings.setWindowTitle(_translate("DlgSettings", "About Vector Tile Reader", None))
+        DlgSettings.setWindowTitle(_translate("DlgSettings", "About Deep OSM", None))
         self.btnClose.setText(_translate("DlgSettings", "Close", None))
         self.groupSettings.setTitle(_translate("DlgSettings", "Settings", None))
         self.txtServerPath.setText(_translate("DlgSettings", "http://localhost:8080", None))

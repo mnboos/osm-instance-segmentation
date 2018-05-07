@@ -48,7 +48,7 @@ class Ui_DlgAbout(object):
         QtCore.QMetaObject.connectSlotsByName(DlgAbout)
 
     def retranslateUi(self, DlgAbout):
-        DlgAbout.setWindowTitle(_translate("DlgAbout", "About Vector Tile Reader", None))
+        DlgAbout.setWindowTitle(_translate("DlgAbout", "About Deep OSM", None))
         self.btnClose.setText(_translate("DlgAbout", "Close", None))
         self.txtAbout.setHtml(_translate("DlgAbout", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
