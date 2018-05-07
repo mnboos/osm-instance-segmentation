@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>About Vector Tile Reader</string>
+   <string>About Deep OSM</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="2" column="0">

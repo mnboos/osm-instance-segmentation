@@ -4,6 +4,9 @@
     "zoom_levels": [17,18],
     "separate_instances": false
   },
+  "query": {
+    "tags": ["highway", "building"]
+  },
   "boundingboxes": {
     "chicago": [-87.779857, 41.87806, -87.659265, 41.953457],
     "chicago2": [-87.739813, 41.837528, -87.70282, 41.865722],
