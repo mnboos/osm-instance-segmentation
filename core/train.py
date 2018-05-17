@@ -1,5 +1,5 @@
 import os
-from core.mask_rcnn_config import MyMaskRcnnConfig, InMemoryDataset, OsmMappingDataset, VALIDATION_DATA_DIR, TRAINING_DATA_DIR
+from core.mask_rcnn_config import MyMaskRcnnConfig, CocoInMemoryDataset, CocoDataset, VALIDATION_DATA_DIR, TRAINING_DATA_DIR
 from mask_rcnn import model as modellib, utils
 from core.settings import IMAGE_OUTPUT_FOLDER
 
@@ -20,14 +20,14 @@ if not os.path.isdir(TRAINING_DATA_DIR):
 
 def get_datasets(no_logging=False):
     # Validation dataset
-    dataset_val = InMemoryDataset(VALIDATION_DATA_DIR)
+    dataset_val = CocoInMemoryDataset(VALIDATION_DATA_DIR)
     # dataset_val = OsmMappingDataset(VALIDATION_DATA_DIR)
     dataset_val.load()
     dataset_val.prepare()
 
     # Training dataset
     # dataset_train = InMemoryDataset(TRAINING_DATA_DIR)
-    dataset_train = OsmMappingDataset(TRAINING_DATA_DIR)
+    dataset_train = CocoDataset(TRAINING_DATA_DIR)
     dataset_train.load()
     dataset_train.prepare()
 
