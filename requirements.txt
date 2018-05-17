@@ -13,7 +13,7 @@ pyGeoTile==1.0.5
 shapely==1.6.4.post1
 django==2.0.2
 djangorestframework==3.7.7
-airtiler==2.0.0
+airtiler==2.1.1
 jupyter_contrib_nbextensions
 widgetsnbextension
 ipywidgets

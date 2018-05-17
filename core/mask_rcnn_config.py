@@ -23,11 +23,16 @@ TRAINING_DATA_DIR = "/training-data"
 VALIDATION_DATA_DIR = "/validation-data"
 TEST_DATA_DIR = "/test-data"
 
+if not os.path.isdir(TRAINING_DATA_DIR):
+    TRAINING_DATA_DIR = r"D:/training_images/_new/training-data"
+    VALIDATION_DATA_DIR = r"D:/training_images/_new/validation-data"
+    TEST_DATA_DIR = r"D:/training_images/_new/test-data"
+
 
 class MyMaskRcnnConfig(Config):
     NAME = "osm"
 
-    NUM_CLASSES = 2  # building & not building
+    NUM_CLASSES = len(osm_class_ids)+1  # classes & not any of those
 
     # Batch size is (GPUs * images/GPU).
     GPU_COUNT = 1
@@ -35,15 +40,15 @@ class MyMaskRcnnConfig(Config):
     LEARNING_RATE = 0.001
 
     # faster training
-    STEPS_PER_EPOCH = 20000 // IMAGES_PER_GPU
+    STEPS_PER_EPOCH = 1000 // IMAGES_PER_GPU
     # STEPS_PER_EPOCH = 280741 // IMAGES_PER_GPU
 
     # all images
     # STEPS_PER_EPOCH = 1000
 
     # Each tile is 256 pixels across, training data is 3x3 tiles
-    IMAGE_MIN_DIM = 320
-    IMAGE_MAX_DIM = 320
+    IMAGE_MIN_DIM = IMAGE_WIDTH
+    IMAGE_MAX_DIM = IMAGE_WIDTH
 
     USE_MINI_MASK = False
     # MINI_MASK_SHAPE = (128, 128)
@@ -54,19 +59,22 @@ class MyMaskRcnnConfig(Config):
     # TRAIN_ROIS_PER_IMAGE = 64
     # DETECTION_MAX_INSTANCES = 64
 
-    VALIDATION_STEPS = 300  # 60317
+    VALIDATION_STEPS = 100  # 60317
 
     MEAN_PIXEL = np.array([101.2, 89.5, 77.7])
 
 
 class OsmMappingDataset(utils.Dataset):
 
-    def __init__(self):
+    def __init__(self, path):
         utils.Dataset.__init__(self)
+        self.path = path
         print("Dataset: OsmMappingDataset")
 
-    def load(self, images):
-        self.add_class("osm", 0, "building")
+    def load(self):
+        images = glob.glob(os.path.join(self.path, "**/*.tiff"), recursive=True)
+        for class_name in osm_class_ids:
+            self.add_class("osm", osm_class_ids[class_name], class_name)
         print("")
         print("Loading {} images...".format(len(images)))
         for idx, path in enumerate(images):
@@ -85,24 +93,22 @@ class OsmMappingDataset(utils.Dataset):
     def _get_mask(mask_path: str) -> Tuple[np.ndarray, np.ndarray]:
         # images have fileextension ".tiff", masks have ".tif"
         assert not mask_path.endswith(".tiff")
-        if not os.path.isfile(mask_path):
-            raise RuntimeError("Mask does not exist")
 
-        instances = []
+        all_instances = []
         all_mask_paths = glob.glob(mask_path.replace(".tif", "_*.tif"))
         nr_instances = 0
         for p in all_mask_paths:
             current_instances = get_instances(p)
             class_name = p.replace(".tif", "").split("_")[-1]
-            instances.append((class_name, current_instances))
+            all_instances.append((class_name, current_instances))
             nr_instances += len(current_instances)
 
         class_ids = np.zeros(nr_instances, np.int32)
 
         count = 0
         mask = np.zeros([IMAGE_WIDTH, IMAGE_WIDTH, nr_instances], dtype=np.uint8)
-        for class_name, instances in instances:
-            for inst in instances:
+        for class_name, current_instances in all_instances:
+            for inst in current_instances:
                 class_ids[count] = osm_class_ids[class_name]
                 mask[:, :, count] = inst
                 count += 1
@@ -136,7 +142,8 @@ class CocoDataset(utils.Dataset):
         images = self.coco.loadImgs(image_ids)
         self.coco_images = images
 
-        self.add_class("osm", 0, "building")
+        for class_name in osm_class_ids:
+            self.add_class("osm", osm_class_ids[class_name], class_name)
         print("")
         print("Loading {} images...".format(len(images)))
         progress = 0
@@ -233,7 +240,8 @@ class CocoInMemoryDataset(CocoDataset):
         image_ids = self.coco.getImgIds(catIds=self.coco.getCatIds())
         images = self.coco.loadImgs(image_ids)
 
-        self.add_class("osm", 0, "building")
+        for class_name in osm_class_ids:
+            self.add_class("osm", osm_class_ids[class_name], class_name)
         print("")
         print("Loading {} images...".format(len(images)))
         progress = 0
