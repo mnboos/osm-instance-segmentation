@@ -91,7 +91,7 @@ and
 \]
 
 
-As soon as the contour has been extracted, its number of points will be reduced using a Douglas-Peucker algorithm \cite{DOUGLAS.1973}. The reason for this is, that the contour has pixel accuracy. That means, there may be several points on the same horizontal or vertical line, even though, the startpoint and endpoint of each such line would be enough, to represent the line. Additionally, the lower the number of points per contour is, the faster the following processing will be.
+As soon as the contour has been extracted, its number of points will be reduced using a Douglas-Peucker algorithm \cite{Douglas.1973}. The reason for this is, that the contour has pixel accuracy. That means, there may be several points on the same horizontal or vertical line, even though, the startpoint and endpoint of each such line would be enough, to represent the line. Additionally, the lower the number of points per contour is, the faster the following processing will be.
 
 \begin{figure}[H]
     \centering
@@ -107,9 +107,9 @@ As soon as the contour has been extracted, its number of points will be reduced 
 
 
 \subsection{Line segmentation}
-Once the contour has been extracted, it is split into multiple line segments. For this, the main direction of the building is determined using the Hough lines algorithm. The result of this is the line which hits the greatest number of points. The angle between this line and a horizontal line gives the main building orientation.
+Once the contour has been extracted, it is split into multiple line segments. For this, the main direction of the building is determined using the Hough Transformation \cite{Duda.1972}. The result of the Hough Transformation is an datastructure, which contains an angle, a distance and a number. The combination of the angle and the distance, from a predefined reference point, lead to a line. The number is the number of points which lie on the constructed line. Therefore, this algorithm can be used to detect the main building orientation, i.e. the longest contour-line of any orientation. The angle of the found line, is called the main building orientation.
 
-Once the main building direction is known, the line segmentation starts at the point which has the smallest distance to this line. The whole procedure is depicted in \autoref{alg:challenges:line_segmentation}.
+Once the main building orientation is known, the line segmentation starts at the point which has the smallest distance to this line. The whole procedure is depicted in \autoref{alg:challenges:line_segmentation}.
 
 \begin{algorithm}[H]
 \KwData{Contour points, startpoint}
