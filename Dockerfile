@@ -6,7 +6,7 @@ RUN pip3 install -r requirements.txt
 
 RUN apt-get update -y &&\
     apt-get install -y git wget software-properties-common vim nano python3-tk &&\
-    apt update && apt install -y libsm6 libxext6 &&
+    apt update && apt install -y libsm6 libxext6 &&\
     pip3 install pycocotools
 
 #ENTRYPOINT chmod +x ./execute && ./execute
