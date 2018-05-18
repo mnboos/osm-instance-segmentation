@@ -18,5 +18,3 @@ jupyter_contrib_nbextensions
 widgetsnbextension
 ipywidgets
 matplotlib
-Cython
-pycocotools
