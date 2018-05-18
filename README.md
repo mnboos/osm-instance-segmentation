@@ -21,6 +21,17 @@ a file ```secrets.py``` has to be existing in the root folder of the project and
 BING_KEY = "your bing key comes here"
 ```
 
+### Docker
+Build first...
+```
+nvidia-docker build -t deeposm .
+```
+
+... then run.
+```
+nvidia-docker run -d --name deeposm -v ~/dev/osm-instance-segmentation/:/osm-instance-segmentation -v ~/dev/training-data:/training-data deeposm
+```
+
 ### Usage
 To download all defined bboxes run:
 
