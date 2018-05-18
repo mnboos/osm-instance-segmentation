@@ -9,6 +9,7 @@ import math
 import numpy as np
 from scipy import ndimage
 from core.settings import IMAGE_WIDTH
+from core.utils import is_image_filled
 import cv2
 
 
@@ -63,20 +64,6 @@ def download(download_folder, tiled_output_folder, tile_size=750):
     print("Finished: ", datetime.datetime.utcnow())
 
 
-def is_uni(img, color, fill_factor, img_width, img_height, convert=None):
-    if convert:
-        clrs = list(img.convert(convert).getcolors())
-    else:
-        clrs = list(img.getcolors())
-    clrs = sorted(clrs, key=lambda v: v[0]*-1)
-    color_count = clrs[0][0]
-    is_uni = clrs[0][1] == color and color_count >= (img_width*img_height) * fill_factor
-    # print(clrs)
-    # if is_uni:
-    #     print(clrs)
-    return is_uni
-
-
 def create_tiles(source_folder, target_folder, tile_size, limit=None):
     """
      * Generates the files from the images in the source folder. A target folder will be created with the name of
@@ -115,8 +102,8 @@ def create_tiles(source_folder, target_folder, tile_size, limit=None):
                     mask_cropped = mask.crop(box)
                     img_cropped = img.crop(box)
                     # make to grayscale and get colors
-                    img_is_uni = is_uni(img=img_cropped, color=255, fill_factor=.25, img_width=tile_size, img_height=tile_size, convert="L")
-                    mask_is_uni = is_uni(img=mask_cropped, color=(0,0,0), fill_factor=.85, img_width=tile_size, img_height=tile_size)
+                    img_is_uni = is_image_filled(img=img_cropped, color=255, fill_factor=.25, img_width=tile_size, img_height=tile_size, convert="L")
+                    mask_is_uni = is_image_filled(img=mask_cropped, color=(0, 0, 0), fill_factor=.85, img_width=tile_size, img_height=tile_size)
                     if img_is_uni or mask_is_uni:  # skip images where at least 25% of the image is white
                         continue
 

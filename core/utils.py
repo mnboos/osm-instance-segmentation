@@ -726,3 +726,21 @@ def georeference(points: Iterable[Tuple[float, float]], extent) -> Iterable[Tupl
         print("invalid outline: ", points)
         # raise RuntimeError("Invalid outline: ", points)
     return georeferenced
+
+
+def is_filled(img_path, color, fill_factor, convert=None):
+    img = Image.open(img_path)
+    width, height = img.size
+    return is_image_filled(img, color, fill_factor, width, height, convert)
+
+
+def is_image_filled(img, color, fill_factor, img_width, img_height, convert=None):
+    if convert:
+        clrs = list(img.convert(convert).getcolors())
+    else:
+        clrs = list(img.getcolors())
+    for color_count, current_color in clrs:
+        if current_color == color:
+            actual_fill_factor = color_count / (img_width * img_height)
+            return actual_fill_factor >= fill_factor, actual_fill_factor
+    return False, None

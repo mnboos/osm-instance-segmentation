@@ -16,16 +16,15 @@ osm_class_ids = {
     'building': 1,
     'vineyard': 2,
     'highway': 3,
-    'swimming_pool': 4
+    'swimming_pool': 4,
+    'tennis': 5
 }
 
 TRAINING_DATA_DIR = "/training-data"
-VALIDATION_DATA_DIR = "/validation-data"
 TEST_DATA_DIR = "/test-data"
 
 if not os.path.isdir(TRAINING_DATA_DIR):
     TRAINING_DATA_DIR = r"D:/training_images/_new/training-data"
-    VALIDATION_DATA_DIR = r"D:/training_images/_new/validation-data"
     TEST_DATA_DIR = r"D:/training_images/_new/test-data"
 
 
@@ -66,13 +65,13 @@ class MyMaskRcnnConfig(Config):
 
 class OsmMappingDataset(utils.Dataset):
 
-    def __init__(self, path):
+    def __init__(self, images):
         utils.Dataset.__init__(self)
-        self.path = path
+        self.images = images
         print("Dataset: OsmMappingDataset")
 
     def load(self):
-        images = glob.glob(os.path.join(self.path, "**/*.tiff"), recursive=True)
+        images = self.images
         for class_name in osm_class_ids:
             self.add_class("osm", osm_class_ids[class_name], class_name)
         print("")

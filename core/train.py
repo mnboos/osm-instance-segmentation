@@ -1,5 +1,7 @@
 import os
-from core.mask_rcnn_config import MyMaskRcnnConfig, OsmMappingDataset, VALIDATION_DATA_DIR, TRAINING_DATA_DIR
+import glob
+import random
+from core.mask_rcnn_config import MyMaskRcnnConfig, OsmMappingDataset, TRAINING_DATA_DIR
 from mask_rcnn import model as modellib, utils
 from core.settings import IMAGE_OUTPUT_FOLDER
 
@@ -19,13 +21,20 @@ if not os.path.isdir(TRAINING_DATA_DIR):
 
 
 def get_datasets(no_logging=False):
+    images = glob.glob(os.path.join(TRAINING_DATA_DIR, "**/*.tiff"), recursive=True)
+    random.shuffle(images)
+    cutoff_index = int(len(images) * 0.8)
+    training_images = images[:cutoff_index]
+    validation_images = images[cutoff_index:]
+    assert len(training_images) + len(validation_images) == len(images)
+
     # Validation dataset
-    dataset_val = OsmMappingDataset(VALIDATION_DATA_DIR)
+    dataset_val = OsmMappingDataset(validation_images)
     dataset_val.load()
     dataset_val.prepare()
 
     # Training dataset
-    dataset_train = OsmMappingDataset(TRAINING_DATA_DIR)
+    dataset_train = OsmMappingDataset(training_images)
     dataset_train.load()
     dataset_train.prepare()
 

@@ -1,27 +1,13 @@
 {
   "options": {
     "target_dir": "",
-    "zoom_levels": [17,18],
+    "zoom_levels": [19],
     "separate_instances": false
   },
   "query": {
-    "tags": ["highway", "building", "leisure=swimming_pool", "landuse=vineyard"]
+    "tags": ["highway", "building", "leisure=swimming_pool", "landuse=vineyard", "sport=tennis"]
   },
   "boundingboxes": {
-    "wettingen": [8.309857, 47.456269, 8.340327, 47.473386],
-        "duebendorf": [8.606587, 47.392654, 8.627401, 47.404593],
-        "goldach": {
-            "tr": 9.462776,
-            "tl": 47.465723,
-            "br": 9.489598,
-            "bl": 47.485157
-        },
-        "stgallen": {
-            "tr": 9.405892,
-            "tl": 47.433161,
-            "br": 9.424131,
-            "bl": 47.444191
-        },
         "rapperswil": {
             "tr": 8.818724,
             "tl": 47.222126,
@@ -39,12 +25,6 @@
             "tl": 47.36036,
             "br": 8.573806,
             "bl": 47.401508
-        },
-        "bern": {
-            "tr": 7.420455,
-            "tl": 46.935277,
-            "br": 7.46337,
-            "bl": 46.965862
         }
   }
 }
