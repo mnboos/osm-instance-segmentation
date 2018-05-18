@@ -14,7 +14,8 @@ osm_class_ids = {
     'building': 1,
     'vineyard': 2,
     'highway': 3,
-    'swimming_pool': 4,
+    'pool': 4,
+    'swimmingpool': 4,
     'tennis': 5
 }
 
