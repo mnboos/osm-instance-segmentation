@@ -22,8 +22,8 @@ TRAINING_DATA_DIR = "/training-data"
 TEST_DATA_DIR = "/test-data"
 
 if not os.path.isdir(TRAINING_DATA_DIR):
-    TRAINING_DATA_DIR = r"D:/training_images/_new/training-data"
-    TEST_DATA_DIR = r"D:/training_images/_new/test-data"
+    TRAINING_DATA_DIR = r"D:/training_images/_new"
+    TEST_DATA_DIR = r"D:/training_images/_new"
 
 
 class MyMaskRcnnConfig(Config):
@@ -58,7 +58,7 @@ class MyMaskRcnnConfig(Config):
 
     VALIDATION_STEPS = 100  # 60317
 
-    MEAN_PIXEL = np.array([101.2, 89.5, 77.7])
+    MEAN_PIXEL = np.array([63.1, 81.3, 83.1])
 
 
 class OsmMappingDataset(utils.Dataset):

@@ -4,21 +4,20 @@ import glob
 import os
 import numpy as np
 import cv2
-# from core.mask_rcnn_config import TRAINING_DATA_DIR
+from core.mask_rcnn_config import TRAINING_DATA_DIR
 
 
 def get_mean(nr_images):
-    path = r"D:\training_images\_mapping-challenge\val\images"
-    # path = TRAINING_DATA_DIR
-    images = glob.glob(os.path.join(path, "**/*.jpg"), recursive=True)
+    # path = r"D:\training_images\_mapping-challenge\val\images"
+    path = TRAINING_DATA_DIR
+    images = glob.glob(os.path.join(path, "**/*.tiff"), recursive=True)
     random.shuffle(images)
 
     # all_rgb = np.zeros((1,1,1,len(images[:nr_images])))
     r_tot = 0
     g_tot = 0
     b_tot = 0
-    avg = np.zeros((1,1,1,len(images[:nr_images])))
-    for i,img_path in enumerate(images[:nr_images]):
+    for i, img_path in enumerate(images[:nr_images]):
         im = cv2.imread(img_path)
         r, g, b = np.array(im).mean(axis=(0, 1))
         r_tot += r
