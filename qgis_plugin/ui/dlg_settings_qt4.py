@@ -45,7 +45,7 @@ class Ui_DlgSettings(object):
         self.gridLayout_2.setObjectName(_fromUtf8("gridLayout_2"))
         self.txtServerPath = QtGui.QLineEdit(self.groupSettings)
         self.txtServerPath.setObjectName(_fromUtf8("txtServerPath"))
-        self.gridLayout_2.addWidget(self.txtServerPath, 0, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.txtServerPath, 0, 2, 1, 1)
         self.lblServerPath = QtGui.QLabel(self.groupSettings)
         self.lblServerPath.setObjectName(_fromUtf8("lblServerPath"))
         self.gridLayout_2.addWidget(self.lblServerPath, 0, 0, 1, 1)

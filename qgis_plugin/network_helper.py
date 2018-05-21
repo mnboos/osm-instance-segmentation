@@ -48,7 +48,10 @@ def post_async(url, data, callback=None):
 def post(url, data):
     reply = post_async(url, data)
     while not reply.isFinished():
-        QApplication.processEvents()
+        if QApplication:
+            QApplication.processEvents()
+        else:
+            return 400, None
 
     http_status_code = reply.attribute(QNetworkRequest.HttpStatusCodeAttribute)
     if http_status_code == 200:

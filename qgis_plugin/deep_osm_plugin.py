@@ -1,5 +1,5 @@
 from .qgis_2to3 import *
-from .ui.dialogs import AboutDialog, SettingsDialog
+from .ui.dialogs import AboutDialog, SettingsDialog, PredictionDialog
 from .log_helper import info
 from .tile_helper import get_code_from_epsg, convert_coordinate, get_zoom_by_scale
 import tempfile
@@ -15,6 +15,7 @@ class DeepOsmPlugin:
         self.iface = iface
         self.settings = QSettings("Vector Tile Reader", "vectortilereader")
         self.settings_dialog = SettingsDialog(self.settings)
+        self.prediction_dialog = PredictionDialog(self.settings)
 
     def initGui(self):
         self.about_action = self._create_action("About", "info.svg", self.show_about)
@@ -49,6 +50,16 @@ class DeepOsmPlugin:
         return current_scale
 
     def detect(self, rectangularize):
+        layers = QgsMapLayerRegistry.instance().mapLayers()
+        info(layers)
+        self.prediction_dialog.update_layers(layers)
+        self.prediction_dialog.show()
+
+        self.continue_detect(rectangularize)
+
+    def continue_detect(self, rectangularize):
+
+
         extent = self.iface.mapCanvas().extent()
         qgis_crs = self._get_qgis_crs()
 
@@ -58,14 +69,7 @@ class DeepOsmPlugin:
         zoom = get_zoom_by_scale(scale)
 
         info("extent @ zoom {}: {}", zoom, (lon_min, lat_min, lon_max, lat_max))
-        temp_dir = os.path.join(tempfile.gettempdir(), "deep_osm")
-        if not os.path.isdir(temp_dir):
-            os.makedirs(temp_dir)
-        file_path = os.path.join(temp_dir, "screenshot.png")
-        self.iface.mapCanvas().saveAsImage(file_path, None, 'PNG')
-        with open(file_path, 'rb') as f:
-            binary_data = f.read()
-        image_data = base64.standard_b64encode(binary_data)
+        image_data = self._current_view_as_base64()
         data = {
             'rectangularize': rectangularize,
             'x_min': lon_min,
@@ -86,6 +90,17 @@ class DeepOsmPlugin:
                 self.detection_finished(response["features"])
             else:
                 info("Prediction failed: {}", response)
+
+    def _current_view_as_base64(self):
+        temp_dir = os.path.join(tempfile.gettempdir(), "deep_osm")
+        if not os.path.isdir(temp_dir):
+            os.makedirs(temp_dir)
+        file_path = os.path.join(temp_dir, "screenshot.png")
+        self.iface.mapCanvas().saveAsImage(file_path, None, 'PNG')
+        with open(file_path, 'rb') as f:
+            binary_data = f.read()
+        image_data = base64.standard_b64encode(binary_data)
+        return image_data
 
     def detection_finished(self, features):
         info("detection finished. {} features predicted", len(features))

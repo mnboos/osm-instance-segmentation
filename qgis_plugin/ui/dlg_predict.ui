@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>DlgSettings</class>
- <widget class="QDialog" name="DlgSettings">
+ <class>DlgPredict</class>
+ <widget class="QDialog" name="DlgPredict">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>463</width>
-    <height>161</height>
+    <height>172</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>About Deep OSM</string>
+   <string>Prediction</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="2" column="0">
@@ -52,17 +52,20 @@
       <string>Settings</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
-      <item row="0" column="2">
-       <widget class="QLineEdit" name="txtServerPath">
+      <item row="0" column="0">
+       <widget class="QLabel" name="lblImageryLayer">
         <property name="text">
-         <string>http://localhost:8080</string>
+         <string>Imagery Layer</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="0">
-       <widget class="QLabel" name="lblServerPath">
-        <property name="text">
-         <string>Server URL</string>
+      <item row="0" column="1">
+       <widget class="QComboBox" name="cbxImageryLayer">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
        </widget>
       </item>
@@ -89,7 +92,7 @@
   <connection>
    <sender>btnClose</sender>
    <signal>clicked()</signal>
-   <receiver>DlgSettings</receiver>
+   <receiver>DlgPredict</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
