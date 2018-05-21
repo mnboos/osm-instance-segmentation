@@ -6,7 +6,6 @@ import tempfile
 import base64
 import json
 from .network_helper import post, post_async
-from PyQt4.QtCore import QSettings
 
 
 class DeepOsmPlugin:
@@ -58,6 +57,7 @@ class DeepOsmPlugin:
         self.continue_detect(rectangularize)
 
     def continue_detect(self, rectangularize):
+        image_data = self._current_view_as_base64()
 
 
         extent = self.iface.mapCanvas().extent()
@@ -69,7 +69,6 @@ class DeepOsmPlugin:
         zoom = get_zoom_by_scale(scale)
 
         info("extent @ zoom {}: {}", zoom, (lon_min, lat_min, lon_max, lat_max))
-        image_data = self._current_view_as_base64()
         data = {
             'rectangularize': rectangularize,
             'x_min': lon_min,
@@ -92,11 +91,25 @@ class DeepOsmPlugin:
                 info("Prediction failed: {}", response)
 
     def _current_view_as_base64(self):
+        layer_name = self.settings.value("IMAGERY_LAYER", None)
+        layer = QgsMapLayerRegistry.instance().mapLayers()[layer_name]
+        info("layer: {}", layer)
+        canvas = QgsMapCanvas()
+        if QGIS3:
+            canvas.setLayers([layer])
+        else:
+            canvas.setLayerSet([QgsMapCanvasLayer(layer)])
+        canvas.setCanvasColor(Qt.white)
+        canvas.setExtent(self.iface.mapCanvas().extent())
+        info("count: {}", canvas.layerCount())
+
         temp_dir = os.path.join(tempfile.gettempdir(), "deep_osm")
         if not os.path.isdir(temp_dir):
             os.makedirs(temp_dir)
         file_path = os.path.join(temp_dir, "screenshot.png")
-        self.iface.mapCanvas().saveAsImage(file_path, None, 'PNG')
+        canvas.mapCanvasRefreshed.connect(lambda: canvas.saveAsImage(file_path, None, 'PNG'))
+        canvas.refreshAllLayers()
+        assert os.path.isfile(file_path)
         with open(file_path, 'rb') as f:
             binary_data = f.read()
         image_data = base64.standard_b64encode(binary_data)
