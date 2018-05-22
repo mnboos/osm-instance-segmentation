@@ -54,6 +54,7 @@ class DeepOsmPlugin:
         return current_scale
 
     def detect(self, rectangularize):
+        info("extent: {}", self.iface.mapCanvas().extent().asWktPolygon())
         layers = QgsMapLayerRegistry.instance().mapLayers()
         info(layers)
         self.prediction_dialog.update_layers(layers)
@@ -62,8 +63,29 @@ class DeepOsmPlugin:
         if res:
             self.continue_detect(rectangularize)
 
+    def get_reference_features(self):
+        rect = self.iface.mapCanvas().extent()
+        imagery_layer_name = self.imagery_layer_name
+        all_layers = QgsMapLayerRegistry.instance().mapLayers()
+        info("layers: {}", len(all_layers))
+        for layer_name in all_layers:
+            if layer_name == imagery_layer_name:
+                continue
+
+            layer = all_layers[layer_name]
+            layer_crs = layer.crs().authid()
+            info("crs: {}", layer_crs)
+            x_min, y_min = convert_coordinate(source_crs=self._get_qgis_crs(), target_crs=layer_crs, lat=rect.yMinimum(), lng=rect.xMinimum())
+            x_max, y_max = convert_coordinate(source_crs=self._get_qgis_crs(), target_crs=layer_crs, lat=rect.yMaximum(), lng=rect.xMaximum())
+            info("minmax: {}, {}", x_min, y_min)
+            wkt = QgsRectangle(x_min, y_min, x_max, y_max).asWktPolygon()
+            expr = QgsExpression("\"Typ\" = 'Gebaeude' and intersects(bounds($geometry), geom_from_wkt('{}'))".format(wkt))
+            feature_iterator = layer.getFeatures(QgsFeatureRequest(expr))
+            ids = [i.id() for i in feature_iterator]
+            info("layer '{}' has {} matching features", layer_name, len(ids))
+        return []
+
     def continue_detect(self, rectangularize):
-        extent = self.iface.mapCanvas().extent()
         qgis_crs = self._get_qgis_crs()
 
         lon_min, lat_min = convert_coordinate(qgis_crs, 3857, extent.yMinimum(), extent.xMinimum())
@@ -71,6 +93,7 @@ class DeepOsmPlugin:
         scale = self._get_current_map_scale()
         zoom = get_zoom_by_scale(scale)
 
+        features = self.get_reference_features()
         info("extent @ zoom {}: {}", zoom, (lon_min, lat_min, lon_max, lat_max))
         data = {
             'rectangularize': rectangularize,
@@ -93,9 +116,13 @@ class DeepOsmPlugin:
             else:
                 info("Prediction failed: {}", response)
 
+    @property
+    def imagery_layer_name(self):
+        return self.settings.value("IMAGERY_LAYER", None)
+
     def _refresh_canvas(self):
         self.canvas_refreshed = False
-        layer_name = self.settings.value("IMAGERY_LAYER", None)
+        layer_name = self.imagery_layer_name
         info("Refreshing canvas for layer: {}", layer_name)
         layer = QgsMapLayerRegistry.instance().mapLayers()[layer_name]
         canvas = self.canvas
