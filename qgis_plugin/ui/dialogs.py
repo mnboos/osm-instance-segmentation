@@ -66,6 +66,9 @@ class SettingsDialog(QDialog, Ui_DlgSettings):
 
 
 class PredictionDialog(QDialog, Ui_DlgPredict):
+
+    on_image_layer_change = pyqtSignal("QString")
+
     def __init__(self, settings):
         QDialog.__init__(self)
         self.setupUi(self)
@@ -75,12 +78,18 @@ class PredictionDialog(QDialog, Ui_DlgPredict):
         self.cbxImageryLayer.currentIndexChanged['QString'].connect(self._handle_imagery_layer_change)
 
     def _handle_imagery_layer_change(self, new_layer):
-        self._handle_layer_change(new_layer, "IMAGERY_LAYER")
+        updated = self._handle_layer_change(new_layer, "IMAGERY_LAYER")
+        if updated:
+            self.on_image_layer_change.emit(new_layer)
 
     def _handle_layer_change(self, layer_name, setting_key):
+        updated = False
         if not self._updating_layers:
             info("Selected layer: {}", layer_name)
             self._settings.setValue(setting_key, layer_name)
+            updated = True
+        return updated
+
 
     @staticmethod
     def _add_layers_to(combobox, layers):
@@ -107,5 +116,5 @@ class PredictionDialog(QDialog, Ui_DlgPredict):
                 target_combobox.setCurrentIndex(index)
 
     def show(self):
-        self.exec_()
+        return self.exec_()
 

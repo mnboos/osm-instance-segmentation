@@ -15,6 +15,11 @@ class DeepOsmPlugin:
         self.settings = QSettings("Vector Tile Reader", "vectortilereader")
         self.settings_dialog = SettingsDialog(self.settings)
         self.prediction_dialog = PredictionDialog(self.settings)
+        self.prediction_dialog.on_image_layer_change.connect(self._refresh_canvas)
+        self.canvas = QgsMapCanvas()
+        self.canvas.mapCanvasRefreshed.connect(self._update_image_data)
+        self.image_data = None
+        self.canvas_refreshed = False
 
     def initGui(self):
         self.about_action = self._create_action("About", "info.svg", self.show_about)
@@ -52,14 +57,12 @@ class DeepOsmPlugin:
         layers = QgsMapLayerRegistry.instance().mapLayers()
         info(layers)
         self.prediction_dialog.update_layers(layers)
-        self.prediction_dialog.show()
-
-        self.continue_detect(rectangularize)
+        self._refresh_canvas()
+        res = self.prediction_dialog.show()
+        if res:
+            self.continue_detect(rectangularize)
 
     def continue_detect(self, rectangularize):
-        image_data = self._current_view_as_base64()
-
-
         extent = self.iface.mapCanvas().extent()
         qgis_crs = self._get_qgis_crs()
 
@@ -76,7 +79,7 @@ class DeepOsmPlugin:
             'y_min': lat_min,
             'y_max': lat_max,
             'zoom_level': zoom,
-            'image_data': image_data
+            'image_data': self.image_data
         }
         status, raw = post("http://localhost:8000/predict", json.dumps(data))
         if status == 200 and raw:
@@ -90,30 +93,32 @@ class DeepOsmPlugin:
             else:
                 info("Prediction failed: {}", response)
 
-    def _current_view_as_base64(self):
+    def _refresh_canvas(self):
+        self.canvas_refreshed = False
         layer_name = self.settings.value("IMAGERY_LAYER", None)
+        info("Refreshing canvas for layer: {}", layer_name)
         layer = QgsMapLayerRegistry.instance().mapLayers()[layer_name]
-        info("layer: {}", layer)
-        canvas = QgsMapCanvas()
+        canvas = self.canvas
         if QGIS3:
             canvas.setLayers([layer])
         else:
             canvas.setLayerSet([QgsMapCanvasLayer(layer)])
         canvas.setCanvasColor(Qt.white)
         canvas.setExtent(self.iface.mapCanvas().extent())
-        info("count: {}", canvas.layerCount())
+        canvas.refreshAllLayers()
 
+    def _update_image_data(self):
         temp_dir = os.path.join(tempfile.gettempdir(), "deep_osm")
         if not os.path.isdir(temp_dir):
             os.makedirs(temp_dir)
         file_path = os.path.join(temp_dir, "screenshot.png")
-        canvas.mapCanvasRefreshed.connect(lambda: canvas.saveAsImage(file_path, None, 'PNG'))
-        canvas.refreshAllLayers()
+        self.canvas.saveAsImage(file_path, None, 'PNG')
         assert os.path.isfile(file_path)
+        info("Canvas refreshed and saved: {}", file_path)
         with open(file_path, 'rb') as f:
             binary_data = f.read()
-        image_data = base64.standard_b64encode(binary_data)
-        return image_data
+        self.image_data = base64.standard_b64encode(binary_data)
+        self.canvas_refreshed = True
 
     def detection_finished(self, features):
         info("detection finished. {} features predicted", len(features))
