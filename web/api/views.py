@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
 from django.http import JsonResponse
 from .serializers import InferenceRequestSerializer, InferenceRequest
-from core.utils import get_contour, georeference, rectangularize
+from core.utils import georeference, rectangularize
 from core.predict import Predictor
 import base64
 import numpy as np
@@ -12,9 +12,8 @@ from PIL import Image
 import io
 from shapely import geometry
 import traceback
-from pycocotools import mask as cocomask
 
-_predictor = Predictor(r"D:\_mapping-challenge\stage2_0.833.h5")
+_predictor = Predictor(r"D:\_models\stage2_hombi_rappi_zh.h5")
 
 
 """
@@ -92,12 +91,11 @@ def _predict(request: InferenceRequest):
             img_id = "img_id_{}_{}".format(col, row)
             tiles_by_img_id[img_id] = (col, row)
             images_to_predict.append((arr, img_id))
-    point_set = _predictor.predict_arrays(images=images_to_predict)
-    for rle, score, img_id in point_set:
+    point_sets = _predictor.predict_arrays(images=images_to_predict)
+    # print(point_sets)
+
+    for points, img_id in point_sets:
         col, row = tiles_by_img_id[img_id]
-        mask = cocomask.decode(rle)
-        mask = mask.reshape((img_size, img_size))
-        points = get_contour(mask)
         points = list(map(lambda p: (p[0]+col*256, p[1]+row*256), points))
         if request.rectangularize:
             points = rectangularize(points)
