@@ -148,7 +148,9 @@ class DeepOsmPlugin:
         if not os.path.isdir(temp_dir):
             os.makedirs(temp_dir)
         file_path = os.path.join(temp_dir, "screenshot.png")
-        self.canvas.saveAsImage(file_path, None, 'PNG')
+        # canvas = self.canvas
+        canvas = self.iface.mapCanvas()
+        canvas.saveAsImage(file_path, None, 'PNG')
         assert os.path.isfile(file_path)
         info("Canvas refreshed and saved: {}", file_path)
         with open(file_path, 'rb') as f:
