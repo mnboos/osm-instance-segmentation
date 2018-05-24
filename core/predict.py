@@ -9,6 +9,7 @@ import numpy as np
 import json
 import cv2
 import math
+from keras import backend as K
 
 
 class Predictor:
@@ -68,6 +69,7 @@ class Predictor:
                 for points in point_sets:
                     all_point_sets.append((points, image_id))
             print("Contours extracted")
+        K.clear_session()
         return all_point_sets
 
     def predict_path(self, img_path: str, verbose=1) -> List[List[Tuple[int, int]]]:
