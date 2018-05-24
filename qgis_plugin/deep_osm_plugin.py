@@ -67,7 +67,8 @@ class DeepOsmPlugin:
         rect = self.iface.mapCanvas().extent()
         imagery_layer_name = self.imagery_layer_name
         all_layers = QgsMapLayerRegistry.instance().mapLayers()
-        info("layers: {}", len(all_layers))
+        feature_types = ['Gebaeude', 'Strasse_Weg']
+        result = {}
         for layer_name in all_layers:
             if layer_name == imagery_layer_name:
                 continue
@@ -77,16 +78,23 @@ class DeepOsmPlugin:
             info("crs: {}", layer_crs)
             x_min, y_min = convert_coordinate(source_crs=self._get_qgis_crs(), target_crs=layer_crs, lat=rect.yMinimum(), lng=rect.xMinimum())
             x_max, y_max = convert_coordinate(source_crs=self._get_qgis_crs(), target_crs=layer_crs, lat=rect.yMaximum(), lng=rect.xMaximum())
-            info("minmax: {}, {}", x_min, y_min)
             wkt = QgsRectangle(x_min, y_min, x_max, y_max).asWktPolygon()
-            expr = QgsExpression("\"Typ\" = 'Gebaeude' and intersects(bounds($geometry), geom_from_wkt('{}'))".format(wkt))
-            feature_iterator = layer.getFeatures(QgsFeatureRequest(expr))
-            ids = [i.id() for i in feature_iterator]
-            info("layer '{}' has {} matching features", layer_name, len(ids))
-        return []
+
+            for feature_type in feature_types:
+                expr = QgsExpression("\"Typ\" = '{}' and intersects(bounds($geometry), geom_from_wkt('{}'))"
+                                     .format(feature_type, wkt))
+                feature_iterator = layer.getFeatures(QgsFeatureRequest(expr))
+                wkts = [i.geometry().exportToWkt() for i in feature_iterator]
+                info("layer '{}' has {} matching features", layer_name, len(wkts))
+                if wkts:
+                    if feature_type not in result:
+                        result[feature_type] = []
+                    result[feature_type].extend(wkts)
+        return result
 
     def continue_detect(self, rectangularize):
         qgis_crs = self._get_qgis_crs()
+        extent = self.iface.mapCanvas().extent()
 
         lon_min, lat_min = convert_coordinate(qgis_crs, 3857, extent.yMinimum(), extent.xMinimum())
         lon_max, lat_max = convert_coordinate(qgis_crs, 3857, extent.yMaximum(), extent.xMaximum())
@@ -102,7 +110,8 @@ class DeepOsmPlugin:
             'y_min': lat_min,
             'y_max': lat_max,
             'zoom_level': zoom,
-            'image_data': self.image_data
+            'image_data': self.image_data,
+            'reference_features': features
         }
         status, raw = post("http://localhost:8000/predict", json.dumps(data))
         if status == 200 and raw:
