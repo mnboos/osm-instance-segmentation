@@ -1,6 +1,6 @@
 from .qgis_2to3 import *
 from .ui.dialogs import AboutDialog, SettingsDialog, PredictionDialog
-from .log_helper import info
+from .log_helper import info, get_temp_dir
 from .tile_helper import get_code_from_epsg, convert_coordinate, get_zoom_by_scale
 import tempfile
 import base64
@@ -69,7 +69,7 @@ class DeepOsmPlugin:
         result = {}
         for layer in list(QgsMapLayerRegistry.instance().mapLayers().values()):
             layer_name = layer.name()
-            if layer_name == imagery_layer_name:
+            if layer_name == imagery_layer_name or not isinstance(layer, QgsVectorLayer):
                 continue
 
             layer_crs = layer.crs().authid()
@@ -82,12 +82,12 @@ class DeepOsmPlugin:
                 expr = QgsExpression("\"Typ\" = '{}' and intersects(bounds($geometry), geom_from_wkt('{}'))"
                                      .format(feature_type, wkt))
                 feature_iterator = layer.getFeatures(QgsFeatureRequest(expr))
-                wkts = [i.geometry().exportToWkt() for i in feature_iterator]
-                info("layer '{}' has {} matching features", layer_name, len(wkts))
-                if wkts:
+                geoms = [i.geometry().exportToGeoJSON() for i in feature_iterator]
+                info("layer '{}' has {} matching features", layer_name, len(geoms))
+                if geoms:
                     if feature_type not in result:
                         result[feature_type] = []
-                    result[feature_type].extend(wkts)
+                    result[feature_type].extend(geoms)
         return result
 
     def continue_detect(self, rectangularize):
@@ -99,7 +99,7 @@ class DeepOsmPlugin:
         scale = self._get_current_map_scale()
         zoom = get_zoom_by_scale(scale)
 
-        # features = self.get_reference_features()
+        features = self.get_reference_features()
         info("extent @ zoom {}: {}", zoom, (lon_min, lat_min, lon_max, lat_max))
         data = {
             'rectangularize': rectangularize,
@@ -109,7 +109,7 @@ class DeepOsmPlugin:
             'y_max': lat_max,
             'zoom_level': zoom,
             'image_data': str(self.image_data),
-            # 'reference_features': features
+            'reference_features': features
         }
         # print(data['image_data'], type(data['image_data']))
         status, raw = post("http://localhost:8000/predict", json.dumps(data))
@@ -164,20 +164,48 @@ class DeepOsmPlugin:
 
     def detection_finished(self, features):
         info("detection finished. {} features predicted", len(features))
-        layer = QgsVectorLayer("Polygon?crs=EPSG:3857", "Prediction", "memory")
-        layer.setCrs(QgsCoordinateReferenceSystem(3857))
-        layer.startEditing()
+        # layer = QgsVectorLayer("Polygon?crs=EPSG:3857", "Prediction", "memory")
+        # layer.setCrs(QgsCoordinateReferenceSystem(3857))
+        # layer.startEditing()
 
-        for f in features:
-            feature = QgsFeature()
-            geom = QgsGeometry.fromWkt(f)
-            if geom:
-                feature.setGeometry(geom)
-                layer.addFeature(feature, True)
-        layer.commitChanges()
+        layer_source = get_temp_dir("src.json")
+        feature_collection = self._get_feature_collection(features)
+        with open(layer_source, "w") as f:
+            f.write(json.dumps(feature_collection))
+
+        layer = QgsVectorLayer(layer_source, "Predictions", "ogr")
+
+        # for f in features:
+        #     feature = QgsFeature()
+        #     geom = QgsGeometry.fromWkt(f)
+        #     if geom:
+        #         feature.setGeometry(geom)
+        #         layer.addFeature(feature, True)
+        # layer.commitChanges()
         layer.updateExtents()
         QgsMapLayerRegistry.instance().addMapLayer(layer)
         info("done")
+
+    def _get_feature_collection(self, features):
+        """
+         * Returns an empty GeoJSON FeatureCollection with the coordinate reference system (crs) set to EPSG3857
+        """
+
+        source_crs = self._get_qgis_crs()
+        if source_crs:
+            epsg_id = get_code_from_epsg(source_crs)
+        else:
+            epsg_id = 3857
+
+        crs = {
+            "type": "name",
+            "properties": {
+                    "name": "urn:ogc:def:crs:EPSG::{}".format(epsg_id)}}
+
+        return {
+            "type": "FeatureCollection",
+            "crs": crs,
+            "features": features}
 
     def unload(self):
         self.iface.layerToolBar().removeAction(self.toolButtonAction)

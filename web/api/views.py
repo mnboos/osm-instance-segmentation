@@ -11,6 +11,7 @@ import numpy as np
 from PIL import Image
 import io
 from shapely import geometry
+import geojson
 import traceback
 
 _predictor = Predictor(r"D:\_models\stage2_hombi_rappi_zh.h5")
@@ -106,5 +107,11 @@ def _predict(request: InferenceRequest):
         polygon = geometry.Polygon(points)
         all_polygons.append(polygon)
 
-    return list(map(lambda p: p.wkt, all_polygons))
+    results = list(map(to_geojson, all_polygons))
+    print(results)
+    return results
 
+
+def to_geojson(geom):
+    f = geojson.Feature(geometry=geom, properties={})
+    return f
