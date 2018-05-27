@@ -38,6 +38,7 @@ def request_inference(request):
         data = JSONParser().parse(request)
         inference_serializer = InferenceRequestSerializer(data=data)
         if not inference_serializer.is_valid():
+            print("Errors: ", inference_serializer.errors)
             return JsonResponse({'errors': inference_serializer.errors})
 
         inference = InferenceRequest(**inference_serializer.data)

@@ -55,9 +55,8 @@ class DeepOsmPlugin:
 
     def detect(self, rectangularize):
         info("extent: {}", self.iface.mapCanvas().extent().asWktPolygon())
-        layers = QgsMapLayerRegistry.instance().mapLayers()
-        info(layers)
-        self.prediction_dialog.update_layers(layers)
+        layer_names = list(map(lambda l: l.name(), QgsMapLayerRegistry.instance().mapLayers().values()))
+        self.prediction_dialog.update_layers(layer_names)
         self._refresh_canvas()
         res = self.prediction_dialog.show()
         if res:
@@ -66,14 +65,13 @@ class DeepOsmPlugin:
     def get_reference_features(self):
         rect = self.iface.mapCanvas().extent()
         imagery_layer_name = self.imagery_layer_name
-        all_layers = QgsMapLayerRegistry.instance().mapLayers()
         feature_types = ['Gebaeude', 'Strasse_Weg']
         result = {}
-        for layer_name in all_layers:
+        for layer in list(QgsMapLayerRegistry.instance().mapLayers().values()):
+            layer_name = layer.name()
             if layer_name == imagery_layer_name:
                 continue
 
-            layer = all_layers[layer_name]
             layer_crs = layer.crs().authid()
             info("crs: {}", layer_crs)
             x_min, y_min = convert_coordinate(source_crs=self._get_qgis_crs(), target_crs=layer_crs, lat=rect.yMinimum(), lng=rect.xMinimum())
@@ -101,7 +99,7 @@ class DeepOsmPlugin:
         scale = self._get_current_map_scale()
         zoom = get_zoom_by_scale(scale)
 
-        features = self.get_reference_features()
+        # features = self.get_reference_features()
         info("extent @ zoom {}: {}", zoom, (lon_min, lat_min, lon_max, lat_max))
         data = {
             'rectangularize': rectangularize,
@@ -110,9 +108,10 @@ class DeepOsmPlugin:
             'y_min': lat_min,
             'y_max': lat_max,
             'zoom_level': zoom,
-            'image_data': self.image_data,
-            'reference_features': features
+            'image_data': str(self.image_data),
+            # 'reference_features': features
         }
+        # print(data['image_data'], type(data['image_data']))
         status, raw = post("http://localhost:8000/predict", json.dumps(data))
         if status == 200 and raw:
             response = {}
@@ -133,7 +132,12 @@ class DeepOsmPlugin:
         self.canvas_refreshed = False
         layer_name = self.imagery_layer_name
         info("Refreshing canvas for layer: {}", layer_name)
-        layer = QgsMapLayerRegistry.instance().mapLayers()[layer_name]
+        layers = list(filter(lambda l: l.name() == layer_name, QgsMapLayerRegistry.instance().mapLayers().values()))
+        if layers:
+            layer = layers[0]
+        else:
+            self.image_data = None
+            return
         canvas = self.canvas
         if QGIS3:
             canvas.setLayers([layer])
