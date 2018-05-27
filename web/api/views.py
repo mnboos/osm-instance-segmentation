@@ -10,7 +10,7 @@ import base64
 import numpy as np
 from PIL import Image
 import io
-from shapely import geometry
+from shapely import geometry, wkt
 import geojson
 import traceback
 
@@ -43,13 +43,32 @@ def request_inference(request):
             return JsonResponse({'errors': inference_serializer.errors})
 
         inference = InferenceRequest(**inference_serializer.data)
-        print("Inf: ", inference)
         try:
             res = _predict(inference)
             # coll = "GEOMETRYCOLLECTION({})".format(", ".join(res))
             # with open(r"D:\training_images\_last_predicted\wkt.txt", 'w') as f:
             #     f.write(coll)
-            return JsonResponse({'features': res})
+
+            deleted_features = []
+            for ref_feature_wkt in inference.reference_features:
+                ref_feature = wkt.loads(ref_feature_wkt)
+                hit = False
+                for f in res:
+                    if f.intersects(ref_feature):
+                        hit = True
+                        break
+                if not hit:
+                    p = ref_feature.representative_point()
+                    deleted_features.append(to_geojson(p))
+            print("Deleted: ", len(deleted_features))
+            print("Done")
+
+            output = {
+                'features': list(map(to_geojson, res)),
+                'deleted_features': deleted_features
+            }
+
+            return JsonResponse(output)
         except Exception as e:
             tb = ""
             if traceback:
@@ -107,9 +126,10 @@ def _predict(request: InferenceRequest):
         polygon = geometry.Polygon(points)
         all_polygons.append(polygon)
 
-    results = list(map(to_geojson, all_polygons))
-    print(results)
-    return results
+    return all_polygons
+    # results = list(map(to_geojson, all_polygons))
+    # print(results)
+    # return results
 
 
 def to_geojson(geom):

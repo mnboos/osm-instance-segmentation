@@ -1,3 +1,5 @@
+import os
+import uuid
 from .qgis_2to3 import *
 from .ui.dialogs import AboutDialog, SettingsDialog, PredictionDialog
 from .log_helper import info, get_temp_dir
@@ -66,7 +68,8 @@ class DeepOsmPlugin:
         rect = self.iface.mapCanvas().extent()
         imagery_layer_name = self.imagery_layer_name
         feature_types = ['Gebaeude', 'Strasse_Weg']
-        result = {}
+        result = []
+        crs = None
         for layer in list(QgsMapLayerRegistry.instance().mapLayers().values()):
             layer_name = layer.name()
             if layer_name == imagery_layer_name or not isinstance(layer, QgsVectorLayer):
@@ -82,24 +85,26 @@ class DeepOsmPlugin:
                 expr = QgsExpression("\"Typ\" = '{}' and intersects(bounds($geometry), geom_from_wkt('{}'))"
                                      .format(feature_type, wkt))
                 feature_iterator = layer.getFeatures(QgsFeatureRequest(expr))
-                geoms = [i.geometry().exportToGeoJSON() for i in feature_iterator]
+                geoms = [i.geometry().exportToWkt() for i in feature_iterator]
                 info("layer '{}' has {} matching features", layer_name, len(geoms))
                 if geoms:
-                    if feature_type not in result:
-                        result[feature_type] = []
-                    result[feature_type].extend(geoms)
-        return result
+                    result.extend(geoms)
+                    if not crs:
+                        crs = layer_crs
+        return result, crs
 
     def continue_detect(self, rectangularize):
         qgis_crs = self._get_qgis_crs()
         extent = self.iface.mapCanvas().extent()
 
-        lon_min, lat_min = convert_coordinate(qgis_crs, 3857, extent.yMinimum(), extent.xMinimum())
-        lon_max, lat_max = convert_coordinate(qgis_crs, 3857, extent.yMaximum(), extent.xMaximum())
+        features, feature_layer_crs = self.get_reference_features()
+        info("Feature layer CRS: {}", feature_layer_crs)
+
+        lon_min, lat_min = convert_coordinate(qgis_crs, feature_layer_crs, extent.yMinimum(), extent.xMinimum())
+        lon_max, lat_max = convert_coordinate(qgis_crs, feature_layer_crs, extent.yMaximum(), extent.xMaximum())
         scale = self._get_current_map_scale()
         zoom = get_zoom_by_scale(scale)
 
-        features = self.get_reference_features()
         info("extent @ zoom {}: {}", zoom, (lon_min, lat_min, lon_max, lat_max))
         data = {
             'rectangularize': rectangularize,
@@ -120,7 +125,7 @@ class DeepOsmPlugin:
             except Exception as e:
                 info("Parsing response failed: {}", str(e))
             if "features" in response:
-                self.detection_finished(response["features"])
+                self.detection_finished(response["features"], feature_layer_crs)
             else:
                 info("Prediction failed: {}", response)
 
@@ -162,14 +167,14 @@ class DeepOsmPlugin:
         self.image_data = base64.standard_b64encode(binary_data)
         self.canvas_refreshed = True
 
-    def detection_finished(self, features):
+    def detection_finished(self, features, crs):
         info("detection finished. {} features predicted", len(features))
         # layer = QgsVectorLayer("Polygon?crs=EPSG:3857", "Prediction", "memory")
         # layer.setCrs(QgsCoordinateReferenceSystem(3857))
         # layer.startEditing()
 
-        layer_source = get_temp_dir("src.json")
-        feature_collection = self._get_feature_collection(features)
+        layer_source = get_temp_dir("src_{}.json".format(uuid.uuid4()))
+        feature_collection = self._get_feature_collection(features, crs)
         with open(layer_source, "w") as f:
             f.write(json.dumps(feature_collection))
 
@@ -186,12 +191,12 @@ class DeepOsmPlugin:
         QgsMapLayerRegistry.instance().addMapLayer(layer)
         info("done")
 
-    def _get_feature_collection(self, features):
+    def _get_feature_collection(self, features, source_crs):
         """
          * Returns an empty GeoJSON FeatureCollection with the coordinate reference system (crs) set to EPSG3857
         """
 
-        source_crs = self._get_qgis_crs()
+        # source_crs = self._get_qgis_crs()
         if source_crs:
             epsg_id = get_code_from_epsg(source_crs)
         else:
