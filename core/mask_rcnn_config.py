@@ -1,22 +1,13 @@
 from mask_rcnn.config import Config
-import sys
 from mask_rcnn import utils
 from core.training_data import get_instances, get_instances_from_array
 from core.settings import IMAGE_WIDTH
+from core.utils import osm_class_ids
 from typing import Tuple
 import os
 import glob
 import numpy as np
-import cv2
 from PIL import Image
-
-osm_class_ids = {
-    'building': 1,
-    'vineyard': 2,
-    'highway': 3,
-    'pool': 4,
-    'tennis': 5
-}
 
 TRAINING_DATA_DIR = "/training-data"
 TEST_DATA_DIR = "/test-data"

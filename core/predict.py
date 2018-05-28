@@ -62,12 +62,10 @@ class Predictor:
             results = model.detect(img_batch, image_ids=id_batch, verbose=verbose)
             print("Extracting contours...")
             for res in results:
-                masks = res['masks']
-                point_sets = get_contours(masks=masks)
-                point_sets = list(map(lambda point_set: list(point_set), point_sets))
+                point_sets = get_contours(masks=res['masks'], classes=res['class_ids'])
                 image_id = res['coco_id']
-                for points in point_sets:
-                    all_point_sets.append((points, image_id))
+                for points, class_name in point_sets:
+                    all_point_sets.append((points, image_id, class_name))
             print("Contours extracted")
         K.clear_session()
         return all_point_sets

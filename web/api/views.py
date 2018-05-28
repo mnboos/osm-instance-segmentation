@@ -53,7 +53,7 @@ def request_inference(request):
             for ref_feature_wkt in inference.reference_features:
                 ref_feature = wkt.loads(ref_feature_wkt)
                 hit = False
-                for f in res:
+                for f, class_name in res:
                     if f.intersects(ref_feature):
                         hit = True
                         break
@@ -64,7 +64,7 @@ def request_inference(request):
             print("Done")
 
             output = {
-                'features': list(map(to_geojson, res)),
+                'features': list(map(lambda feat: to_geojson(geom=feat[0], properties={'type': feat[1]}), res)),
                 'deleted_features': deleted_features
             }
 
@@ -115,7 +115,7 @@ def _predict(request: InferenceRequest):
     point_sets = _predictor.predict_arrays(images=images_to_predict)
     # print(point_sets)
 
-    for points, img_id in point_sets:
+    for points, img_id, class_name in point_sets:
         col, row = tiles_by_img_id[img_id]
         points = list(map(lambda p: (p[0]+col*256, p[1]+row*256), points))
         if request.rectangularize:
@@ -124,7 +124,7 @@ def _predict(request: InferenceRequest):
         if georeffed:
             points = georeffed
         polygon = geometry.Polygon(points)
-        all_polygons.append(polygon)
+        all_polygons.append((polygon, class_name))
 
     return all_polygons
     # results = list(map(to_geojson, all_polygons))
@@ -132,6 +132,9 @@ def _predict(request: InferenceRequest):
     # return results
 
 
-def to_geojson(geom):
-    f = geojson.Feature(geometry=geom, properties={})
+def to_geojson(geom, properties=None):
+    props = {}
+    if properties:
+        props = properties
+    f = geojson.Feature(geometry=geom, properties=props)
     return f

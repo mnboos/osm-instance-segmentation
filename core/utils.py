@@ -18,6 +18,15 @@ RIGHT = (0, 1)
 LEFT = (0, -1)
 
 
+osm_class_ids = {
+    'building': 1,
+    'vineyard': 2,
+    'highway': 3,
+    'pool': 4,
+    'tennis': 5
+}
+
+
 class Line:
     def __init__(self, nr: int, p1: Tuple[float, float], p2: Tuple[float, float]):
         self._nr = nr
@@ -444,13 +453,19 @@ def remove_redundant_segments(outline: List[Line]) -> None:
             i += 1
 
 
-def get_contours(masks: np.ndarray) -> List[List[Tuple[int, int]]]:
+def get_contours(masks: np.ndarray, classes: np.ndarray) -> List[Tuple[List[Tuple[int, int]], str]]:
     contours = []
+
+    classes_by_id = {}
+    for class_name in osm_class_ids:
+        classes_by_id[osm_class_ids[class_name]] = class_name
+
     for i in range(masks.shape[-1]):
         mask = masks[:, :, i]
+        class_name = classes_by_id[classes[i]]
         points = get_contour(mask)
         if points:
-            contours.append(points)
+            contours.append((list(points), class_name))
     return contours
 
 

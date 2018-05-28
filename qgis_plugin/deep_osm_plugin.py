@@ -99,6 +99,8 @@ class DeepOsmPlugin:
 
         features, feature_layer_crs = self.get_reference_features()
         info("Feature layer CRS: {}", feature_layer_crs)
+        if not feature_layer_crs:
+            feature_layer_crs = qgis_crs
 
         lon_min, lat_min = convert_coordinate(qgis_crs, feature_layer_crs, extent.yMinimum(), extent.xMinimum())
         lon_max, lat_max = convert_coordinate(qgis_crs, feature_layer_crs, extent.yMaximum(), extent.xMaximum())
