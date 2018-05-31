@@ -127,7 +127,13 @@ class DeepOsmPlugin:
             except Exception as e:
                 info("Parsing response failed: {}", str(e))
             if "features" in response:
-                self.detection_finished(response["features"], feature_layer_crs)
+                all_features = []
+                # all_features.extend(response["features"])
+                all_features.extend(response["deleted"])
+                all_features.extend(response["added"])
+                all_features.extend(response["changed"])
+                self.create_layer("Predictions", response["features"], feature_layer_crs)
+                self.create_layer("POI", all_features, feature_layer_crs)
             else:
                 info("Prediction failed: {}", response)
 
@@ -169,26 +175,17 @@ class DeepOsmPlugin:
         self.image_data = base64.standard_b64encode(binary_data)
         self.canvas_refreshed = True
 
-    def detection_finished(self, features, crs):
-        info("detection finished. {} features predicted", len(features))
-        # layer = QgsVectorLayer("Polygon?crs=EPSG:3857", "Prediction", "memory")
-        # layer.setCrs(QgsCoordinateReferenceSystem(3857))
-        # layer.startEditing()
+    def create_layer(self, name, features, crs):
+        if not features:
+            return
 
         layer_source = get_temp_dir("src_{}.json".format(uuid.uuid4()))
         feature_collection = self._get_feature_collection(features, crs)
         with open(layer_source, "w") as f:
             f.write(json.dumps(feature_collection))
 
-        layer = QgsVectorLayer(layer_source, "Predictions", "ogr")
+        layer = QgsVectorLayer(layer_source, name, "ogr")
 
-        # for f in features:
-        #     feature = QgsFeature()
-        #     geom = QgsGeometry.fromWkt(f)
-        #     if geom:
-        #         feature.setGeometry(geom)
-        #         layer.addFeature(feature, True)
-        # layer.commitChanges()
         layer.updateExtents()
         QgsMapLayerRegistry.instance().addMapLayer(layer)
         info("done")

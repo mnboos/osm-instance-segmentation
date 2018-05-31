@@ -31,6 +31,49 @@ Request format (url: localhost:8000/inference):
 """
 
 
+def diff(a, b, check_intersection=True, check_containment=False, min_area=20):
+    """
+     * Returns a representative point for each feature from a, that has no intersecting feature in b
+    :param a:
+    :param b:
+    :param props:
+    :return:
+    """
+
+    res = []
+    for feature_a, class_name_a in a:
+        if not feature_a.area >= min_area:
+            continue
+
+        hit = False
+        for feature_b, class_name_b in b:
+            if not feature_b.area >= min_area:
+                continue
+
+            if (check_intersection and feature_b.intersects(feature_a)) \
+                    or (check_containment and feature_a.within(feature_b)):
+                hit = True
+                break
+        if (check_intersection and not hit) or (check_containment and hit):
+            res.append((feature_a, class_name_a))
+    return res
+
+
+def to_final_geojson(features, props, add_predicted_class_to_props=False):
+    res = []
+    if not props and add_predicted_class_to_props:
+        props = {}
+    for f, class_name in features:
+        if add_predicted_class_to_props:
+            props['class'] = class_name
+        # p = f
+        if not f.is_valid:
+            continue
+        p = f.representative_point()
+        res.append(to_geojson(p, properties=props))
+    return res
+
+
 @api_view(['GET', 'POST'])
 def request_inference(request):
     if request.method == "GET":
@@ -49,23 +92,36 @@ def request_inference(request):
             # with open(r"D:\training_images\_last_predicted\wkt.txt", 'w') as f:
             #     f.write(coll)
 
-            deleted_features = []
-            for ref_feature_wkt in inference.reference_features:
-                ref_feature = wkt.loads(ref_feature_wkt)
-                hit = False
-                for f, class_name in res:
-                    if f.intersects(ref_feature):
-                        hit = True
-                        break
-                if not hit:
-                    p = ref_feature.representative_point()
-                    deleted_features.append(to_geojson(p))
+            ref_features = list(map(lambda f: (wkt.loads(f), 'reference'), inference.reference_features))
+
+            # deleted_features = []
+            # for ref_feature in ref_features:
+            #     hit = False
+            #     for f, class_name in res:
+            #         if f.intersects(ref_feature):
+            #             hit = True
+            #             break
+            #     if not hit:
+            #         p = ref_feature.representative_point()
+            #         deleted_features.append(to_geojson(p))
+            # print("Deleted: ", len(deleted_features))
+            # print("Done")
+
+            original = list(res)
+
+            deleted_features = diff(ref_features, res)
+            added_features = diff(res, ref_features)
+            changed_features = diff(ref_features, res, check_intersection=False, check_containment=True)
             print("Deleted: ", len(deleted_features))
+            print("Added: ", len(added_features))
+            print("Changed: ", len(changed_features))
             print("Done")
 
             output = {
-                'features': list(map(lambda feat: to_geojson(geom=feat[0], properties={'type': feat[1]}), res)),
-                'deleted_features': deleted_features
+                'features': list(map(lambda feat: to_geojson(geom=feat[0], properties={'type': feat[1], 'area': feat[0].area}), original)),
+                'deleted': to_final_geojson(deleted_features, {'type': 'deleted'}),
+                'added': to_final_geojson(added_features, {'type': 'added'}, True),
+                'changed': to_final_geojson(changed_features, {'type': 'changed'})
             }
 
             return JsonResponse(output)
