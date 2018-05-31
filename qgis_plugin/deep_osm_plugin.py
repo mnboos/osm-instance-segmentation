@@ -160,14 +160,28 @@ class DeepOsmPlugin:
         canvas.setExtent(self.iface.mapCanvas().extent())
         canvas.refreshAllLayers()
 
+    def save_image(self, path):
+        canvas = self.canvas
+        canvas.clearCache()
+        size = canvas.size()
+        image = QImage(size, QImage.Format_RGB32)
+
+        painter = QPainter(image)
+        settings = canvas.mapSettings()
+
+        job = QgsMapRendererCustomPainterJob(settings, painter)
+        job.renderSynchronously()
+        painter.end()
+
+        image.save(path)
+
     def _update_image_data(self):
         temp_dir = os.path.join(tempfile.gettempdir(), "deep_osm")
         if not os.path.isdir(temp_dir):
             os.makedirs(temp_dir)
         file_path = os.path.join(temp_dir, "screenshot.png")
-        # canvas = self.canvas
-        canvas = self.iface.mapCanvas()
-        canvas.saveAsImage(file_path, None, 'PNG')
+        self.save_image(file_path)
+
         assert os.path.isfile(file_path)
         info("Canvas refreshed and saved: {}", file_path)
         with open(file_path, 'rb') as f:
