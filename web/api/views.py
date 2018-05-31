@@ -51,7 +51,7 @@ def diff(a, b, check_intersection=True, check_containment=False, min_area=20):
                 continue
 
             if (check_intersection and feature_b.intersects(feature_a)) \
-                    or (check_containment and feature_a.within(feature_b)):
+                    or (check_containment and feature_b.within(feature_a)):
                 hit = True
                 break
         if (check_intersection and not hit) or (check_containment and hit):
@@ -59,7 +59,7 @@ def diff(a, b, check_intersection=True, check_containment=False, min_area=20):
     return res
 
 
-def to_final_geojson(features, props, add_predicted_class_to_props=False):
+def to_final_geojson(features, props, add_predicted_class_to_props=False, to_point=False):
     res = []
     if not props and add_predicted_class_to_props:
         props = {}
@@ -69,7 +69,10 @@ def to_final_geojson(features, props, add_predicted_class_to_props=False):
         # p = f
         if not f.is_valid:
             continue
-        p = f.representative_point()
+        if to_point:
+            p = f.representative_point().buffer(4)
+        else:
+            p = f
         res.append(to_geojson(p, properties=props))
     return res
 
@@ -111,7 +114,7 @@ def request_inference(request):
 
             deleted_features = diff(ref_features, res)
             added_features = diff(res, ref_features)
-            changed_features = diff(ref_features, res, check_intersection=False, check_containment=True)
+            changed_features = diff(res, ref_features, check_intersection=False, check_containment=True)
             print("Deleted: ", len(deleted_features))
             print("Added: ", len(added_features))
             print("Changed: ", len(changed_features))
@@ -119,7 +122,7 @@ def request_inference(request):
 
             output = {
                 'features': list(map(lambda feat: to_geojson(geom=feat[0], properties={'type': feat[1], 'area': feat[0].area}), original)),
-                'deleted': to_final_geojson(deleted_features, {'type': 'deleted'}),
+                'deleted': to_final_geojson(deleted_features, {'type': 'deleted'}, to_point=True),
                 'added': to_final_geojson(added_features, {'type': 'added'}, True),
                 'changed': to_final_geojson(changed_features, {'type': 'changed'})
             }

@@ -133,7 +133,7 @@ class DeepOsmPlugin:
                 all_features.extend(response["added"])
                 all_features.extend(response["changed"])
                 self.create_layer("Predictions", response["features"], feature_layer_crs)
-                self.create_layer("POI", all_features, feature_layer_crs)
+                self.create_layer("Changes", all_features, feature_layer_crs)
             else:
                 info("Prediction failed: {}", response)
 
