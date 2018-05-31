@@ -44,39 +44,6 @@
           <prop k="outline_width_unit" v="MM"/>
           <prop k="style" v="solid"/>
         </layer>
-        <layer pass="0" class="SVGFill" locked="0">
-          <prop k="angle" v="0"/>
-          <prop k="color" v="0,0,255,255"/>
-          <prop k="outline_color" v="0,0,0,255"/>
-          <prop k="outline_width" v="0.26"/>
-          <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="outline_width_unit" v="MM"/>
-          <prop k="pattern_width_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="pattern_width_unit" v="MM"/>
-          <prop k="svgFile" v="accommodation/accommodation_bed_and_breakfast.svg"/>
-          <prop k="svg_outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
-          <prop k="svg_outline_width_unit" v="MM"/>
-          <prop k="width" v="20"/>
-          <symbol alpha="1" clip_to_extent="1" type="line" name="@1@1">
-            <layer pass="0" class="SimpleLine" locked="0">
-              <prop k="capstyle" v="square"/>
-              <prop k="customdash" v="5;2"/>
-              <prop k="customdash_map_unit_scale" v="0,0,0,0,0,0"/>
-              <prop k="customdash_unit" v="MM"/>
-              <prop k="draw_inside_polygon" v="0"/>
-              <prop k="joinstyle" v="bevel"/>
-              <prop k="line_color" v="0,0,0,255"/>
-              <prop k="line_style" v="solid"/>
-              <prop k="line_width" v="0.26"/>
-              <prop k="line_width_unit" v="MM"/>
-              <prop k="offset" v="0"/>
-              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
-              <prop k="offset_unit" v="MM"/>
-              <prop k="use_custom_dash" v="0"/>
-              <prop k="width_map_unit_scale" v="0,0,0,0,0,0"/>
-            </layer>
-          </symbol>
-        </layer>
       </symbol>
       <symbol alpha="0.45098" clip_to_extent="1" type="fill" name="2">
         <layer pass="0" class="SimpleFill" locked="0">
@@ -333,7 +300,7 @@
   <excludeAttributesWMS/>
   <excludeAttributesWFS/>
   <attributeactions default="-1"/>
-  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="137439041">
+  <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="0">
     <columns>
       <column width="-1" hidden="0" type="field" name="type"/>
       <column width="-1" hidden="0" type="field" name="class"/>
