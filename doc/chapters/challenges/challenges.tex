@@ -3,11 +3,9 @@
 \chapter{Theoretical and Practical Challenges}
 
 \section{Training data generation}
-In order to train the neural network a data set was required, which could then be used for training and validation. Due to this, a tool \cite{airtiler} has been developed which uses publicly available vector data from OpenStreetMap and satellite imagery Microsoft Bing.
+In order to train the neural network a data set was required, which could then be used for training and validation. Due to this, a tool \cite{airtiler} has been developed which uses publicly available vector data from OpenStreetMap and satellite imagery Microsoft Bing to generate a dataset consisting of the satellite images and binary masks which are created from the OpenStreetMap vector data.
 
-wir wissen, dass es immer besser aufgelöste Bilddaten einzelner Kantone gibt. Zum Zeitpunkt unserer Arbeit waren diese aber weniger verfügbar, was ein Problem ist, weil für das Training eine möglichst grosse Datenmenge (ideal > 100'000 Bilder) benötigt wird
-
-tbd
+It can be assumed, that in the future, more and more swiss cantons will made high resolution orthophotos publicly available. However, at the time of this writing, this statement is not generally true, as there are only a limited number of free government image sources. As a result of this, it was not an option to use these images for this work, because it would lead to a rather small dataset.
 
 \section{Prediction accuracy}
 \subsection{Class probability}
@@ -16,9 +14,14 @@ This might be the result of the network which has to solve a more complex task n
 As a result of this, a solution could be to train the network several times seperatly, to get multiple models, each trained for a specific class. Another solution could be to weight the loss according to the relative amount of the specific class according to the size of the whole dataset.
 
 \subsection{Outline}
-The predictions are in most cases a bit to small when compared to the corresponding orthophoto. This might be the result of slightly misaligned masks, since the masks and the images are generated seperately.
-tbd: bild einfügen
+\autoref{fig:challenges:small_predictions} shows, that the predictions are in most cases a bit to small when compared to the corresponding orthophoto. This might be the result of slightly misaligned masks, since the masks and the images are generated seperately.
 
+\begin{figure}[H]
+    \centering
+	\includegraphics[width=0.6\linewidth]{chapters/challenges/images/small_predictions.png}
+	\caption{Too small predictions}
+	\label{fig:challenges:small_predictions}
+\end{figure}
 
 
 \section{Building outline regularization}

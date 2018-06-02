@@ -2,7 +2,20 @@
 
 \chapter{Introduction}
 \section{Technical Background - PNF / AV}
-tbd
+Periodically, for example all five years, different companies all over Switzerland, have to refresh the cadastral survey data for different regions of the cantons they are located at. This task results in a lot of work, as it is rather time consuming, to find changes in the landcover regarding the old survey data. These changes have then to be transferred into the cadastral survey data.
+
+One of the most time consuming parts of this work is to find the actual changes, for example a new built house or a garage that has been added to an already existing building. Therefore, we want to do Intelligence Augmentation \cite{Engelbart.1962} by detecting these changes using Deep Learning and Open Data.
+
+To understand the difference between Intelligence Augmentation (IA) and Artificial Intelligence (AI) \autoref{fig:introduction:ia_vs_ai} shows some examples.
+
+
+\begin{figure}[H]
+    \centering
+	\includegraphics[width=0.9\linewidth]{chapters/introduction/images/ia_vs_ai.png}
+	\caption{IA compared to AI\\Source: https://www.cbinsights.com/research/ai-vs-intelligence-augmentation-applications, 02.06.18}
+	\label{fig:introduction:ia_vs_ai}
+\end{figure}
+
 
 \section{Architecture}
 \autoref{fig:introduction:architecture_overview} shows an overview of the architecture. Note, that this diagram shows a combination of the learning and the prediction architecture. Step 2, which is loading the satellite imagery from Microsoft Bing is only required in the learning phase, that is for the generation of the training data, which is required to train the neural network.
