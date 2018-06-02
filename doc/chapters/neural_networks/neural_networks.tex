@@ -15,7 +15,7 @@ In contrast to object detection, the target of image segmentation is not only to
 
 \begin{figure}[H]
     \centering
-	\includegraphics[width=0.6\linewidth]{chapters/neural_networks/images/segmentation.jpg}
+	\includegraphics[width=0.8\linewidth]{chapters/neural_networks/images/segmentation.jpg}
 	\caption{Different types of image segmentation.\\ Source: https://i.stack.imgur.com/mPFUo.jpg (27.05.2018)}
 	\label{fig:neural_networks:image_segmentation}
 \end{figure}
@@ -33,8 +33,25 @@ Obviously, the size of a filter can be configured, as well as the step size, the
 \end{figure}
 
 \section{Pooling Layer}
-\subsection{Min / Max Pooling}
+Pooling is a technique which allows to reduce the size of an image by extracting a single value from a region of values. The extracted value depends on the pooling type that is used. Max pooling for example extracts the highest value from the region, whereas min pooling extracts the lowest value.
+
+\begin{figure}[H]
+    \centering
+	\begin{subfigure}{0.4\textwidth}
+    	\includegraphics[width=0.9\linewidth]{chapters/neural_networks/images/max_pooling.png}		    \caption{Max Pooling}
+    	\label{fig:challenges:max_pooling}
+	\end{subfigure}~
+	\begin{subfigure}{0.4\textwidth}
+    	\includegraphics[width=0.9\linewidth]{chapters/neural_networks/images/avg_pooling.png}       	\caption{Average Pooling}
+    	\label{fig:challenges:avg_pooling}
+	\end{subfigure}
+	\caption{Max and average pooling\\Source: https://idoml.com, 02.06.18}
+	\label{fig:challenges:pooling}
+\end{figure}
+
 \subsection{Unpooling}
+tbd
+
 \section{Fully Connected Layer}
 \section{Mask R-CNN}
 
