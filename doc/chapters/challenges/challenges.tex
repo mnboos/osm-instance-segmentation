@@ -5,7 +5,21 @@
 \section{Training data generation}
 In order to train the neural network a data set was required, which could then be used for training and validation. Due to this, a tool \cite{airtiler} has been developed which uses publicly available vector data from OpenStreetMap and satellite imagery Microsoft Bing.
 
+wir wissen, dass es immer besser aufgelöste Bilddaten einzelner Kantone gibt. Zum Zeitpunkt unserer Arbeit waren diese aber weniger verfügbar, was ein Problem ist, weil für das Training eine möglichst grosse Datenmenge (ideal > 100'000 Bilder) benötigt wird
+
 tbd
+
+\section{Prediction accuracy}
+\subsection{Class probability}
+After the first training the neural network, the results were not quite as expected. Even though, buildings were predicted as buildings in most cases, other classes, like tennis courts, were predicted as buildings as well. Due to this, the network has been retrained with the additional, incorrectly predicted, classes like tennis courts. However, instead of correctly making a distinction between buildings and tennis courts, the overall prediction accuracy got worse. 
+This might be the result of the network which has to solve a more complex task now, by deciding which class it is, instead of a simple yes-no decision. Additionally, the training data is highly imbalanced, as there are lot more samples of buildings than tennis courts.
+As a result of this, a solution could be to train the network several times seperatly, to get multiple models, each trained for a specific class. Another solution could be to weight the loss according to the relative amount of the specific class according to the size of the whole dataset.
+
+\subsection{Outline}
+The predictions are in most cases a bit to small when compared to the corresponding orthophoto. This might be the result of slightly misaligned masks, since the masks and the images are generated seperately.
+tbd: bild einfügen
+
+
 
 \section{Building outline regularization}
 Once the network has been trained, it can be used to make predictions on images, it has never "seen" before. However, there are situations in which the predictions are far from perfect, especially then if the building is partially covered from trees or has unclear outlines. This can be seen in \autoref{fig:challenges:building_masks}.
