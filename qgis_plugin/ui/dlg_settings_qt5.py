@@ -31,7 +31,7 @@ class Ui_DlgSettings(object):
         self.gridLayout_2.setObjectName("gridLayout_2")
         self.txtServerPath = QtWidgets.QLineEdit(self.groupSettings)
         self.txtServerPath.setObjectName("txtServerPath")
-        self.gridLayout_2.addWidget(self.txtServerPath, 0, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.txtServerPath, 0, 2, 1, 1)
         self.lblServerPath = QtWidgets.QLabel(self.groupSettings)
         self.lblServerPath.setObjectName("lblServerPath")
         self.gridLayout_2.addWidget(self.lblServerPath, 0, 0, 1, 1)

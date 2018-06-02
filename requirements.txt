@@ -18,3 +18,4 @@ jupyter_contrib_nbextensions
 widgetsnbextension
 ipywidgets
 matplotlib
+geojson==2.4.0

@@ -1,10 +1,13 @@
 from ..qgis_2to3 import *
+from ..log_helper import info
 try:
     from .dlg_about_qt5 import Ui_DlgAbout
     from .dlg_settings_qt5 import Ui_DlgSettings
+    from .dlg_predict_qt5 import Ui_DlgPredict
 except:
     from .dlg_about_qt4 import Ui_DlgAbout
     from .dlg_settings_qt4 import Ui_DlgSettings
+    from .dlg_predict_qt4 import Ui_DlgPredict
 
 
 def _update_size(dialog):
@@ -60,3 +63,58 @@ class SettingsDialog(QDialog, Ui_DlgSettings):
 
     def on_host_changed(self):
         self._settings.setValue("HOST", self.txtServerPath.text())
+
+
+class PredictionDialog(QDialog, Ui_DlgPredict):
+
+    on_image_layer_change = pyqtSignal("QString")
+
+    def __init__(self, settings):
+        QDialog.__init__(self)
+        self.setupUi(self)
+        _update_size(self)
+        self._settings = settings
+        self._updating_layers = False
+        self.cbxImageryLayer.currentIndexChanged['QString'].connect(self._handle_imagery_layer_change)
+
+    def _handle_imagery_layer_change(self, new_layer):
+        updated = self._handle_layer_change(new_layer, "IMAGERY_LAYER")
+        if updated:
+            self.on_image_layer_change.emit(new_layer)
+
+    def _handle_layer_change(self, layer_name, setting_key):
+        updated = False
+        if not self._updating_layers:
+            info("Selected layer: {}", layer_name)
+            self._settings.setValue(setting_key, layer_name)
+            updated = True
+        return updated
+
+
+    @staticmethod
+    def _add_layers_to(combobox, layers):
+        for layer_name in sorted(layers):
+            is_already_added = combobox.findText(layer_name) != -1
+            if not is_already_added:
+                combobox.addItem(layer_name)
+
+    def update_layers(self, layer_names):
+        self._updating_layers = True
+        self._add_layers_to(self.cbxImageryLayer, layer_names)
+
+        imagery_layer = self._settings.value("IMAGERY_LAYER", None)
+        if imagery_layer:
+            self.select_layer(imagery_layer, self.cbxImageryLayer)
+
+        self._updating_layers = False
+
+    @staticmethod
+    def select_layer(name, target_combobox):
+        if name:
+            index = target_combobox.findText(name)
+            if index:
+                target_combobox.setCurrentIndex(index)
+
+    def show(self):
+        return self.exec_()
+

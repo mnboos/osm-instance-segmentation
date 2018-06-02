@@ -1,3 +1,6 @@
+from qgis.gui import *
+from qgis.core import *
+
 try:
     from qgis.core import (
         QgsMapLayerRegistry,
@@ -9,30 +12,15 @@ except ImportError:
         QgsPointXY as QgsPoint
     )
 
-from qgis.core import (
-    QgsApplication,
-    QgsRectangle,
-    QgsFeature,
-    QgsCoordinateReferenceSystem,
-    QgsProject,
-    QgsCoordinateReferenceSystem,
-    QgsCoordinateTransform,
-    QgsField,
-    QgsVectorLayer,
-    QgsFeatureRequest,
-    QgsSpatialIndex,
-    QgsGeometry,
-    QgsNetworkAccessManager
-    )
-from qgis.gui import QgsMessageBar
-
 import os
 try:
+    QGIS3 = False
     from PyQt4.QtCore import *
     from PyQt4.QtGui import *
     from PyQt4.QtNetwork import *
     from .ui import resources_rc_qt4
 except ImportError:
+    QGIS3 = True
     from PyQt5.QtCore import *
     from PyQt5.QtGui import *
     from PyQt5.QtWidgets import *
