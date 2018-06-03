@@ -23,6 +23,13 @@ In contrast to object detection, the target of image segmentation is not only to
 \section{Convolutional Layer}
 A convolutional layer is one of the most important and basic building blocks of a neural network. It has a number of filters, each of which is small, compared to the input volume (the image), for example 5x5x3 pixels (a 5x5 filter with 3 channels, because standard images have 3 color channels). During the forward pass of the network, the filters are being moved over the input image and at each position of the filters on the image, a convolution is being computed, which is an element wise matrix multiplication and a sum over the resulting matrix. The result of this operation is an activation map, which is also the output of the convolutional layer.
 
+\begin{figure}[H]
+    \centering
+	\includegraphics[width=0.8\linewidth]{chapters/neural_networks/images/convolution-with-multiple-filters.png}
+	\caption{Convolution with multiple filters\\ Source: https://idoml.com (03.06.2018)}
+	\label{fig:neural_networks:convolution_with_multiple_filters}
+\end{figure}
+
 Obviously, the size of a filter can be configured, as well as the step size, the stride, and the amount of zero padding around the input image.
 
 \begin{figure}[H]
@@ -33,7 +40,9 @@ Obviously, the size of a filter can be configured, as well as the step size, the
 \end{figure}
 
 \section{Pooling Layer}
-Pooling is a technique which allows to reduce the size of an image by extracting a single value from a region of values. The extracted value depends on the pooling type that is used. Max pooling for example extracts the highest value from the region, whereas min pooling extracts the lowest value.
+Pooling is a technique which allows to reduce the size of an image by extracting a single value from a region of values. The extracted value depends on the pooling type that is used. The most common pooling types are max pooling for extracting the highest value from the current field and average (avg) pooling which extracts the lowest value.
+
+A pooling layer has basically trhee parameters, it can be configured with. Firstly, there is the stride \textit{s} which is the distance the filter is moved. Secondly, there is the filter size \textit{f} which determines the width and height of the filter that is used, to extract the value from the input.
 
 \begin{figure}[H]
     \centering
@@ -45,8 +54,17 @@ Pooling is a technique which allows to reduce the size of an image by extracting
     	\includegraphics[width=0.9\linewidth]{chapters/neural_networks/images/avg_pooling.png}       	\caption{Average Pooling}
     	\label{fig:challenges:avg_pooling}
 	\end{subfigure}
-	\caption{Max and average pooling\\Source: https://idoml.com, 02.06.18}
+	\caption{Max and average pooling\\Source: https://idoml.com (02.06.2018)}
 	\label{fig:challenges:pooling}
+\end{figure}
+
+As described in the previous chapter, a layer can have multiple output channels. Obviously, pooling can also be done with multiple channels, which can be seen in \autoref{fig:neural_networks:max_pooling_multichannel}.
+
+\begin{figure}[H]
+    \centering
+	\includegraphics[width=0.6\linewidth]{chapters/neural_networks/images/max_pooling_multichannel.png}
+	\caption{Max pooling with multiple channels\\ Source:https://idoml.com (03.06.2018)}
+	\label{fig:neural_networks:max_pooling_multichannel}
 \end{figure}
 
 \subsection{Unpooling}
