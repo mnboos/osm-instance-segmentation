@@ -132,8 +132,8 @@ class DeepOsmPlugin:
                 all_features.extend(response["deleted"])
                 all_features.extend(response["added"])
                 all_features.extend(response["changed"])
-                self.create_layer("Predictions", response["features"], feature_layer_crs)
-                self.create_layer("Changes", all_features, feature_layer_crs)
+                self.create_layer("Predictions", response["features"], feature_layer_crs, False)
+                self.create_layer("Changes", all_features, feature_layer_crs, True)
             else:
                 info("Prediction failed: {}", response)
 
@@ -189,7 +189,7 @@ class DeepOsmPlugin:
         self.image_data = base64.standard_b64encode(binary_data)
         self.canvas_refreshed = True
 
-    def create_layer(self, name, features, crs):
+    def create_layer(self, name, features, crs, apply_style):
         if not features:
             return
 
@@ -199,6 +199,10 @@ class DeepOsmPlugin:
             f.write(json.dumps(feature_collection))
 
         layer = QgsVectorLayer(layer_source, name, "ogr")
+        if apply_style:
+            style_path = os.path.join(os.path.dirname(__file__), "style.qml")
+            res = layer.loadNamedStyle(style_path)
+            info("Style applied: {}, {}", style_path, res)
 
         layer.updateExtents()
         QgsMapLayerRegistry.instance().addMapLayer(layer)
