@@ -88,6 +88,10 @@ class PredictionDialog(QDialog, Ui_DlgPredict):
     def _refresh_preview(self):
         self.on_refresh_preview.emit()
 
+    @property
+    def add_raw_predictions(self):
+        return self.chkAddPlainPredictions.isChecked()
+
     def set_predict_enabled(self, enabled):
         """
          * Enables / disabled the predict button

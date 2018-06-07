@@ -63,7 +63,8 @@ class DeepOsmPlugin:
         self._refresh_canvas()
         res = self.prediction_dialog.show()
         if res:
-            self.continue_detect(rectangularize)
+            add_raw_predictions = self.prediction_dialog.add_raw_predictions
+            self.continue_detect(rectangularize, create_raw_predictions_layer=add_raw_predictions)
 
     def get_reference_features(self):
         rect = self.iface.mapCanvas().extent()
@@ -94,7 +95,7 @@ class DeepOsmPlugin:
                         crs = layer_crs
         return result, crs
 
-    def continue_detect(self, rectangularize):
+    def continue_detect(self, rectangularize, create_raw_predictions_layer):
         qgis_crs = self._get_qgis_crs()
         extent = self.iface.mapCanvas().extent()
 
@@ -119,7 +120,6 @@ class DeepOsmPlugin:
             'image_data': str(self.image_data),
             'reference_features': features
         }
-        # print(data['image_data'], type(data['image_data']))
         status, raw = post("http://localhost:8000/predict", json.dumps(data))
         if status == 200 and raw:
             response = {}
@@ -129,23 +129,36 @@ class DeepOsmPlugin:
                 info("Parsing response failed: {}", str(e))
             if "features" in response:
                 all_features = []
-                # all_features.extend(response["features"])
                 all_features.extend(response["deleted"])
                 all_features.extend(response["added"])
                 all_features.extend(response["changed"])
-                self.create_layer("Predictions", response["features"], feature_layer_crs, False)
+                if create_raw_predictions_layer:
+                    self.create_layer("Predictions", response["features"], feature_layer_crs, False)
                 self.create_layer("Changes", all_features, feature_layer_crs, True)
             else:
                 info("Prediction failed: {}", response)
 
     @property
     def imagery_layer_name(self):
+        """
+         * Returns the name of the imagery layer from the settings
+        :return:
+        """
+
         return self.settings.value("IMAGERY_LAYER", None)
 
     def _update_predict_button(self):
         self.prediction_dialog.set_predict_enabled(self.canvas_refreshed)
 
     def _refresh_canvas(self):
+        """
+         * Refreshes the content of the custom canvas, which is used to save the content of the selected imagery
+           layer to an image. A custom canvas is required, as we don't want anything else like vectors on the image.
+           This is an asynchronous process and due to this, the method _update_image_data is the second step in this
+           process.
+        :return:
+        """
+
         self.canvas_refreshed = False
         self._update_predict_button()
         layer_name = self.imagery_layer_name
@@ -166,6 +179,13 @@ class DeepOsmPlugin:
         canvas.refreshAllLayers()
 
     def save_image(self, path):
+        """
+         * Saves the current content of the canvas to the specified path.
+           Notice, that this is NOT the main QGIS canvas, but a custom one.
+        :param path:
+        :return:
+        """
+
         canvas = self.canvas
         canvas.clearCache()
         size = canvas.size()
@@ -181,6 +201,11 @@ class DeepOsmPlugin:
         image.save(path)
 
     def _update_image_data(self):
+        """
+         * Is called as soon as the canvas is actually refreshed and its content can be saved to an image.
+        :return:
+        """
+
         temp_dir = os.path.join(tempfile.gettempdir(), "deep_osm")
         if not os.path.isdir(temp_dir):
             os.makedirs(temp_dir)
@@ -197,6 +222,15 @@ class DeepOsmPlugin:
         self._update_predict_button()
 
     def create_layer(self, name, features, crs, apply_style):
+        """
+         * Creates a new vector layer
+        :param name: The name of the layer
+        :param features: The features that will be added to the layer
+        :param crs: The CRS of the layer
+        :param apply_style: Whether the changes-style will be applied
+        :return:
+        """
+
         if not features:
             return
 
