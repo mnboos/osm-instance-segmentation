@@ -58,7 +58,8 @@ class DeepOsmPlugin:
 
     def detect(self, rectangularize):
         info("extent: {}", self.iface.mapCanvas().extent().asWktPolygon())
-        layer_names = list(map(lambda l: l.name(), QgsMapLayerRegistry.instance().mapLayers().values()))
+        layers = filter(lambda l: not isinstance(l, QgsVectorLayer), QgsMapLayerRegistry.instance().mapLayers().values())
+        layer_names = list(map(lambda l: l.name(), layers))
         self.prediction_dialog.update_layers(layer_names)
         self._refresh_canvas()
         res = self.prediction_dialog.show()
