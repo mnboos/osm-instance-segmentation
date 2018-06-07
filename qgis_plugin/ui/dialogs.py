@@ -11,6 +11,12 @@ except:
 
 
 def _update_size(dialog):
+    """
+     * A helper which simplifies scaling the windows for other resolutions
+    :param dialog:
+    :return:
+    """
+
     screen_resolution = QApplication.desktop().screenGeometry()
     screen_width, screen_height = screen_resolution.width(), screen_resolution.height()
     new_width = None
@@ -83,6 +89,12 @@ class PredictionDialog(QDialog, Ui_DlgPredict):
         self.on_refresh_preview.emit()
 
     def set_predict_enabled(self, enabled):
+        """
+         * Enables / disabled the predict button
+        :param enabled:
+        :return:
+        """
+
         self.btnPredict.setEnabled(enabled)
 
     def _handle_imagery_layer_change(self, new_layer):
@@ -99,6 +111,12 @@ class PredictionDialog(QDialog, Ui_DlgPredict):
         return updated
 
     def set_image_preview(self, path):
+        """
+         * Updates the preview image
+        :param path:
+        :return:
+        """
+
         img = QImage(path)
         pixmap = QPixmap(img)
         self.lblImage.setPixmap(pixmap)
@@ -111,22 +129,37 @@ class PredictionDialog(QDialog, Ui_DlgPredict):
                 combobox.addItem(layer_name)
 
     def update_layers(self, layer_names):
+        """
+         * Adds the specified layers to the combobox for the selection of the imagery layer
+        :param layer_names:
+        :return:
+        """
         self._updating_layers = True
         self._add_layers_to(self.cbxImageryLayer, layer_names)
 
         imagery_layer = self._settings.value("IMAGERY_LAYER", None)
         if imagery_layer:
-            self.select_layer(imagery_layer, self.cbxImageryLayer)
+            self._select_layer(imagery_layer)
 
         self._updating_layers = False
 
-    @staticmethod
-    def select_layer(name, target_combobox):
+    def _select_layer(self, name):
+        """
+         * selects the specified layer in the dropdown
+        :param name:
+        :param target_combobox:
+        :return:
+        """
+
         if name:
-            index = target_combobox.findText(name)
+            index = self.cbxImageryLayer.findText(name)
             if index:
-                target_combobox.setCurrentIndex(index)
+                self.cbxImageryLayer.setCurrentIndex(index)
 
     def show(self):
+        """
+         * Just a wrapper for the exec_() method of a dialog
+        """
+
         return self.exec_()
 
