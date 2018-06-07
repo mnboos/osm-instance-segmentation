@@ -2,7 +2,12 @@
 
 \chapter{Image Segmentation with Convolutional Neural Networks (CNN)}
 \section{Introduction}
-With the increasing computational power that comes with recent graphic cards, increasingly complex neural networks can be used to achieve more challenging tasks than before. Such tasks can be object detection, where the goal is to determine whether an object of a specified class (for example 'car') is visible on a image. 
+With the increasing computational power that comes with recent graphic cards, increasingly complex neural networks can be used on increasingly challenging tasks. Especially the area of image processing, deep learning gains in popularity. Not only due to the great availability of data sets but also because companies recognize the amount of knowledge and information that can be retrieved with such technologies.
+
+The following sections are a brief introduction into image segmentation using deep learning.
+
+\subsection{Object detection and segmentation}
+Object detection exists since long before deep learning was so popular as it is now. In object detection, the goal is to determine whether an object of a specified class (for example 'car') is visible on a image. 
 
 \begin{figure}[H]
     \centering
@@ -11,7 +16,7 @@ With the increasing computational power that comes with recent graphic cards, in
 	\label{fig:neural_networks:object_detection}
 \end{figure}
 
-In contrast to object detection, the target of image segmentation is not only to state whether an object could be found, but to label each pixel of an image with a class. The Different types of image segmentation can be seen in \autoref{fig:neural_networks:image_segmentation}.
+In contrast to object detection, the target of image segmentation is not only to state whether an object is present on the image, but to label each pixel of the image with a class, such as 'car' or 'building'. The Different types of image segmentation can be seen in \autoref{fig:neural_networks:image_segmentation}.
 
 \begin{figure}[H]
     \centering
@@ -48,14 +53,14 @@ A pooling layer has basically trhee parameters, it can be configured with. First
     \centering
 	\begin{subfigure}{0.4\textwidth}
     	\includegraphics[width=0.9\linewidth]{chapters/neural_networks/images/max_pooling.png}		    \caption{Max Pooling}
-    	\label{fig:challenges:max_pooling}
+    	\label{fig:neural_networks:max_pooling}
 	\end{subfigure}~
 	\begin{subfigure}{0.4\textwidth}
     	\includegraphics[width=0.9\linewidth]{chapters/neural_networks/images/avg_pooling.png}       	\caption{Average Pooling}
-    	\label{fig:challenges:avg_pooling}
+    	\label{fig:neural_networks:avg_pooling}
 	\end{subfigure}
 	\caption{Max and average pooling\\Source: https://idoml.com (02.06.2018)}
-	\label{fig:challenges:pooling}
+	\label{fig:neural_networks:pooling}
 \end{figure}
 
 As described in the previous chapter, a layer can have multiple output channels. Obviously, pooling can also be done with multiple channels, which can be seen in \autoref{fig:neural_networks:max_pooling_multichannel}.
@@ -67,9 +72,26 @@ As described in the previous chapter, a layer can have multiple output channels.
 	\label{fig:neural_networks:max_pooling_multichannel}
 \end{figure}
 
-\subsection{Unpooling}
-tbd
-
 \section{Fully Connected Layer}
-\section{Mask R-CNN}
+A fully connected layer is nearly the same as a convolutional layer. The only difference is, that the output of a convolutional layer
+is spatially only connected to a region of the previous layer but not to the whole output.
+\autoref{fig:neural_networks:fc_and_conv_layer} shows the difference between a fully connected layer and a convolutional layer.
 
+
+\begin{figure}[H]
+    \centering
+	\begin{subfigure}{0.4\textwidth}
+    	\includegraphics[width=0.9\linewidth]{chapters/neural_networks/images/fc_layer.png}		    \caption{Fully Connected Layer}
+    	\label{fig:challenges:max_pooling}
+	\end{subfigure}~
+	\begin{subfigure}{0.4\textwidth}
+    	\includegraphics[width=0.9\linewidth]{chapters/neural_networks/images/conv_layer.png}       	\caption{Convolutional Layer}
+    	\label{fig:challenges:avg_pooling}
+	\end{subfigure}
+	\caption{Fully Connected and Convolutional Layers\\Source: https://www.safaribooksonline.com/library/view/learning-tensorflow/9781491978504/ch04.html (07.06.2018)}
+	\label{fig:neural_networks:fc_and_conv_layer}
+\end{figure}
+
+\section{Mask R-CNN}
+Due to the massive amount of research required to come up with or improve an existing state of the art neural network architecture,
+this has been out of scope for this work. As a result of this, we decided to use Mask R-CNN \cite{He.20170405} which is, as the name implies, a recurrent, convolutional neural network.
