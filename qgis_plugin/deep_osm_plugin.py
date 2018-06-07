@@ -18,6 +18,7 @@ class DeepOsmPlugin:
         self.settings_dialog = SettingsDialog(self.settings)
         self.prediction_dialog = PredictionDialog(self.settings)
         self.prediction_dialog.on_image_layer_change.connect(self._refresh_canvas)
+        self.prediction_dialog.on_refresh_preview.connect(self._refresh_canvas)
         self.canvas = QgsMapCanvas()
         self.canvas.mapCanvasRefreshed.connect(self._update_image_data)
         self.image_data = None
@@ -141,8 +142,12 @@ class DeepOsmPlugin:
     def imagery_layer_name(self):
         return self.settings.value("IMAGERY_LAYER", None)
 
+    def _update_predict_button(self):
+        self.prediction_dialog.set_predict_enabled(self.canvas_refreshed)
+
     def _refresh_canvas(self):
         self.canvas_refreshed = False
+        self._update_predict_button()
         layer_name = self.imagery_layer_name
         info("Refreshing canvas for layer: {}", layer_name)
         layers = list(filter(lambda l: l.name() == layer_name, QgsMapLayerRegistry.instance().mapLayers().values()))
@@ -188,6 +193,8 @@ class DeepOsmPlugin:
             binary_data = f.read()
         self.image_data = base64.standard_b64encode(binary_data)
         self.canvas_refreshed = True
+        self.prediction_dialog.set_image_preview(file_path)
+        self._update_predict_button()
 
     def create_layer(self, name, features, crs, apply_style):
         if not features:
