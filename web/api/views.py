@@ -14,7 +14,8 @@ from shapely import geometry, wkt
 import geojson
 import traceback
 
-_predictor = Predictor(r"D:\_models\stage2_hombi_rappi_zh.h5")
+# _predictor = Predictor(r"D:\_models\stage2_hombi_rappi_zh.h5")
+_predictor = Predictor(r"D:\_models\mask_rcnn_osm_0100.h5")
 
 
 """
@@ -34,9 +35,11 @@ Request format (url: localhost:8000/inference):
 def diff(a, b, check_intersection=True, check_containment=False, min_area=20):
     """
      * Returns a representative point for each feature from a, that has no intersecting feature in b
+    :param min_area:
+    :param check_containment:
+    :param check_intersection:
     :param a:
     :param b:
-    :param props:
     :return:
     """
 
@@ -97,19 +100,6 @@ def request_inference(request):
 
             ref_features = list(map(lambda f: (wkt.loads(f), 'reference'), inference.reference_features))
 
-            # deleted_features = []
-            # for ref_feature in ref_features:
-            #     hit = False
-            #     for f, class_name in res:
-            #         if f.intersects(ref_feature):
-            #             hit = True
-            #             break
-            #     if not hit:
-            #         p = ref_feature.representative_point()
-            #         deleted_features.append(to_geojson(p))
-            # print("Deleted: ", len(deleted_features))
-            # print("Done")
-
             original = list(res)
 
             deleted_features = diff(ref_features, res)
@@ -145,6 +135,7 @@ def _predict(request: InferenceRequest):
     img = Image.open(barr)
     img = img.convert("RGB")
     width, height = img.size
+    print("Received image size: ", img.size)
     extent = {
         'x_min': request.x_min,
         'y_min': request.y_min,
@@ -154,7 +145,7 @@ def _predict(request: InferenceRequest):
         'img_height': height
     }
 
-    img_size = 1024
+    img_size = 256
 
     all_polygons = []
     cols = int(math.ceil(width / float(img_size)))
@@ -167,10 +158,15 @@ def _predict(request: InferenceRequest):
             start_width = col * img_size
             start_height = row * img_size
             img_copy = img.crop((start_width, start_height, start_width+img_size, start_height+img_size))
+            # img_copy = img_copy.resize((1024, 1024), Image.ANTIALIAS)
+            img_copy.save(r"C:\Users\Martin\AppData\Local\Temp\deep_osm\cropped.png")
+            print("Cropped image size: ", img_copy.size)
             arr = np.asarray(img_copy)
             img_id = "img_id_{}_{}".format(col, row)
             tiles_by_img_id[img_id] = (col, row)
             images_to_predict.append((arr, img_id))
+            break
+        break
     point_sets = _predictor.predict_arrays(images=images_to_predict)
     # print(point_sets)
 

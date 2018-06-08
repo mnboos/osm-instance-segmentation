@@ -177,6 +177,7 @@ class DeepOsmPlugin:
             canvas.setLayerSet([QgsMapCanvasLayer(layer)])
         canvas.setCanvasColor(Qt.white)
         canvas.setExtent(self.iface.mapCanvas().extent())
+        # canvas.resize(QSize(1024, 1024))
         canvas.refreshAllLayers()
 
     def save_image(self, path):

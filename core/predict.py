@@ -21,7 +21,7 @@ class Predictor:
         # IMAGES_PER_GPU = 30
         IMAGES_PER_GPU = 1
         IMAGE_MIN_DIM = 256
-        IMAGE_MAX_DIM = 1024
+        IMAGE_MAX_DIM = 256
 
     def __init__(self, weights_path: str):
         if not os.path.isfile(weights_path):
