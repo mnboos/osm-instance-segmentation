@@ -42,7 +42,16 @@ The django webserver is now available on port 8000 of the docker container.
 
 
 ## Training Data
-To generate the training data, run the following command:
+To generate the training data, you first need a Microsoft Bing developer key, which you can obtain here: https://www.bingmapsportal.com/.
+The key needs to be assigned like this, in a file `secrets.py` in the root folder of this project.
+
+```
+# Content of secrets.py
+
+BING_KEY = "insert your key here"
+```
+
+Then run the following command:
 
 ```
 python -m core.generate_training_data
