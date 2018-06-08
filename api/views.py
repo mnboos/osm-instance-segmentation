@@ -1,4 +1,5 @@
 import sys
+import os
 import math
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
@@ -13,9 +14,16 @@ import io
 from shapely import geometry, wkt
 import geojson
 import traceback
+import glob
 
-# _predictor = Predictor(r"D:\_models\stage2_hombi_rappi_zh.h5")
-_predictor = Predictor(r"D:\_models\mask_rcnn_osm_0100.h5")
+model_path = r"D:\_models\mask_rcnn_osm_0100.h5"
+if not os.path.isfile(model_path):
+    models = glob.glob(os.path.join("/model", "**/*.h5"), recursive=True)
+    if not models:
+        raise RuntimeError("No models were found in the '/model' folder")
+    else:
+        model_path = models[0]
+_predictor = Predictor(model_path)
 
 
 """
