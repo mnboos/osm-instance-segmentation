@@ -100,12 +100,6 @@
       </item>
       <item row="2" column="0" alignment="Qt::AlignHCenter">
        <widget class="QLabel" name="lblImage">
-        <property name="maximumSize">
-         <size>
-          <width>256</width>
-          <height>256</height>
-         </size>
-        </property>
         <property name="text">
          <string>Preview is loading...</string>
         </property>

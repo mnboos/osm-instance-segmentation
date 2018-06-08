@@ -72,7 +72,6 @@ class Ui_DlgPredict(object):
         self.lblPreviewText.setObjectName(_fromUtf8("lblPreviewText"))
         self.gridLayout_3.addWidget(self.lblPreviewText, 0, 0, 1, 1)
         self.lblImage = QtGui.QLabel(self.grpPreview)
-        self.lblImage.setMaximumSize(QtCore.QSize(256, 256))
         self.lblImage.setObjectName(_fromUtf8("lblImage"))
         self.gridLayout_3.addWidget(self.lblImage, 2, 0, 1, 1, QtCore.Qt.AlignHCenter)
         self.btnRefresh = QtGui.QPushButton(self.grpPreview)

@@ -53,6 +53,12 @@ mklink /D "%userprofile%/.qgis2/python/plugins/deep_osm" %cd%
 ## Web service
 The server can be started using the script ```runserver.bat```.
 
+To run the server in the docker container, execute the following command:
+
+```
+python web/manage.py runserver
+```
+
 ### Usage
 ```json
 {

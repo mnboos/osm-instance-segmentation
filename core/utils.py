@@ -460,9 +460,14 @@ def get_contours(masks: np.ndarray, classes: np.ndarray) -> List[Tuple[List[Tupl
     for class_name in osm_class_ids:
         classes_by_id[osm_class_ids[class_name]] = class_name
 
+    print("Classes: ", classes)
     for i in range(masks.shape[-1]):
         mask = masks[:, :, i]
-        class_name = classes_by_id[classes[i]]
+        if classes.any():
+            current_class = classes[i]
+            class_name = classes_by_id[current_class]
+        else:
+            class_name = "Unknown"
         points = get_contour(mask)
         if points:
             contours.append((list(points), class_name))

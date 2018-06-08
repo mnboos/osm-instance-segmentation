@@ -165,8 +165,8 @@ def _predict(request: InferenceRequest):
             img_id = "img_id_{}_{}".format(col, row)
             tiles_by_img_id[img_id] = (col, row)
             images_to_predict.append((arr, img_id))
-            break
-        break
+            # break
+        # break
     point_sets = _predictor.predict_arrays(images=images_to_predict)
     # print(point_sets)
 
