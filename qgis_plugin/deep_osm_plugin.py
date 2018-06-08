@@ -121,7 +121,18 @@ class DeepOsmPlugin:
             'image_data': str(self.image_data),
             'reference_features': features
         }
-        status, raw = post("http://localhost:8000/predict", json.dumps(data))
+        host = self.host
+        if not host:
+            QMessageBox.warning(None, "Server", "A backend host must be configured.")
+            self.settings_dialog.show()
+        host = self.host
+        if not host:
+            return
+        if not host.endswith("/predict"):
+            host += "/predict"
+
+        info("HTTP POST: {}", host)
+        status, raw = post(host, json.dumps(data))
         if status == 200 and raw:
             response = {}
             try:
@@ -147,6 +158,10 @@ class DeepOsmPlugin:
         """
 
         return self.settings.value("IMAGERY_LAYER", None)
+
+    @property
+    def host(self):
+        return self.settings.value("HOST", None)
 
     def _update_predict_button(self):
         self.prediction_dialog.set_predict_enabled(self.canvas_refreshed)
