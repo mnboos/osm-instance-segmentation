@@ -8,5 +8,7 @@ RUN apt-get update -y &&\
     apt-get install -y git wget software-properties-common vim nano python3-tk &&\
     apt update && apt install -y libsm6 libxext6
 
+WORKDIR /osm-instance-segmentation
+
 #ENTRYPOINT chmod +x ./execute && ./execute
 CMD exec /bin/bash -c "trap : TERM INT; sleep infinity & wait"
