@@ -3,7 +3,6 @@ import glob
 import random
 from core.mask_rcnn_config import MyMaskRcnnConfig, OsmMappingDataset, TRAINING_DATA_DIR
 from mask_rcnn import model as modellib, utils
-from core.settings import IMAGE_OUTPUT_FOLDER
 
 ROOT_DIR = os.getcwd()
 COCO_MODEL_PATH = os.path.join(ROOT_DIR, "mask_rcnn", "mask_rcnn_coco.h5")
@@ -13,10 +12,7 @@ DATA_DIR = os.path.join(ROOT_DIR, "images")
 DATASET_SIZE = None  # 30000  # None = Max
 
 if not os.path.isdir(TRAINING_DATA_DIR):
-    if os.path.isdir(IMAGE_OUTPUT_FOLDER):
-        TRAINING_DATA_DIR = IMAGE_OUTPUT_FOLDER
-    else:
-        raise RuntimeError("A directory '{}' is required containing the images to train the network" \
+    raise RuntimeError("A directory '{}' is required containing the images to train the network" \
                            .format(TRAINING_DATA_DIR))
 
 

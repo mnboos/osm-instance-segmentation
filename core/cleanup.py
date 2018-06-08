@@ -1,6 +1,7 @@
 import os
 import glob
 from core.utils import is_filled
+from core.mask_rcnn_config import TRAINING_DATA_DIR
 
 
 def cleanup(folder):
@@ -27,5 +28,4 @@ def cleanup(folder):
 
 
 if __name__ == "__main__":
-    # cleanup(TRAINING_DATA_DIR)
-    cleanup(r"D:/training_images/_new")
+    cleanup(TRAINING_DATA_DIR)
