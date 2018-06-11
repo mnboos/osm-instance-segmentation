@@ -3,9 +3,10 @@
 \chapter{Conclusion and Future Work}
 
 \section{Training Data}
-was könnte besser / anders sein, mit höher aufgelösten Daten? (zB. unterscheiden zwischen befestigt / unbefestigt, Umrisse besser / genauer, weniger Artefakte (false positive))
+Assumingly, a more accurate and less imbalanced data set would probably lead to a higher prediction quality. Using higher resolved images, it might even be possible to let the neural network learn the differences between asphalt and gravel roads. Additionally, the predicted masks would probably also be more accurate and less wrong predictions would happen. Generally spoken, there might be an increase in the overall prediction quality.
 
 \section{QGIS Plugin}
-Instead of sending an image and corresponding vectors to the backend, an option could be, to send two images, an old and a new one, to the backend. All changes can then be derived
-from the differences in the predictions of those two images. However, often one does not have access to either old or up-to-date imagery,
+Instead of sending an image and corresponding vectors to the backend, an option could be, to send two images, an old and a new one, to the backend. All changes can then be derived from the differences in the predictions of those two images. However, often one does not have access to either old or up-to-date imagery,
 which is a problem for the use case described in the introduction.
+
+Another improvement would be to give the user the possibility, to manually choose a perimeter, which is then automatically processed, even though it might take a longer time.
