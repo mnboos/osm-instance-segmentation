@@ -5,6 +5,8 @@
 \section{Training Data}
 Assumingly, a more accurate and less imbalanced data set would probably lead to a higher prediction quality. Using higher resolved images, it might even be possible to let the neural network learn the differences between asphalt and gravel roads. Additionally, the predicted masks would probably also be more accurate and less wrong predictions would happen. Generally spoken, there might be an increase in the overall prediction quality.
 
+tbd: training with lower zoom level, as we're only interested in the changes and not the actual contours.
+
 \section{QGIS Plugin}
 Instead of sending an image and corresponding vectors to the backend, an option could be, to send two images, an old and a new one, to the backend. All changes can then be derived from the differences in the predictions of those two images. However, often one does not have access to either old or up-to-date imagery,
 which is a problem for the use case described in the introduction.
