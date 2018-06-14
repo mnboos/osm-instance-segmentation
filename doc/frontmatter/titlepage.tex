@@ -23,9 +23,12 @@
         \ifthenelse{\equal{\TitleImage}{}}
         {\draw[draw=none,fill=HSRBlue] (24.5mm,28.4mm) rectangle (148.5mm,152.4mm);}
         {\draw[draw=none,fill=HSRBlue80,opacity=0.85] (24.5mm,28.4mm) rectangle (148.5mm,152.4mm);}
+        {\draw[draw=none,fill=white] (20mm,19.2mm) rectangle (145mm,45.4mm);}
 
         % HSR logo
         \node[anchor=south west,inner sep=0] at (20mm,19.2mm) {\includegraphics[width=60.6mm]{header/HSR_Logo_CMYK.eps}};
+        
+        \node[anchor=south west,inner sep=0] at (82mm,29.2mm) {\includegraphics[width=60.6mm]{header/mse_logo.jpg}};
 
         % Text
         \node[anchor=west] at (34.5mm,140mm) (titleinfo) {\textcolor{white}{\parbox{104mm}{\Large\sffamily\TitleInfo}}};
@@ -38,8 +41,11 @@
                 \node[anchor=west,below=5mm of subject] (conf) {\textcolor{white}{\parbox{104mm}{\LARGE\MakeUppercase{Confidential}}}};
             \fi
         \fi
-        \node[anchor=west] at (34.5mm,65mm) (author) {\textcolor{white}{\parbox{104mm}{\Large\sffamily\Author}}};
-        \node[anchor=west] at (34.5mm,58mm) (date) {\textcolor{white}{\parbox{104mm}{\Large\sffamily\titledate\today}}};
+        
+        \node[anchor=west] at (34.5mm,65mm) (author) {\textcolor{white}{\parbox{104mm}{\Large\sffamily Author}}};
+        \node[anchor=west] at (34.5mm,58mm) (author) {\textcolor{white}{\parbox{104mm}{\Large\sffamily\Author}}};
+        \node[anchor=west] at (84.5mm,65mm) (author) {\textcolor{white}{\parbox{104mm}{\Large\sffamily Supervisor}}};
+        \node[anchor=west] at (84.5mm,58mm) (author) {\textcolor{white}{\parbox{104mm}{\Large\sffamily\Supervisor}}};
     \end{tikzpicture}
 \end{titlepage}
 
