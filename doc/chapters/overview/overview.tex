@@ -1,5 +1,13 @@
 % !TeX spellcheck = en_US
 
-\chapter{Overview}
-\section{Was ist in welchem Kapitel etc.}
+\chapter{Overview}\label{chp:overview}
+\section{Situation}
+Periodically, cadastral survey data has to be updated. Generally spoken, this means among others to find changes in landcover based on aerial imagery (orthophotos, lidar, terrestrial measurements), which consists of new objects that have been added, existing objects that have changed or objects that have been removed in contrast to the latest survey data. As a result of this, this data has to be updated periodically, for example all 1-5 years, which results in a lot of manual work, as it is often not trivial to find the changes mentioned above. Due to this, the approach of this work is to apply machine learning and a modern GIS as an editing tool. Unfortunately, the current state of the art technologies are still nod advanced enough, to only rely on it when trying to find these changes. Instead, it is just a support of human work, using artificial intelligence, what is called intelligence augmentation. In this work we concentrate on analyzing selected objects/classes from landcover in an orthophoto, and compare this with the current landcover vector data layer.
 
+\section{Goals}
+The goals of this thesis are in general to develop a method which reduces the amount of manual work during the update of the cadastral survey data. This method shall use state of the art deep learning technologies, namely recurrent convolutional neural networks. Additionally, a plugin for a modern GIS tool has to be developed, which can be used by the enduser.
+
+Finally, the goals mentioned above, should be reproducable by anyone and as a result of this, open data like imagery from Microsoft Bing and vector data from OpenStreetMap has to be used, instead of expensive high resolution orthophotos.
+
+\section{Chapters}
+This section gives a brief overview over the following chapters and their contents. Firstly, \autoref{chp:state_of_the_art} is about current technologies and developments in the area of computer vision in general and segmentation in particular. \autoref{chp:introduction} is an introduction into the artificial intelligence and how it is helpful and used in this thesis. \autoref{chp:segmentation_with_neural_networks} gives an introduction into convolutional neural networks and their architecture in the context image segmentation. \autoref{chp:practical_challenges} is about practical / technical challenges, that had to be faced during the work. Following, \autoref{chp:theoretical_and_experimental_results} is a collection of theoretical and experimental results, like the participation in the crowdAI mapping challenge or the data generation tool \textit{Airtiler}. \autoref{chp:practical_results} is mainly about the QGIS plugin that has been developed in order to enable end users to use the backend for predictions of their data. Finally, \autoref{chp:conclusion_and_future_work} are some thoughts and ideas, what some next steps may be in a work based on this one.

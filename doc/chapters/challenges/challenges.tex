@@ -1,11 +1,13 @@
 % !TeX spellcheck = en_US
 
-\chapter{Theoretical and Practical Challenges}
+\chapter{Practical Challenges}\label{chp:practical_challenges}
 
-\section{Training data generation}
-In order to train the neural network a data set was required, which could then be used for training and validation. Due to this, a tool \cite{airtiler} has been developed which uses publicly available vector data from OpenStreetMap and satellite imagery Microsoft Bing to generate a dataset consisting of the satellite images and binary masks which are created from the OpenStreetMap vector data.
+\section{Training data}
+When it comes to data sets that can be used when training the neural networks, there are two options. Either one uses an already available data set, either paid or free, or a new data set is created. Currently, machine learning and especially deep learning are popular topics. As a result of this, the availability of free and publicly available data sets has increased, especially in the area of image processing like segmentation, facial recognition or object detection. Free data sets consisting of aerial imagery are  \cite{VolodymyrMnih.2013}, \cite{spacenet}, \cite{isprs-vaihingen}, \cite{isprs-potsdam}, \cite{Helber.20170831}, \cite{deepsat}.
 
-It can be assumed, that in the future, more and more swiss cantons will made high resolution orthophotos publicly available. However, at the time of this writing, this statement is not generally true, as there are only a limited number of free government image sources. As a result of this, it was not an option to use these images for this work, because it would lead to a rather small dataset.
+Despite these available data sets, we decided to make our own, consisting solely of open data, that is Microsoft Bing for the imagery and OpenStreetMap for the vector data. Due to this, a tool named Airtiler \cite{airtiler} which is described in detail in \autoref{chp:theoretical_and_experimental_results}.
+
+It can be assumed, that in the future, more and more swiss cantons will made high resolution orthophotos publicly available. At the time of this writing, especially the canton of Zurich takes a pioneering role and makes several of their data sources publicly and freely available\footnote{https://geolion.zh.ch/ (15.06.18)}. However, at the time of this writing, it was not an option to use these images for this work, because it would lead to a rather small dataset.
 
 \section{Prediction accuracy}
 \subsection{Class probability}
