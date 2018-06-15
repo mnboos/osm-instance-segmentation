@@ -68,7 +68,7 @@ class DeepOsmPlugin:
             self.continue_detect(rectangularize, create_raw_predictions_layer=add_raw_predictions)
 
     def get_reference_features(self):
-        rect = self.iface.mapCanvas().extent()
+        extent = self.canvas.extent()
         imagery_layer_name = self.imagery_layer_name
         feature_types = ['Gebaeude', 'Strasse_Weg']
         result = []
@@ -80,8 +80,8 @@ class DeepOsmPlugin:
 
             layer_crs = layer.crs().authid()
             info("crs: {}", layer_crs)
-            x_min, y_min = convert_coordinate(source_crs=self._get_qgis_crs(), target_crs=layer_crs, lat=rect.yMinimum(), lng=rect.xMinimum())
-            x_max, y_max = convert_coordinate(source_crs=self._get_qgis_crs(), target_crs=layer_crs, lat=rect.yMaximum(), lng=rect.xMaximum())
+            x_min, y_min = convert_coordinate(source_crs=self._get_qgis_crs(), target_crs=layer_crs, lat=extent.yMinimum(), lng=extent.xMinimum())
+            x_max, y_max = convert_coordinate(source_crs=self._get_qgis_crs(), target_crs=layer_crs, lat=extent.yMaximum(), lng=extent.xMaximum())
             wkt = QgsRectangle(x_min, y_min, x_max, y_max).asWktPolygon()
 
             for feature_type in feature_types:
@@ -94,13 +94,12 @@ class DeepOsmPlugin:
                     result.extend(geoms)
                     if not crs:
                         crs = layer_crs
-        return result, crs
+        return result, crs, extent
 
     def continue_detect(self, rectangularize, create_raw_predictions_layer):
         qgis_crs = self._get_qgis_crs()
-        extent = self.iface.mapCanvas().extent()
 
-        features, feature_layer_crs = self.get_reference_features()
+        features, feature_layer_crs, extent = self.get_reference_features()
         info("Feature layer CRS: {}", feature_layer_crs)
         if not feature_layer_crs:
             feature_layer_crs = qgis_crs
