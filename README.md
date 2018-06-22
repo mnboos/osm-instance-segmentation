@@ -1,7 +1,8 @@
 # Change Detector from Image to Vector
 Instance segmentation with neural networks based on aerial images
-This project is about generating building footprints from orthophotos (i.e. aerial imagery) using deep learning.
+This project is about finding changes in vector data from orthophotos (i.e. aerial imagery) using deep learning.
 
+It's a QGIS plugin with a Python / Tensorflow backend.
 
 ## Quick Start
 This repository can be used for various tasks, like training the neural network, debugging it using the jupyter notebooks, generate training data or run the prediction as backend for the QGIS plugin.
