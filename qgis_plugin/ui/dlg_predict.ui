@@ -36,7 +36,7 @@
    <item row="0" column="0" colspan="5">
     <widget class="QGroupBox" name="groupSettings">
      <property name="title">
-      <string>Settings</string>
+      <string>Input</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_2">
       <item row="0" column="2">

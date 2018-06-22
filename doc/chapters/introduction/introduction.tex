@@ -50,5 +50,17 @@ As soon as the training is completed, the prediction can be done. For this thesi
 	\label{fig:introduction:prediction_phase2}
 \end{figure}
 
+\section{Hardware Requirements}
+To train the neural network, a graphics card is required. We used a Nvidia P100 with 12 gigabytes of memory. A Nvidia GTX 750 was not sufficient due to only 2 gigabytes of memory. Additionally, CUDA\footnote{https://developer.nvidia.com/cuda-toolkit (22.06.18)} has to be installed aswell as Docker\footnote{https://www.docker.com/ (22.06.18)} and Nvidia-docker\footnote{https://github.com/NVIDIA/nvidia-docker (22.06.18)}.
 
+How the docker image can be built and run is described in detail in the readme of the repository\footnote{https://github.com/mnboos/osm-instance-segmentation/blob/master/README.md (22.06.18)}.
 
+\section{User Scenario}
+This section describes a user scenario that can be used for example in a showcase or to instruct the actual end user on how to use the plugin with its corresponding backend. This user scenario requires, that the plugin is correctly installed in QGIS and the backend has been configured correctly in the settings of the plugin. Additionally, the backend has to be running.
+
+\begin{enumerate}
+    \item Start QGIS
+    \item Load the data of the cadastral survey data. This may for example be a zip archive containing shape files according to the MOpublic \cite{mopublic}  specification. In this case, the archive can simply be dragged and dropped into QGIS. Followingly, a dialog will open which allows the select several layers. 
+    \item Select the layers containing buildings and / or other geometries. Typically and according to MOpublic this layer is named \textit{BB\_BoFlaeche}.
+    \item Load an imagery layer, for example Bing maps or Google maps. This can be done easily using the QGIS plugin \textit{OpenLayers}.
+\end{enumerate}

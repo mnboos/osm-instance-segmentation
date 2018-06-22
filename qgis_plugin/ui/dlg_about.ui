@@ -17,7 +17,7 @@
    </sizepolicy>
   </property>
   <property name="windowTitle">
-   <string>About Deep OSM</string>
+   <string>About</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="1" column="0" alignment="Qt::AlignRight">

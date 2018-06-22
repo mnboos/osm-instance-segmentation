@@ -35,7 +35,7 @@ class Ui_DlgAbout(object):
 
     def retranslateUi(self, DlgAbout):
         _translate = QtCore.QCoreApplication.translate
-        DlgAbout.setWindowTitle(_translate("DlgAbout", "About Deep OSM"))
+        DlgAbout.setWindowTitle(_translate("DlgAbout", "About"))
         self.btnClose.setText(_translate("DlgAbout", "Close"))
         self.txtAbout.setHtml(_translate("DlgAbout", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
 "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"

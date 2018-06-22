@@ -100,7 +100,7 @@ class Ui_DlgPredict(object):
 
     def retranslateUi(self, DlgPredict):
         DlgPredict.setWindowTitle(_translate("DlgPredict", "Prediction", None))
-        self.groupSettings.setTitle(_translate("DlgPredict", "Settings", None))
+        self.groupSettings.setTitle(_translate("DlgPredict", "Input", None))
         self.lblImageryLayer.setText(_translate("DlgPredict", "Imagery Layer", None))
         self.lblAddRawPredictions.setText(_translate("DlgPredict", "Predictions", None))
         self.chkAddPlainPredictions.setText(_translate("DlgPredict", "Add the predictions as-is from the neural network. Otherwise, only the changes will be shown.", None))

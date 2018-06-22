@@ -229,13 +229,13 @@ class DeepOsmPlugin:
         self.save_image(file_path)
 
         assert os.path.isfile(file_path)
-        info("Canvas refreshed and saved: {}", file_path)
         with open(file_path, 'rb') as f:
             binary_data = f.read()
         self.image_data = base64.standard_b64encode(binary_data)
         self.canvas_refreshed = True
         self.prediction_dialog.set_image_preview(file_path)
         self._update_predict_button()
+        info("Canvas refreshed")
 
     def create_layer(self, name, features, crs, apply_style):
         """

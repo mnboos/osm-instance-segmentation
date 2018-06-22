@@ -45,7 +45,7 @@ class Ui_DlgSettings(object):
 
     def retranslateUi(self, DlgSettings):
         _translate = QtCore.QCoreApplication.translate
-        DlgSettings.setWindowTitle(_translate("DlgSettings", "About Deep OSM"))
+        DlgSettings.setWindowTitle(_translate("DlgSettings", "Settings"))
         self.btnClose.setText(_translate("DlgSettings", "Close"))
         self.groupSettings.setTitle(_translate("DlgSettings", "Settings"))
         self.txtServerPath.setText(_translate("DlgSettings", "http://localhost:8080"))
