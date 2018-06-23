@@ -41,3 +41,34 @@ A prediction is classified as change, as soon as it fully covers at least one ex
 	\caption{Changes have attributes showing the predicted class and the type of change (added, deleted, changed)}
 	\label{fig:plugin:change_attributes}
 \end{figure}
+
+\section{Prediction Accuracy}
+Normally, the accuracy of predictions of objects on orthophotos is measured using \textit{Intersection over Union} (IoU), also called \textit{Jaccard coefficient} \cite{Liu.2011} which is a measure of similarity between objects. Its calculation is shown in \autoref{fig:results:iou}.
+
+\begin{figure}[H]
+    \centering
+	\includegraphics[width=0.6\linewidth]{chapters/practical_results/images/iou_equation.png}
+	\caption{The calculation of Intersection over Union (IoU)\\Source: https://www.pyimagesearch.com/2016/11/07/intersection-over-union-iou-for-object-detection/ (23.06.2018)}
+	\label{fig:results:iou}
+\end{figure}
+
+However, due to its non-differentiability, the IoU is can not directly be used as loss-coefficient during the training of the neural network. Despite that, there are options how to use IoU during training shown in \cite{Bebis.2016}, \cite{Yu.20160804}.
+
+Since the goal of this thesis is not to get the most accurate predictions but to reduce the false positives and false negatives as much as possible, it does not really matter if the prediction is extremely accurate but if all objects of their corresponding classes are found. Due to this, we introduce a new metric called \textbf{Hit rate}, which simply counts if an object was found (hit) or not. It can be calculated as shown.
+
+\begin{equation}
+	Precision = \dfrac{|TP|}{|TP| + |FP|}
+\end{equation}
+and
+\begin{equation}
+	Recall = \dfrac{|TP|}{|TP| + |FN|}
+\end{equation}
+where:
+\begin{itemize}[label=]
+    \item $TP$: True positive prediction
+    \item $FP$: False positive prediction
+    \item $FN$: False negative prediction
+\end{itemize}
+
+Finally, accordingly to this metrics, our predictions have a \textbf{Precision of 95.33\%} and a \textbf{Recall of 88.96\%}. This values have been evaluated using a randomly selected batch of 150 images from the test data set.
+

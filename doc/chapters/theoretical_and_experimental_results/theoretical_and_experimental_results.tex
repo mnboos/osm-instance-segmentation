@@ -5,7 +5,7 @@
 \subsection{Airtiler - A data set generation tool}
 For the training, we wanted to use publicly and freely available data. Not only due to the fact, highly resolved orthophotos cost quite a lot but also to make it possible for others to reproduce the results.
 
-As a result of this, OpenStreetMap was chosen for the vector data and Microsoft Bing Maps for the imagery. A dataset consisting of satellite imagery and images for the ground truths can be created using the Python module Airtiler \cite{airtiler}. This tool has been developed by the author during this master thesis. It allows to configure one or more bounding boxes together with several other options like zoom level and OpenStreetMap attributes.
+As a result of this, OpenStreetMap was chosen for the vector data and Microsoft Bing Maps for the imagery. A data set consisting of satellite imagery and images for the ground truths can be created using the Python module Airtiler \cite{airtiler}. This tool has been developed by the author during this master thesis. It allows to configure one or more bounding boxes together with several other options like zoom level and OpenStreetMap attributes.
 
 \autoref{lst:results:airtiler_config} shows a sample configuration as it is being used by Airtiler.
 
@@ -87,7 +87,7 @@ In the next step, the configured bounding boxes are iterated and for each box al
     \end{figure}
 
 \subsection{Publicly available data sets}
-Furthermore, there are several different datasets publicly available: \cite{VolodymyrMnih.2013}, \cite{spacenet}, \cite{isprs-vaihingen}, \cite{isprs-potsdam}, \cite{Helber.20170831}, \cite{deepsat}.
+Furthermore, there are several different data sets publicly available: \cite{VolodymyrMnih.2013}, \cite{spacenet}, \cite{isprs-vaihingen}, \cite{isprs-potsdam}, \cite{Helber.20170831}, \cite{deepsat}.
 
 \section{Mapping Challenge}
 At the time of this writin the platform crowdAI hosted a challenge called Mapping Challenge \cite{mappingchallenge} which was about detecting buildings from satellite imagery. In order to gain additional knowledge regarding the performance of Mask R-CNN, we decided to participate in the challenge.
@@ -130,6 +130,3 @@ For the crowdAI Mapping Challenge \cite{mappingchallenge} the instances were rep
 	\caption{The corresponding ground truth}
 	\label{fig:results:buildings_with_holes_gt}
 \end{figure}
-
-\section{Building detection}
-tbd
