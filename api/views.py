@@ -166,8 +166,6 @@ def _predict(request: InferenceRequest):
             start_width = col * img_size
             start_height = row * img_size
             img_copy = img.crop((start_width, start_height, start_width+img_size, start_height+img_size))
-            # img_copy = img_copy.resize((1024, 1024), Image.ANTIALIAS)
-            img_copy.save(r"C:\Users\Martin\AppData\Local\Temp\deep_osm\cropped.png")
             print("Cropped image size: ", img_copy.size)
             arr = np.asarray(img_copy)
             img_id = "img_id_{}_{}".format(col, row)
@@ -176,23 +174,25 @@ def _predict(request: InferenceRequest):
             # break
         # break
     point_sets = _predictor.predict_arrays(images=images_to_predict)
-    # print(point_sets)
 
+    count = 0
     for points, img_id, class_name in point_sets:
+        count += 1
         col, row = tiles_by_img_id[img_id]
         points = list(map(lambda p: (p[0]+col*256, p[1]+row*256), points))
         if request.rectangularize:
+            print("Rectangularizing point set {}/{}...".format(count, len(point_sets)))
             points = rectangularize(points)
+            print("Rectangularizing complete")
+        print("Georeferencing point set {}/{}...".format(count, len(point_sets)))
         georeffed = georeference(points, extent)
+        print("Georeferencing complete")
         if georeffed:
             points = georeffed
         polygon = geometry.Polygon(points)
         all_polygons.append((polygon, class_name))
 
     return all_polygons
-    # results = list(map(to_geojson, all_polygons))
-    # print(results)
-    # return results
 
 
 def to_geojson(geom, properties=None):
