@@ -74,7 +74,7 @@ class DeepOsmPlugin:
     def get_reference_features(self):
         extent = self.canvas.extent()
         imagery_layer_name = self.imagery_layer_name
-        feature_types = ['Gebaeude', 'Strasse_Weg']
+        feature_types = ['Gebaeude', 'Strasse_Weg', 'Reben', 'Wasserbecken', 'uebrige_befestigte']
         result = []
         crs = None
         for layer in list(QgsMapLayerRegistry.instance().mapLayers().values()):
