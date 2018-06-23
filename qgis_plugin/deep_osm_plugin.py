@@ -64,6 +64,10 @@ class DeepOsmPlugin:
         self._refresh_canvas()
         res = self.prediction_dialog.show()
         if res:
+            self.iface.messageBar().pushMessage(
+                "Please wait while the data is being prepared...",
+                level=QgsMessageBar.INFO,
+                duration=5)
             add_raw_predictions = self.prediction_dialog.add_raw_predictions
             self.continue_detect(rectangularize, create_raw_predictions_layer=add_raw_predictions)
 
@@ -131,6 +135,11 @@ class DeepOsmPlugin:
             host += "/predict"
 
         info("HTTP POST: {}", host)
+        self.iface.messageBar().popWidget()
+        self.iface.messageBar().pushMessage(
+            "Data has been sent to '{}'".format(host),
+            level=QgsMessageBar.INFO,
+            duration=5)
         status, raw = post(host, json.dumps(data))
         if status == 200 and raw:
             response = {}
@@ -138,6 +147,10 @@ class DeepOsmPlugin:
                 response = json.loads(raw)
             except Exception as e:
                 info("Parsing response failed: {}", str(e))
+                self.iface.messageBar().pushMessage(
+                    "Something went wrong: {}".format(str(e)),
+                    level=QgsMessageBar.CRITICAL,
+                    duration=5)
             if "features" in response:
                 all_features = []
                 all_features.extend(response["deleted"])
@@ -148,6 +161,10 @@ class DeepOsmPlugin:
                 self.create_layer("Changes", all_features, feature_layer_crs, True)
             else:
                 info("Prediction failed: {}", response)
+                self.iface.messageBar().pushMessage(
+                    "Prediction failed: {}".format(response),
+                    level=QgsMessageBar.CRITICAL,
+                    duration=5)
 
     @property
     def imagery_layer_name(self):
