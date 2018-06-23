@@ -1,15 +1,15 @@
 % !TeX spellcheck = en_US
 
-\chapter{Management Summary}
+\chapter*{Management Summary}
 
-\section*{Introduction}
-tbd
+\paragraph*{Introduction}
+Cadastral surveying means to keep track of real property boundaries. Periodically, the cadastral survey data has to be refreshed. Generally spoken, this means among others to find changes in landcover based on aerial imagery. The renewal of this data means a lot of manual work, as it is often not trivial to find the changes.
 
-\section*{Goals}
-tbd
+\paragraph*{Goals}
+Using machine learning and QGIS, a modern GIS editing tool, the goal is to reduce the amount of manual work required in the renewal of the cadastral survey data.
 
-\section*{Methods}
-tbd
+\paragraph*{Results}
+The result of this work is a QGIS plugin which supports the user in the renewal. The plugin uses a backend on a (remote) server which predicts all objects of an image received from the plugin and finds the changes in landcover (deleted, added, changed) corresponding to the current data. The accuracy of these predictions is about 95\%. 
 
-\section*{Results}
-tbd
+\paragraph*{Future Work}
+The next steps would be to extend the plugin in a way, that a large area can be defined, which is then automatically processed in the background. Additionally, by training the neural network with a larger data set, the prediction accuracy could be improved.
