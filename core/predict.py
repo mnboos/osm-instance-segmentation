@@ -56,7 +56,7 @@ class Predictor:
                 inference_config.IMAGES_PER_GPU = len(img_with_id_batch)
                 model = modellib.MaskRCNN(mode="inference", config=inference_config, model_dir="log")
                 model.load_weights(self.weights_path, by_name=True)
-            print("Predicting batch {}/{}".format(i, batches))
+            print("Predicting batch {}/{}".format(i+1, batches))
             img_batch = list(map(lambda i: i[0], img_with_id_batch))
             id_batch = list(map(lambda i: i[1], img_with_id_batch))
             results = model.detect(img_batch, image_ids=id_batch, verbose=verbose)

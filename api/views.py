@@ -154,32 +154,42 @@ def _predict(request: InferenceRequest):
     }
 
     img_size = 256
+    scale_by_factor = 3
+    new_width = width * scale_by_factor
+    new_height = height * scale_by_factor
+
+    img = img.resize((new_width, new_height), Image.ANTIALIAS)
 
     all_polygons = []
-    cols = int(math.ceil(width / float(img_size)))
-    rows = int(math.ceil(height / float(img_size)))
+    cols = int(math.ceil(new_width / float(img_size)))
+    rows = int(math.ceil(new_height / float(img_size)))
     images_to_predict = []
     tiles_by_img_id = {}
+    count = 0
     for col in range(0, cols):
         for row in range(0, rows):
+            count += 1
             print("Processing tile (x={},y={})".format(col, row))
             start_width = col * img_size
             start_height = row * img_size
             img_copy = img.crop((start_width, start_height, start_width+img_size, start_height+img_size))
             print("Cropped image size: ", img_copy.size)
+            # img_copy = img.resize((512, 512), Image.ANTIALIAS)
+            # img_copy.save(r"C:\Users\Martin\AppData\Local\Temp\deep_osm\cropped_{}.png".format(str(count)))
             arr = np.asarray(img_copy)
             img_id = "img_id_{}_{}".format(col, row)
             tiles_by_img_id[img_id] = (col, row)
             images_to_predict.append((arr, img_id))
             # break
         # break
+    # images_to_predict = images_to_predict[0:3]
     point_sets = _predictor.predict_arrays(images=images_to_predict)
 
     count = 0
     for points, img_id, class_name in point_sets:
         count += 1
         col, row = tiles_by_img_id[img_id]
-        points = list(map(lambda p: (p[0]+col*256, p[1]+row*256), points))
+        points = list(map(lambda p: ((p[0]+col*256)/scale_by_factor, (p[1]+row*256)/scale_by_factor), points))
         if request.rectangularize:
             print("Rectangularizing point set {}/{}...".format(count, len(point_sets)))
             points = rectangularize(points)
