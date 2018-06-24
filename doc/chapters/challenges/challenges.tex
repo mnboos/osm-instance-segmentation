@@ -9,35 +9,36 @@ Despite these available data sets, we decided to make our own, consisting solely
 
 It can be assumed, that in the future, more and more swiss cantons will made high resolution orthophotos publicly available. At the time of this writing, especially the canton of Zurich takes a pioneering role and makes several of their data sources publicly and freely available\footnote{https://geolion.zh.ch/ (15.06.18)}. However, at the time of this writing, it was not an option to use these images for this work, because it would lead to a rather small data set.
 
+
 \section{Prediction accuracy}
+
 \subsection{Class probability}
-After the first training the neural network, the results were not quite as expected. Even though, buildings were predicted as buildings in most cases, other classes, like tennis courts, were predicted as buildings as well. Due to this, the network has been retrained with the additional, incorrectly predicted, classes like tennis courts. However, instead of correctly making a distinction between buildings and tennis courts, the overall prediction accuracy got worse. 
+After the first training of the neural network, the results were not quite as good as expected. Even though, buildings were predicted as buildings in most cases, other classes, like tennis courts, were predicted as buildings as well. Due to this, the network has been retrained with the additional, incorrectly predicted, classes like tennis courts. However, instead of correctly making a distinction between buildings and tennis courts, the overall prediction accuracy got worse. 
 This might be the result of the network which has to solve a more complex task now, by deciding which class it is, instead of a simple yes-no decision. Additionally, the training data is highly imbalanced, as there are lot more samples of buildings than tennis courts.
 As a result of this, a solution could be to train the network several times seperatly, to get multiple models, each trained for a specific class. Another solution could be to weight the loss according to the relative amount of the specific class according to the size of the whole data set.
+
 
 \subsection{Outline}
 \autoref{fig:challenges:small_predictions} shows, that the predictions are in most cases a bit to small when compared to the corresponding orthophoto. This might be the result of slightly misaligned masks, since the masks and the images are generated seperately.
 
 \begin{figure}[H]
     \centering
-	\includegraphics[width=0.6\linewidth]{chapters/challenges/images/small_predictions.png}
+	\includegraphics[width=0.4\linewidth]{chapters/challenges/images/small_predictions.png}
 	\caption{Too small predictions}
 	\label{fig:challenges:small_predictions}
 \end{figure}
 
 
 \section{Building outline regularization}
-Once the network has been trained, it can be used to make predictions on images, it has never "seen" before. However, there are situations in which the predictions are far from perfect, especially then if the building is partially covered from trees or has unclear outlines. This can be seen in \autoref{fig:challenges:building_masks}.
+Once the network has been trained, it can be used to make predictions on images, it has never "seen" before. However, there are situations in which the predictions are far from perfect, especially then if the building is partially covered from trees or has unclear outlines. This can be seen in \autoref{fig:challenges:building_masks}. Obviously, the predictions are only approximations of the actual ground truths.
 
 \begin{figure}[H]
 	\centering
 	\begin{subfigure}{0.4\textwidth}
-		\centering
     	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/predicted_masks_gt.png}		    \caption{Actual ground truth}
     	\label{fig:challenges:predicted_building_masks_gt}
 	\end{subfigure}~
 		\begin{subfigure}{0.4\textwidth}
-		\centering
     	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/predicted_masks.png}		    \caption{Predicted building masks}
     	\label{fig:challenges:predicted_building_masks}
 	\end{subfigure}
@@ -45,7 +46,7 @@ Once the network has been trained, it can be used to make predictions on images,
 	\label{fig:challenges:building_masks}
 \end{figure}
 
-As a result of the inaccuracies in the predicted building masks the contours of these predictions can not directly be used to create the vectorized outlines. Instead, the predictions have to be regularized. The approach used is similar to \cite{Partovi.2017} and described in \autoref{fig:challenges:rectangularization}.
+As a result of the inaccuracies in the predicted building masks, the contours of these predictions can not directly be used to create the vectorized outlines. Instead, the predictions have to be regularized. The approach used is similar to \cite{Partovi.2017} and described in \autoref{fig:challenges:rectangularization}.
 
 \begin{figure}[H]
 \centering
@@ -114,19 +115,19 @@ As soon as the contour has been extracted, its number of points will be reduced 
 
 \begin{figure}[H]
     \centering
-	\begin{subfigure}{0.4\textwidth}
+	\begin{subfigure}{0.45\textwidth}
     	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/original_contour.png}		    	\caption{Original contour}
 	\end{subfigure}~
-	\begin{subfigure}{0.4\textwidth}
+	\begin{subfigure}{0.45\textwidth}
     	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/approx_contour.png}       			\caption{Approximated contour}
 	\end{subfigure}
-	\caption{Contour before and after approximation}
+	\caption{Contour before and after approximation. It can be seen, that the contour on the right consists of much lesser points.}
 	\label{fig:challenges:contour_approximation}
 \end{figure}
 
 
 \subsection{Line segmentation}
-Once the contour has been extracted, it is split into multiple line segments. For this, the main direction of the building is determined using the Hough Transformation \cite{Duda.1972}. The result of the Hough Transformation is an datastructure, which contains an angle, a distance and a number. The combination of the angle and the distance, from a predefined reference point, lead to a line. The number is the number of points which lie on the constructed line. Therefore, this algorithm can be used to detect the main building orientation, i.e. the longest contour-line of any orientation. The angle of the found line, is called the main building orientation.
+Once the contour has been extracted, it is split into multiple line segments. For this, the main direction of the building is determined using the Hough Transformation \cite{Duda.1972}. The result of the Hough Transformation is an datastructure, which contains an angle, a distance and a number. The combination of the angle and the distance, from a predefined reference point, lead to a line. The number is the number of points which lie on the constructed line. Therefore, this algorithm can be used to detect the main building orientation, i.e. the longest contour-line of any orientation. The angle of the line that is found, is called the main building orientation.
 
 Once the main building orientation is known, the line segmentation starts at the point which has the smallest distance to this line. The whole procedure is depicted in \autoref{alg:challenges:line_segmentation}.
 
@@ -195,19 +196,18 @@ At this point, each line segment belongs to a orientation class and the parallel
 \subsection{Update line orientation}
 Finally, the lines will be adjusted to their orientation class with respect to each lines parallelity / orthogonality. The result of such an adjustment, can be seen in \autoref{fig:challenges:adjusted_lines}, which shows a single orientation class and lines, which have been adjusted either parallel or orthogonal to the orientation class.
 
-\begin{figure}[H]
-    \centering
-	\includegraphics[width=0.4\linewidth]{chapters/challenges/images/adjusted_lines.png}
-	\caption{Adjusted lines}
-	\label{fig:challenges:adjusted_lines}
-\end{figure}
-
-\subsection{Gap filling}
 In order to create the final building outline, the only thing left to do is to fill the gaps between the line segments.
 
 \begin{figure}[H]
     \centering
-	\includegraphics[width=0.4\linewidth]{chapters/challenges/images/filled_gaps.png}
-	\caption{Final building outline}
-	\label{fig:challenges:final_building_outline}
+	\begin{subfigure}{0.45\textwidth}
+    	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/adjusted_lines.png}		    		\caption{Adjusted lines}
+    	\label{fig:challenges:adjusted_lines}
+	\end{subfigure}~
+	\begin{subfigure}{0.45\textwidth}
+    	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/filled_gaps.png}       				\caption{Final building outline}
+    	\label{fig:challenges:final_building_outline}
+	\end{subfigure}
+	\caption{The building outline with the adjusted lines on the left and the final outline with the gaps filled on the right}
+	\label{fig:challenges:building_ground_truths}
 \end{figure}

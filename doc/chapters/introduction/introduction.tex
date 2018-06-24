@@ -56,7 +56,7 @@ To train the neural network, a graphics card is required. We used a Nvidia P100 
 How the docker image can be built and run is described in detail in the readme of the repository\footnote{https://github.com/mnboos/osm-instance-segmentation/blob/master/README.md (22.06.18)}.
 
 \section{User Scenario}
-This section describes a user scenario that can be used for example in a showcase or to instruct the actual end user on how to use the plugin with its corresponding backend. This user scenario requires, that the plugin is correctly installed in QGIS and the backend has been configured correctly in the settings of the plugin, which can be accessed through the dropdown menu of the plugin shown in \autoref{fig:introduction:plugin_dropdown}. Additionally, the backend has to be running.
+This section describes a user scenario that can be used for a demonstration or to instruct the actual end user on how to use the plugin with its corresponding backend. This user scenario requires, that the plugin is correctly installed in QGIS and the backend has been configured correctly in the settings of the plugin, which can be accessed through the dropdown menu of the plugin shown in \autoref{fig:introduction:plugin_dropdown}. Additionally, the backend has to be running.
 %%
 \begin{enumerate}
     \item Start QGIS
@@ -65,7 +65,7 @@ This section describes a user scenario that can be used for example in a showcas
     \item Load an imagery layer like Bing maps or Google maps, which can easily be done using the \textit{OpenLayers} QGIS plugin.
     \item Open the prediction dialog shown in \autoref{fig:introduction:prediction_dialog} by clicking the plugins icon, which can be found on the \textbf{Manage Layers} toolbar. \autoref{fig:introduction:plugin_icon} show the plugins icon on the toolbar. \textbf{Alternative:} you can click on the little arrow next to the icon and select an option from the dropdown.
     \item Select the imagery layer from the dropdown. As shown in \autoref{fig:introduction:prediction_dialog}, a preview of the image that will be sent to the backend is shown at the bottom of the dialog. It might happen, that there are (large) white areas, which means one or more tiles were not loaded correctly from the corresponding service. In this case, the \textit{Refresh} button has to be clicked one or more times, until all white blobs have disappeared.
-    \item Finally, by clicking the \textit{Predict} button, the dialog will close and the vectors found will be sent to the backend. \textbf{Note:} The backend might take a while to process all the data and as a result of this, QGIS might close the network connection, which will result in an error if the backend tries to send the response. In order to solve this problem, set the network timeout in the QGIS settings, shown in \autoref{fig:introduction:qgis_timeout}, to a higher value. The connection will then be kept open for a longer time and no as a result of this, the backend can send the response without problems.
+    \item Finally, by clicking the \textit{Predict} button, the dialog will close and the vectors found will be sent to the backend. \textbf{Note:} The backend might take a while to process all the data and as a result of this, QGIS might close the network connection, which will result in an error if the backend tries to send the response. In order to solve this problem, set the network timeout in the QGIS settings, shown in \autoref{fig:introduction:qgis_timeout}, to a higher value. The connection will then be kept open for a longer time and as a result of this, the backend can send the response without problems.
 \end{enumerate}
 
 
@@ -97,4 +97,6 @@ This section describes a user scenario that can be used for example in a showcas
 	\label{fig:introduction:qgis_timeout}
 \end{figure}
 
-In order to understand which data will collected and sent to the backend by the plugin, one has to know of the MOpublic \cite{mopublic} specification. According to this specification, each feature is attributed with a \textit{type}. Since the neural network of this thesis has been trained for some predefined classes, not all vectors from the cadastral survey data are required in the backend. As a result of this, all vector layers are being iterated over and only features of the current map extent which fulfill the QGIS expression \textbf{\detokenize{"Typ" in ('Gebaeude', 'Strasse_Weg', 'Reben', 'Wasserbecken', 'uebrige_befestigte')}} are sent to the backend.
+As mentioned before, the plugin searches for existing vectors in the loaded layers and sends those fulfilling the QGIS expression \textbf{\detokenize{"Typ" in ('Gebaeude', 'Strasse_Weg', 'Reben', 'Wasserbecken', 'uebrige_befestigte')}} to the backend.
+
+For further details about the communication between the QGIS plugin and the backend, the API specification can be found in the appendix.

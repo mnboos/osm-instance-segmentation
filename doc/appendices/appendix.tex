@@ -18,6 +18,92 @@
     \listoftables
 }
 
+\chapter*{API}\label{chp:appendix:api}
+\begin{lstlisting}[language=yaml]
+swagger: "2.0"
+info:
+  description: Change Detector from Image to Vector
+  version: "1.0.0"
+  title: Change Detector from Image to Vector
+  contact:
+    name: Github repository
+    url: https://github.com/mnboos/osm-instance-segmentation
+  license:
+    name: GNU General Public License v3.0
+    url: https://www.gnu.org/licenses/gpl-3.0.en.html
+host: localhost
+basePath: /
+schemes:
+- http
+paths:
+  /predict:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          $ref: "#/definitions/InferenceRequest"
+      responses:
+        200:
+          description: successful operation
+          schema:
+            $ref: "#/definitions/InferenceResponse"
+definitions:
+  InferenceRequest:
+    type: "object"
+    properties:
+      rectangularize:
+        type: "boolean"
+      x_min:
+        type: "number"
+        description: Minimum longitude of the extent that is sent
+      x_max:
+        type: "number"
+        description: Maximum longitude of the extent that is sent
+      y_min:
+        type: "number"
+        description: Minimum latitude of the extent that is sent
+      y_max:
+        type: "number"
+        description: Maximum latitude of the extent that is sent
+      image_data:
+        type: "string"
+        description: Base64 encoded image that shall be predicted
+      reference_features:
+        type: "array"
+        items:
+          type: "string"
+          description: WKT encoded features
+  InferenceResponse:
+    type: "object"
+    properties:
+      features:
+        type: "array"
+        items:
+          type: "string"
+          description: GeoJSON encoded predictions
+      deleted:
+        type: "array"
+        items:
+          type: "string"
+          description: GeoJSON encoded objects that were deleted
+      added:
+        type: "array"
+        items:
+          type: "string"
+          description: GeoJSON encoded objects that were added
+      changed:
+        type: "array"
+        items:
+          type: "string"
+          description: GeoJSON encoded objects that were changed
+\end{lstlisting}
+
 
 % Bibliography
 \printbibliography

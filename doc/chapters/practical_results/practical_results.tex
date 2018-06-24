@@ -52,7 +52,7 @@ Normally, the accuracy of predictions of objects on orthophotos is measured usin
 	\label{fig:results:iou}
 \end{figure}
 
-However, due to its non-differentiability, the IoU is can not directly be used as loss-coefficient during the training of the neural network. Despite that, there are options how to use IoU during training shown in \cite{Bebis.2016}, \cite{Yu.20160804}.
+However, due to its non-differentiability, the IoU can not directly be used as loss-coefficient during the training of the neural network. Despite that, there are options how to use IoU during training shown in \cite{Bebis.2016}, \cite{Yu.20160804}.
 
 Since the goal of this thesis is not to get the most accurate predictions but to reduce the false positives and false negatives as much as possible, it does not really matter if the prediction is extremely accurate but if all objects of their corresponding classes are found. Due to this, we introduce a new metric called \textbf{Hit rate}, which simply counts if an object was found (hit) or not. It can be calculated as shown.
 
