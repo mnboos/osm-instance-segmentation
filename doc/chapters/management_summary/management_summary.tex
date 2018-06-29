@@ -3,13 +3,13 @@
 \chapter*{Management Summary}
 
 \paragraph*{Introduction}
-Cadastral surveying means to keep track of real property boundaries. Periodically, the cadastral survey data has to be refreshed. Generally spoken, this means among others to find changes in landcover based on aerial imagery. The renewal of this data means a lot of manual work, as it is often not trivial to find the changes.
+Cadastral surveying means keeping track of real property boundaries. Periodically, the cadastral survey data must be refreshed. Generally, this means finding changes in landcover, among other things, based on aerial imagery. The renewal of the data requires substantial manual work as it is often not trivial to identify the changes.
 
 \paragraph*{Goals}
-Using machine learning and QGIS, a modern GIS editing tool, the goal is to reduce the amount of manual work required in the renewal of the cadastral survey data.
+Using machine learning and QGIS, a modern GIS editing tool, the goal was to reduce the amount of manual work required for renewing the cadastral survey data.
 
 \paragraph*{Results}
-The result of this work is a QGIS plugin which supports the user in the renewal. The plugin uses a backend on a (remote) server which predicts all objects of an image received from the plugin and finds the changes in landcover (deleted, added, changed) corresponding to the current data. The accuracy of these predictions is about 95\%. 
+The result of this work was a QGIS plugin which supports the user in data renewal. The plugin uses a backend on a remote server, which predicts all objects of an image received from the plugin to find the changes in landcover (deleted, added, or changed) based on the current data. The accuracy of the predictions was about 95\%.
 
 \paragraph*{Future Work}
-The next steps would be to extend the plugin in a way, that a large area can be defined, which is then automatically processed in the background. Additionally, by training the neural network with a larger data set, the prediction accuracy could be improved.
+Future steps would include extending the plugin to allow a large area to be defined, which is then automatically processed in the background. Additionally, by training the neural network with a larger data set, the prediction accuracy could be improved.

@@ -3,23 +3,21 @@
 \chapter{Practical Challenges}\label{chp:practical_challenges}
 
 \section{Training data}
-When it comes to data sets that can be used to train the neural networks, there are two options. Either an already available data set is being used, either paid or free, or a new data set is created. Currently, machine learning and especially deep learning are popular topics. As a result of this, the availability of free and publicly available data sets has increased, especially in the area of image processing like segmentation, facial recognition or object detection. Free data sets consisting of aerial imagery are  \cite{VolodymyrMnih.2013}, \cite{spacenet}, \cite{isprs-vaihingen}, \cite{isprs-potsdam}, \cite{Helber.20170831}, \cite{deepsat}.
+There are two options when selecting a data set that can be used to train the neural networks. Either an already available data set is used, whether on a paid or free basis, or a new data set is created. Currently, machine learning and deep learning are popular topics, especially deep learning. As a result, more data sets are available publicly and at no cost, especially in the area of image processing – such as segmentation, facial recognition, and object detection. Free data sets consisting of aerial imagery are provided by several sources (\cite{VolodymyrMnih.2013}, \cite{spacenet}, \cite{isprs-vaihingen}, \cite{isprs-potsdam}, \cite{Helber.20170831}, \cite{deepsat}).
+Despite this availability of data sets, we decided to make our own. The data set would consist solely of open data, using Microsoft Bing for the imagery and OpenStreetMap for the vector data. Due to this, a tool named Airtiler \cite{airtiler} was developed and is described in detail in \autoref{chp:theoretical_and_experimental_results}.
 
-Despite these available data sets, we decided to make our own, consisting solely of open data, that is Microsoft Bing for the imagery and OpenStreetMap for the vector data. Due to this, a tool named Airtiler \cite{airtiler} which is described in detail in \autoref{chp:theoretical_and_experimental_results}.
-
-It can be assumed, that in the future, more and more swiss cantons will made high resolution orthophotos publicly available. At the time of this writing, especially the canton of Zurich takes a pioneering role and makes several of their data sources publicly and freely available\footnote{https://geolion.zh.ch/ (15.06.18)}. However, at the time of this writing, it was not an option to use these images for this work, because it would lead to a rather small data set.
+It can be assumed that in the future, more Swiss cantons\footnote{Switzerland consists of 26 cantons, which form the Swiss Confederation} will make high-resolution orthophotos publicly available. At the time of writing, the canton of Zurich played a pioneering role and made several of its data sources publicly and freely available\footnote{https://geolion.zh.ch/ (15.06.18)}. However, at the time of this writing it was not an option to use these images for our work because it would have been a rather small data set.
 
 
 \section{Prediction accuracy}
 
 \subsection{Class probability}
-After the first training of the neural network, the results were not quite as good as expected. Even though, buildings were predicted as buildings in most cases, other classes, like tennis courts, were predicted as buildings as well. Due to this, the network has been retrained with the additional, incorrectly predicted, classes like tennis courts. However, instead of correctly making a distinction between buildings and tennis courts, the overall prediction accuracy got worse. 
-This might be the result of the network which has to solve a more complex task now, by deciding which class it is, instead of a simple yes-no decision. Additionally, the training data is highly imbalanced, as there are lot more samples of buildings than tennis courts.
-As a result of this, a solution could be to train the network several times seperatly, to get multiple models, each trained for a specific class. Another solution could be to weight the loss according to the relative amount of the specific class according to the size of the whole data set.
+After the first training of the neural network, the results were not quite as good as expected. Although most of the buildings were predicted as buildings, other classes – like tennis courts – were also predicted as buildings. The network was therefore retrained using the additional and incorrectly determined classes (like tennis courts). However, instead of the distinction between buildings and tennis courts becoming more accurate, the overall prediction accuracy was even worse. This might have been the result of the network having to solve a more complex task, by deciding which class an object belonged to, instead of a simple yes-no decision. In addition, the training data were highly imbalanced as the images contained many more buildings than tennis courts.
 
+A solution could be to train the network separately several times to obtain several models, each trained for a specific class. Another solution could be to weight the loss according to the relative amount of the specific class, based on the size of the whole data set.
 
 \subsection{Outline}
-\autoref{fig:challenges:small_predictions} shows, that the predictions are in most cases a bit to small when compared to the corresponding orthophoto. This might be the result of slightly misaligned masks, since the masks and the images are generated seperately.
+\autoref{fig:challenges:small_predictions} shows that the predictions were generally rather too small, compared to the corresponding orthophoto. This might have been the result of slightly misaligned masks, since the masks and the images were generated separately.
 
 \begin{figure}[H]
     \centering
@@ -29,8 +27,8 @@ As a result of this, a solution could be to train the network several times sepe
 \end{figure}
 
 
-\section{Building outline regularization}
-Once the network has been trained, it can be used to make predictions on images, it has never "seen" before. However, there are situations in which the predictions are far from perfect, especially then if the building is partially covered from trees or has unclear outlines. This can be seen in \autoref{fig:challenges:building_masks}. Obviously, the predictions are only approximations of the actual ground truths.
+\section{Regularization of building outlines}
+Once a network has been trained, it can be used to make predictions on images it has never "seen" before. However, in certain situations the predictions are far from perfect, especially if the building is partially covered by trees or has unclear outlines. Examples are shown in \autoref{fig:challenges:building_masks}. The predictions in such cases are mere approximations of the actual ground truths.
 
 \begin{figure}[H]
 	\centering
@@ -46,7 +44,7 @@ Once the network has been trained, it can be used to make predictions on images,
 	\label{fig:challenges:building_masks}
 \end{figure}
 
-As a result of the inaccuracies in the predicted building masks, the contours of these predictions can not directly be used to create the vectorized outlines. Instead, the predictions have to be regularized. The approach used is similar to \cite{Partovi.2017} and described in \autoref{fig:challenges:rectangularization}.
+Because of the inaccuracies in predicted building masks, the contours of such predictions cannot directly be used to create the vectorized outlines. Instead, the predictions must be regularized. The approach we used is shown in \autoref{fig:challenges:rectangularization} and was similar to that described in literature \cite{Partovi.2017}. The single steps are described in detail in the following sections.
 
 \begin{figure}[H]
 \centering
@@ -58,8 +56,8 @@ As a result of the inaccuracies in the predicted building masks, the contours of
     \node [block, below of=contour] (segment) {Line segmentation};
     \node [cloud, below of=segment] (line_segments) {Line segments};
     \node [block, below of=line_segments] (assign_orientation) {Create orientation classes};
-    \node [block, below of=assign_orientation] (assign_neighbourhoods) {Create neighbourhoods};
-    \node [block, below of=assign_neighbourhoods] (rotate_lines) {Rotate lines};
+    \node [block, below of=assign_orientation] (assign_neighborhoods) {Create neighborhoods};
+    \node [block, below of=assign_neighborhoods] (rotate_lines) {Rotate lines};
     \node [block, below of=rotate_lines] (gap_filling) {Gap filling};
     \node [cloud, below of=gap_filling] (corner_points) {Building corner points};
 
@@ -69,8 +67,8 @@ As a result of the inaccuracies in the predicted building masks, the contours of
     \path [line,dashed] (contour) -- (segment);
     \path [line,dashed] (segment) -- (line_segments);
     \path [line,dashed] (line_segments) -- (assign_orientation);
-    \path [line] (assign_orientation) -- (assign_neighbourhoods);
-    \path [line] (assign_neighbourhoods) -- (rotate_lines);
+    \path [line] (assign_orientation) -- (assign_neighborhoods);
+    \path [line] (assign_neighborhoods) -- (rotate_lines);
     \path [line] (rotate_lines) -- (gap_filling);
     \path [line,dashed] (gap_filling) -- (corner_points);
 \end{tikzpicture}
@@ -78,10 +76,8 @@ As a result of the inaccuracies in the predicted building masks, the contours of
 	\label{fig:challenges:rectangularization}
 \end{figure}
 
-The single steps are described in detail in the following sections.
-
 \subsection{Contour extraction}
-The first step of the building outline regularization procedure consists of getting the contour from the predicted mask, which covers the whole building. The extraction is done using the marching squares algorithm \cite{Maple.2003}. In this algorithm, a square consisting of four cells is moved (marched) along the contour in such a way, that at least one cell always covers the object to be contoured. Additionally, the square always has a state, which is derived from the content of its cells, according to \eqref{equ:challenges:marching_squares_state}. The cells are traversed in counter clockwise order.
+The first step of the building outline regularization procedure consists of obtaining the contour from the predicted mask, which covers the whole building. The extraction is performed using the marching squares algorithm \cite{Maple.2003}. In this algorithm, a square consisting of four cells is moved (marched) along the contour in such a way that at least one cell always covers the object to be contoured. Additionally, the square always has a state that is derived from the content of its cells, according to \eqref{equ:challenges:marching_squares_state}. The cells are traversed in counter-clockwise order.
 
 \newenvironment{conditions}
   {\par\vspace{\abovedisplayskip}\noindent\begin{tabular}{>{$}l<{$} @{${}={}$} l}}
@@ -110,8 +106,7 @@ and
   \end{cases}
 \]
 
-
-As soon as the contour has been extracted, its number of points will be reduced using a Douglas-Peucker algorithm \cite{Douglas.1973}. The reason for this is, that the contour has pixel accuracy. That means, there may be several points on the same horizontal or vertical line, even though, the startpoint and endpoint of each such line would be enough, to represent the line. Additionally, the lower the number of points per contour is, the faster the following processing will be.
+After the contour has been extracted, its number of points is reduced using a Douglas-Peucker algorithm \cite{Douglas.1973}. The reason for this is that the contour has pixel accuracy. That means there may be several points on the same horizontal or vertical line, although the startpoint and endpoint of each line would be enough to represent the line. In addition, the fewer the points that are represented on a contour, the faster the processing will be.
 
 \begin{figure}[H]
     \centering
@@ -127,9 +122,9 @@ As soon as the contour has been extracted, its number of points will be reduced 
 
 
 \subsection{Line segmentation}
-Once the contour has been extracted, it is split into multiple line segments. For this, the main direction of the building is determined using the Hough Transformation \cite{Duda.1972}. The result of the Hough Transformation is an datastructure, which contains an angle, a distance and a number. The combination of the angle and the distance, from a predefined reference point, lead to a line. The number is the number of points which lie on the constructed line. Therefore, this algorithm can be used to detect the main building orientation, i.e. the longest contour-line of any orientation. The angle of the line that is found, is called the main building orientation.
+Once the contour has been extracted, it is split into many line segments. To do so, the main direction of the building is determined using the Hough Transformation \cite{Duda.1972}. The result of the Hough Transformation is a data-structure which contains an angle, a distance and a number. The combination of the angle and the distance, from a predefined reference point, leads to a line. The number is the number of points which lie on the constructed line. This algorithm can be used to detect the main building orientation, that is, the longest contour-line of any orientation. The angle of the line that is found is called the main building orientation.
 
-Once the main building orientation is known, the line segmentation starts at the point which has the smallest distance to this line. The whole procedure is depicted in \autoref{alg:challenges:line_segmentation}.
+Once the main building orientation is known, the line segmentation starts at the point which has the smallest distance from the line. The whole procedure is depicted in \autoref{alg:challenges:line_segmentation}.
 
 \begin{algorithm}[H]
 \KwData{Contour points, startpoint}
@@ -157,7 +152,7 @@ lines = []\\
 \end{algorithm}
 
 \subsection{Create orientation classes}
-After the line segmentation, an orientation will be assigned to each line. Generally, most of the buildings consist of mainly right angles. However, there are still buildings, for which this assumption is not true. Due to this, orthogonality will be preferred, but other angles will still be possible. Algorithm~\ref{alg:challenges:define_orientations} shows the procedure, which assigns a main orientation class to each line and defines the lines parallelity / orthogonality to the longest line of the same orientation class.
+After the line segmentation, an orientation is assigned to each line. Generally, most buildings consist of mainly right angles, although some buildings do exist for which this assumption is untrue. Hence, orthogonality is preferred but other angles remain possible. Algorithm~\ref{alg:challenges:define_orientations} shows the procedure which assigns a main orientation class to each line, and defines the line’s nature in terms of it being parallel or orthogonal to the longest line in the same orientation class.
 
 \begin{figure}[H]
     \centering
@@ -169,7 +164,7 @@ After the line segmentation, an orientation will be assigned to each line. Gener
     	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/irregular_building_masks.png}       	\caption{Non-orthogonal buildings}
     	\label{fig:challenges:irregular_buildings}
 	\end{subfigure}
-	\caption{Different kinds of buildings with regard to their corner angles}
+	\caption{Various building types with regard to corner angles}
 	\label{fig:challenges:building_ground_truths}
 \end{figure}
 
@@ -190,13 +185,11 @@ After the line segmentation, an orientation will be assigned to each line. Gener
 \label{alg:challenges:define_orientations} 
 \end{algorithm}
 
-\subsection{Create neighbourhoods}
-At this point, each line segment belongs to a orientation class and the parallelity / orthogonality of each line to the orientation classes main line is known. However, the spatial location of each line has not been taken into account yet, which is done in this step. Clusters of neighbouring lines are created within each orientation class. As a result of this, it is now possible to find lines, which may be better placed in an other orientation class. This is based in the assumption, that it is unprobable, that a line $k$ of the orientation class $x$ is surrounded by lines of the orientation class $y$. In this case, the line $k$ will be assigned to the orientation class $y$.
+\subsection{Create neighborhoods}
+At this point, each line segment belongs to an orientation class, and the parallelity or orthogonality of each line to the orientation class’s main line is known. However, the spatial location of each line has not been considered yet and this must be performed in the current step. Clusters of neighboring lines are created within each orientation class. These clusters make it possible to identify lines which may be better placed in another orientation class. The assumption underlying this step is that it is unlikely for a line $k$ of the orientation class $x$ to be surrounded by lines of the orientation class $y$. In this case, line $k$ will be assigned to orientation class $y$.
 
 \subsection{Update line orientation}
-Finally, the lines will be adjusted to their orientation class with respect to each lines parallelity / orthogonality. The result of such an adjustment, can be seen in \autoref{fig:challenges:adjusted_lines}, which shows a single orientation class and lines, which have been adjusted either parallel or orthogonal to the orientation class.
-
-In order to create the final building outline, the only thing left to do is to fill the gaps between the line segments.
+Finally, the lines are adjusted to their orientation class with regard to each line’s parallelity or orthogonality. The result of such an adjustment is shown in \autoref{fig:challenges:adjusted_lines}. The figure illustrates a single orientation of class and lines, which have been adjusted either parallel or orthogonal to the orientation class. To create the final building outline, all that remains is to fill in the gaps between line segments.
 
 \begin{figure}[H]
     \centering
@@ -208,6 +201,6 @@ In order to create the final building outline, the only thing left to do is to f
     	\includegraphics[width=0.9\linewidth]{chapters/challenges/images/filled_gaps.png}       				\caption{Final building outline}
     	\label{fig:challenges:final_building_outline}
 	\end{subfigure}
-	\caption{The building outline with the adjusted lines on the left and the final outline with the gaps filled on the right}
+	\caption{Building outline. Left panel: adjusted lines; right panel: final outline with gaps filled in.}
 	\label{fig:challenges:building_ground_truths}
 \end{figure}

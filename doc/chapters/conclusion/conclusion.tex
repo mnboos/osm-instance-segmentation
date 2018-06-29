@@ -3,12 +3,12 @@
 \chapter{Conclusion and Future Work}\label{chp:conclusion_and_future_work}
 
 \section{Training Data}
-Assumingly, a more accurate and less imbalanced data set would probably lead to a higher prediction quality. Using higher resolved images, it might even be possible to let the neural network learn the differences between asphalt and gravel roads. Additionally, the predicted masks would probably also be more accurate and less wrong predictions would happen. Generally spoken, there might be an increase in the overall prediction quality.
+A more accurate and balanced data set would probably lead to higher prediction quality. Using images with higher resolution might even enable the neural network to learn the differences between asphalt and gravel roads. Additionally, the predicted masks would probably also be more accurate and fewer wrong predictions would occur. Generally, there might be an increase in the overall quality of predictions.
 
-Additionally, instead of training with a data set consisting of images from a high zoom level like 18 or 19, using images from a lower zoom level like 16 or 17 might result in a overall faster prediction, as a larger area could be covered at once. Furthermore, since only the actual changes are of interest and not the predicted countours itself, it would not be a disadvantage that in this case the prediction accuracy would suffer a bit due to the lower detail lever per image.
+Additionally, instead of training with a data set consisting of images from a high zoom level (like 18 or 19), using images from a lower zoom level (16 or 17) might result in overall faster prediction as a larger area could be covered at once. Because only the actual changes are of interest, not the predicted contours themselves, it would not be problematic that in this case the prediction accuracy would suffer slightly through a reduced detail lever per image.
+
 
 \section{QGIS Plugin}
-Instead of sending an image and corresponding vectors to the backend, an option could be, to send two images, an old and a new one, to the backend. All changes can then be derived from the differences in the predictions of those two images. However, often one does not have access to either old or up-to-date imagery,
-which is a problem for the use case described in the introduction.
+Instead of sending an image and corresponding vectors to the backend, an option could be to send two images – an old and a new one – to the backend. All changes can then be derived from the differences in the predictions of those two images. However, often access to old and updated imagery is lacking, which is a problem for the use case described in the introduction.
 
-Another improvement would be to give the user the possibility, to manually choose a perimeter, which is then automatically processed, even though it might take a longer time.
+Another improvement would be to give the user the option to manually choose a perimeter. The perimeter would then be automatically processed, although it might take a longer time.

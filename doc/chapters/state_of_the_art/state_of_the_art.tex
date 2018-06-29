@@ -2,9 +2,17 @@
 
 \chapter{State of the art}\label{chp:state_of_the_art}
 
-There are various different techniques and technologies which allow to build neural networks for machine learning purposes. Due to the increasing computation power of current hardware, especially graphic cards, more complex and therefore computationally heavy models can be built. As a result of this, the active research leads to a number of improvements of existing networks or completely new networks each year.
+\section{Neural Networks}
+Various techniques and technologies allow for the building of neural networks for machine learning purposes. The increasing computational power of hardware, especially graphic cards, means that more complex and computationally heavy models are being built. Hence with every passing year, research leads to improvements in existing networks or to completely new networks.
 
-One big challenge in the area of computer vision is instance segmentation, which not only tries to detect occurences of a specific class, but also tries to find single instances of it. In other words, it tries to find the contour. In order to compare various architectures built for such a purpose, there are different challenges published on the internet. One of those leaderboards is from the Microsoft COCO challenge \cite{Lin.20150221}, which yearly tries to find the most competitive candidates for different tasks, such as object detection, instance segmentation or keypoint detection.
+A challenge in computer vision is instance segmentation, which not only tries to detect occurrences of a specific class but also tries to identify single instances within a class. That is, segmentation tries to find the contour. To compare various architectures built for such a purpose, various challenges have been published on the internet. One such leaderboard is from the Microsoft COCO challenge [1], which annually tries to find the most competitive candidates for various tasks. These tasks include object detection, instance segmentation, and keypoint detection.
 
-At the time of this writing, one of the best performing neural networks for instance segmentation is Mask R-CNN \cite{He.20170405}, which is based on Faster R-CNN \cite{Ren.20160106}.
-Another well performing architecture can be found with U-Net \cite{Ronneberger.20150518b} that has been created for medical purposes. Nonetheless, it can also be used for semantic segmentation of all kind of image data.
+At the time of writing, one of the best-performing neural networks for conducting instance segmentation was Mask R-CNN [2], based on Faster R-CNN [3]. Another highly performing architecture was U-Net [4], which was created for medical purposes but can also be used for semantic segmentation of any image data.
+
+\section{Picterra}
+Picterra\footnote{https://www.picterra.ch/ (29.06.2018)}, a platform to extract information from satellite or drone images, allows amongst others to detect building footprints.
+
+This platform comes with several different object detection models, which are \textbf{building footprint}, \textbf{airplane}, \textbf{train}, \textbf{ship} and \textbf{building}.
+
+\section{Mapbox Robosat}
+Robosat\footnote{https://github.com/mapbox/robosat (29.06.2018)} is an open source pipeline created by Mapbox\footnote{https://www.mapbox.com/ (29.06.2018)}, which allows to do feature extraction from orthophotos.

@@ -2,31 +2,29 @@
 
 \chapter{Image Segmentation with Convolutional Neural Networks (CNN)}\label{chp:segmentation_with_neural_networks}
 \section{Introduction}
-With the increasing computational power that comes with recent graphic cards, increasingly complex neural networks can be used on increasingly challenging tasks. Especially the area of image processing, deep learning gains in popularity. Not only due to the great availability of data sets but also because companies recognize the amount of knowledge and information that can be retrieved with such technologies.
-
-The following sections are a brief introduction into image segmentation using convolutional neural networks.
+With the increasing computational power of recent graphic cards, increasingly complex neural networks can be used for increasingly challenging tasks. In the area of image processing, deep learning is gaining in popularity, partly because of the wide availability of data sets. In addition, companies recognize the vast amount of knowledge and information that can be retrieved with such technologies. The following sections provide a brief introduction to image segmentation using convolutional neural networks.
 
 \section{Object detection and segmentation}
-Object detection exists since long before deep learning was so popular as it is now. In object detection, the goal is to determine whether an object of a specified class (for example 'car') is present on an image. Another type of object detection is with additional classification, which means to find all objects on an image together with their class and a probability that the object is actually belongs to the determined class. \autoref{fig:neural_networks:object_detection} shows an example of object detection and classification.
+Object detection existed long before deep learning became popular. In object detection, the goal is to determine whether an object of a specified class (for example “car”) occurs within an image. Another type of object detection is additional classification, which means finding all objects in an image, together with their class, and calculating the probability that the object belongs to the determined class. \autoref{fig:neural_networks:object_detection} shows an example of object detection and classification.
 
 \begin{figure}[H]
     \centering
 	\includegraphics[width=0.6\linewidth]{chapters/neural_networks/images/object_detection.png}
-	\caption{An example of object detection, showing the detected classes and the confidence of each prediction.\\ Source: https://dius.com.au/2016/12/06/the-cleverness-of-deep-learning/ (27.05.2018)}
+	\caption{An example of object detection, showing the detected classes and the confidence level for each prediction.\\ Source: https://dius.com.au/2016/12/06/the-cleverness-of-deep-learning/ (27.05.2018)}
 	\label{fig:neural_networks:object_detection}
 \end{figure}
 
-In contrast to object detection, the target of image segmentation is not only to state whether an object is present on the image, but to label each pixel of the image with a class, such as 'car' or 'building'. The Different types of image segmentation can be seen in \autoref{fig:neural_networks:image_segmentation}.
+In contrast to object detection, the aim of image segmentation is not only to state whether an object occurs in the image but also to label each pixel of the image with a class, such as “car” or “building”. Different types of image segmentation are shown in \autoref{fig:neural_networks:image_segmentation}.
 
 \begin{figure}[H]
     \centering
 	\includegraphics[width=0.8\linewidth]{chapters/neural_networks/images/segmentation.jpg}
-	\caption{Different types of image segmentation.\\ Source: https://i.stack.imgur.com/mPFUo.jpg (27.05.2018)}
+	\caption{Types of image segmentation.\\ Source: https://i.stack.imgur.com/mPFUo.jpg (27.05.2018)}
 	\label{fig:neural_networks:image_segmentation}
 \end{figure}
 
 \section{Convolutional Layer}
-A convolutional layer is one of the most important and basic building blocks of a neural network. It has a number of filters, each of which is small, compared to the input volume (the image), for example 5x5x3 pixels (a 5x5 filter with 3 channels, because standard images have 3 color channels). During the forward pass of the network, the filters are being moved over the input image and at each position of the filters on the image, a convolution is being computed, which is an element wise matrix multiplication and a sum over the resulting matrix. The result of this operation is an activation map, which is also the output of the convolutional layer.
+A convolutional layer is one of the most basic and important building blocks of a neural network. It has several filters, each of which is small compared to the input volume (the image) – for example, 5x5x3 pixels (a 5x5 filter with 3 channels, because standard images have 3 color channels). During the forward pass of the network, the filters are moved over the input image. At each position of the filters on the image, a convolution is computed, which is an element-wise matrix multiplication and a sum over the resulting matrix. The result of this operation is an activation map; this map is the output of the convolutional layer.
 
 \begin{figure}[H]
     \centering
@@ -35,19 +33,19 @@ A convolutional layer is one of the most important and basic building blocks of 
 	\label{fig:neural_networks:convolution_with_multiple_filters}
 \end{figure}
 
-Obviously, the size of a filter can be configured, as well as the step size, the stride, and the amount of zero padding around the input image.
+The size of a filter can be configured, as well as the step size, the stride, and the amount of zero padding around the input image.
 
 \begin{figure}[H]
     \centering
 	\includegraphics[width=0.6\linewidth]{chapters/neural_networks/images/example_filters.jpeg}
-	\caption{Example filters learned by \cite{Krizhevsky.2012}.\\ Source: http://cs231n.github.io/assets/cnn/weights.jpeg (27.05.2018)}
+	\caption{Example filters learned by AlexNet \cite{Krizhevsky.2012}.\\ Source: http://cs231n.github.io/assets/cnn/weights.jpeg (27.05.2018)}
 	\label{fig:neural_networks:example_filters}
 \end{figure}
 
 \section{Pooling Layer}
-Pooling is a technique which allows to reduce the size of an image by extracting a single value from a region of values. The extracted value depends on the pooling type that is used. The most common pooling types are max pooling for extracting the highest value from the current field and average (avg) pooling which extracts the lowest value.
+Pooling is a technique which allows reduction in the size of an image by extracting a single value from a region of values. The extracted value depends on the pooling type that is used. The most common pooling types are maximum (max) pooling for extracting the highest value from the current field, and average (avg) pooling, which extracts the average value of the current region.
 
-A pooling layer has basically trhee parameters, it can be configured with. Firstly, there is the stride \textit{s} which is the distance the filter is moved. Secondly, there is the filter size \textit{f} which determines the width and height of the filter that is used, to extract the value from the input.
+A pooling layer has basically three parameters it can be configured with. First, there is the stride \textit{s}, which is the distance the filter is moved. Second, there is the filter size \textit{f}, which determines the width and height of the filter that is used to extract the value from the input.
 
 \begin{figure}[H]
     \centering
@@ -63,7 +61,7 @@ A pooling layer has basically trhee parameters, it can be configured with. First
 	\label{fig:neural_networks:pooling}
 \end{figure}
 
-As described in the previous chapter, a layer can have multiple output channels. Obviously, pooling can also be done with multiple channels, which can be seen in \autoref{fig:neural_networks:max_pooling_multichannel}.
+As described in the previous chapter, a layer can have many output channels. Pooling can also be performed with multiple channels, as shown in \autoref{fig:neural_networks:max_pooling_multichannel}.
 
 \begin{figure}[H]
     \centering
@@ -73,10 +71,7 @@ As described in the previous chapter, a layer can have multiple output channels.
 \end{figure}
 
 \section{Fully Connected Layer}
-A fully connected layer is nearly the same as a convolutional layer. The only difference is, that the output of a convolutional layer
-is spatially connected only to a region of the previous layer but not to the whole output.
-\autoref{fig:neural_networks:fc_and_conv_layer} shows the difference between a fully connected layer and a convolutional layer.
-
+A fully connected layer is almost identical to a convolutional layer. The only difference is that the output of a convolutional layer is spatially connected to a region of the previous layer, but not to the whole output. \autoref{fig:neural_networks:fc_and_conv_layer} shows the difference between a fully connected layer and a convolutional layer.
 
 \begin{figure}[H]
     \centering
@@ -93,5 +88,4 @@ is spatially connected only to a region of the previous layer but not to the who
 \end{figure}
 
 \section{Mask R-CNN}
-Due to the massive amount of research required to come up with or improve an existing state of the art neural network architecture,
-this has been out of scope for this work. As a result of this, we decided to use Mask R-CNN \cite{He.20170405} which is, as the name implies, a recurrent, convolutional neural network.
+A massive amount of research would be required to develop or improve an existing state-of-the-art neural network architecture. This was beyond the scope of the study, so we decided to use Mask R-CNN \cite{He.20170405}. As the name implies, this is a recurrent, convolutional neural network.

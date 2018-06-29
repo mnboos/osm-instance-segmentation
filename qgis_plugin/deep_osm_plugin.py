@@ -120,7 +120,6 @@ class DeepOsmPlugin:
             'x_max': lon_max,
             'y_min': lat_min,
             'y_max': lat_max,
-            'zoom_level': zoom,
             'image_data': str(self.image_data),
             'reference_features': features
         }
