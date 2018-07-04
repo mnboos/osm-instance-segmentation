@@ -153,8 +153,8 @@ def _predict(request: InferenceRequest):
         'img_height': height
     }
 
-    img_size = 256
-    scale_by_factor = 3
+    img_size = 512  # the image will be cropped for prediction
+    scale_by_factor = 3  # and scaled by this factor for improved accuracy
     new_width = width * scale_by_factor
     new_height = height * scale_by_factor
 
@@ -189,7 +189,7 @@ def _predict(request: InferenceRequest):
     for points, img_id, class_name in point_sets:
         count += 1
         col, row = tiles_by_img_id[img_id]
-        points = list(map(lambda p: ((p[0]+col*256)/scale_by_factor, (p[1]+row*256)/scale_by_factor), points))
+        points = list(map(lambda p: ((p[0]+col*img_size)/scale_by_factor, (p[1]+row*img_size)/scale_by_factor), points))
         if request.rectangularize:
             print("Rectangularizing point set {}/{}...".format(count, len(point_sets)))
             points = rectangularize(points)
