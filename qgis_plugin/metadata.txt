@@ -3,11 +3,11 @@
 # Mandatory items:
 
 [general]
-name=Deep OSM
+name=Change Detector from Image to Vector
 qgisMinimumVersion=2.18
 qgisMaximumVersion=3.98
-description=foo
-about=bar
+description=This project is about finding changes in vector data from orthophotos (i.e. aerial imagery) using deep learning
+about=
 version=0.1.0
 author=Martin Boos
 email=geometalab@gmail.com
