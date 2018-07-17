@@ -146,7 +146,7 @@ class PredictionDialog(QDialog, Ui_DlgPredict):
             self._select_layer(imagery_layer)
         elif layer_names:
             self._select_layer(layer_names[0])
-            self._handle_imagery_layer_change(layer_names[0])
+            self._settings.setValue("IMAGERY_LAYER", layer_names[0])
 
         self._updating_layers = False
 
